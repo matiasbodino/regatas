@@ -224,12 +224,12 @@ html, body {
 
     <div class="section-label">SET PIECES</div>
     <div class="btn-row">
-      <button class="btn btn-navy" onclick="addEvent('scrum_g', 'Scrum G', 0, 0); event.stopPropagation();">Scrum G</button>
-      <button class="btn btn-red-light" onclick="addEvent('scrum_p', 'Scrum P', 0, 0); event.stopPropagation();">Scrum P</button>
+      <button class="btn btn-navy" onclick="addEvent('scrum_g', 'Scrum dominado', 0, 0); event.stopPropagation();">Scrum Dom</button>
+      <button class="btn btn-red-light" onclick="addEvent('scrum_p', 'Scrum perdido', 0, 0); event.stopPropagation();">Scrum Perd</button>
     </div>
     <div class="btn-row">
-      <button class="btn btn-navy" onclick="addEvent('line_g', 'Line G', 0, 0); event.stopPropagation();">Line G</button>
-      <button class="btn btn-red-light" onclick="addEvent('line_p', 'Line P', 0, 0); event.stopPropagation();">Line P</button>
+      <button class="btn btn-navy" onclick="addEvent('line_g', 'Line obtenido', 0, 0); event.stopPropagation();">Line Obt</button>
+      <button class="btn btn-red-light" onclick="addEvent('line_p', 'Line perdido', 0, 0); event.stopPropagation();">Line Perd</button>
     </div>
 
     <div class="section-label">RIVAL</div>
@@ -524,6 +524,7 @@ function guardarResultado() {
       return;
     }
 
+    // totales = obtenidos/dominados + perdidos
     var totalLine = lineG + lineP;
     var totalScrum = scrumG + scrumP;
     var linePct = totalLine > 0 ? Math.round((lineG / totalLine) * 100) : 0;
@@ -537,9 +538,9 @@ function guardarResultado() {
       triesA: triesA,
       triesC: triesC,
       scrumG: scrumG,
-      scrumP: scrumP,
+      scrumP: totalScrum,
       lineG: lineG,
-      lineP: lineP,
+      lineP: totalLine,
       penales: penalesMiss,
       line: linePct,
       scrum: scrumPct,

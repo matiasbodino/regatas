@@ -2129,17 +2129,15 @@ function chResultado(field, val) {
   } else {
     s.resultado[field] = Math.max(0, parseInt(val) || 0);
   }
-  // Auto-calcular % de line y scrum desde ganados/perdidos
+  // Auto-calcular % : obtenidos/totales (lineG/lineP) y dominados/totales (scrumG/scrumP)
   var r = s.resultado;
   if (r.lineG !== null && r.lineP !== null) {
-    var lineTotal = r.lineG + r.lineP;
-    r.line = lineTotal > 0 ? Math.round(r.lineG / lineTotal * 100) : 0;
+    r.line = r.lineP > 0 ? Math.round(r.lineG / r.lineP * 100) : 0;
   } else {
     r.line = null;
   }
   if (r.scrumG !== null && r.scrumP !== null) {
-    var scrumTotal = r.scrumG + r.scrumP;
-    r.scrum = scrumTotal > 0 ? Math.round(r.scrumG / scrumTotal * 100) : 0;
+    r.scrum = r.scrumP > 0 ? Math.round(r.scrumG / r.scrumP * 100) : 0;
   } else {
     r.scrum = null;
   }
@@ -2179,22 +2177,22 @@ function renderResultadoSection() {
     + '<div class="res-field-target">target: ' + tgt.peo + '%</div>'
     + '</div>'
     + '<div class="res-field">'
-    + '<div class="res-field-label">Line ganados</div>'
+    + '<div class="res-field-label">Lines obtenidos</div>'
     + '<input class="res-input" type="number" min="0" value="' + (r.lineG !== null ? r.lineG : '') + '" onchange="chResultado(\'lineG\',this.value)" onclick="event.stopPropagation()">'
     + '</div>'
     + '<div class="res-field">'
-    + '<div class="res-field-label">Line perdidos</div>'
+    + '<div class="res-field-label">Lines totales</div>'
     + '<input class="res-input" type="number" min="0" value="' + (r.lineP !== null ? r.lineP : '') + '" onchange="chResultado(\'lineP\',this.value)" onclick="event.stopPropagation()">'
-    + (r.lineG !== null && r.lineP !== null ? '<div class="res-field-target">' + Math.round(r.lineG / Math.max(r.lineG + r.lineP, 1) * 100) + '% \u00B7 tgt ' + tgt.line + '%</div>' : '')
+    + (r.lineG !== null && r.lineP !== null ? '<div class="res-field-target">' + Math.round(r.lineG / Math.max(r.lineP, 1) * 100) + '% \u00B7 tgt ' + tgt.line + '%</div>' : '')
     + '</div>'
     + '<div class="res-field">'
-    + '<div class="res-field-label">Scrum ganados</div>'
+    + '<div class="res-field-label">Scrum dominados</div>'
     + '<input class="res-input" type="number" min="0" value="' + (r.scrumG !== null ? r.scrumG : '') + '" onchange="chResultado(\'scrumG\',this.value)" onclick="event.stopPropagation()">'
     + '</div>'
     + '<div class="res-field">'
-    + '<div class="res-field-label">Scrum perdidos</div>'
+    + '<div class="res-field-label">Scrum totales</div>'
     + '<input class="res-input" type="number" min="0" value="' + (r.scrumP !== null ? r.scrumP : '') + '" onchange="chResultado(\'scrumP\',this.value)" onclick="event.stopPropagation()">'
-    + (r.scrumG !== null && r.scrumP !== null ? '<div class="res-field-target">' + Math.round(r.scrumG / Math.max(r.scrumG + r.scrumP, 1) * 100) + '% \u00B7 tgt ' + tgt.scrum + '%</div>' : '')
+    + (r.scrumG !== null && r.scrumP !== null ? '<div class="res-field-target">' + Math.round(r.scrumG / Math.max(r.scrumP, 1) * 100) + '% \u00B7 tgt ' + tgt.scrum + '%</div>' : '')
     + '</div>'
     + '<div class="res-field">'
     + '<div class="res-field-label">Penales en contra</div>'
@@ -2298,20 +2296,18 @@ function calcPromediosPonderados(semsData) {
   semsData.forEach(function(s) {
     var r = s.resultado;
     if (!r) return;
-    if (r.scrumG!==null&&r.scrumP!==null) { scrumGT+=(r.scrumG||0); scrumPT+=(r.scrumP||0); }
-    if (r.lineG!==null&&r.lineP!==null) { lineGT+=(r.lineG||0); linePT+=(r.lineP||0); }
+    if (r.scrumG!==null&&r.scrumP!==null) { scrumGT+=(r.scrumG||0); scrumPT+=(r.scrumP||0); } // dominados / totales
+    if (r.lineG!==null&&r.lineP!==null) { lineGT+=(r.lineG||0); linePT+=(r.lineP||0); } // obtenidos / totales
     if (r.penales!==null) penalesT+=(r.penales||0);
     if (r.peo!==null) { peoSum+=r.peo; peoN++; }
     if (r.tackles!==null) { tacklesSum+=r.tackles; tacklesN++; }
     if (r.ptsNos!==null||r.ptsRival!==null) partidos++;
   });
-  var scrumTotal=scrumGT+scrumPT;
-  var lineTotal=lineGT+linePT;
   return {
-    scrumPct: scrumTotal>0 ? round1(scrumGT/scrumTotal*100) : null,
-    scrumG:scrumGT, scrumP:scrumPT, scrumTotal:scrumTotal,
-    linePct: lineTotal>0 ? round1(lineGT/lineTotal*100) : null,
-    lineG:lineGT, lineP:linePT, lineTotal:lineTotal,
+    scrumPct: scrumPT>0 ? round1(scrumGT/scrumPT*100) : null,
+    scrumG:scrumGT, scrumP:scrumPT, scrumTotal:scrumPT,
+    linePct: linePT>0 ? round1(lineGT/linePT*100) : null,
+    lineG:lineGT, lineP:linePT, lineTotal:linePT,
     penalesTotal:penalesT,
     penalesPorPartido: partidos>0 ? round1(penalesT/partidos) : null,
     peoProm: peoN>0 ? round1(peoSum/peoN) : null,
@@ -2340,8 +2336,8 @@ function buildKpiCards(semsData, targets) {
 
   var items = [
     {label:'PEO', avg:pond.peoProm, tgt:tgtFallback.peo, higher:true, detail:pond.partidos+' partidos'},
-    {label:'Obt. Line', avg:pond.linePct, tgt:tgtFallback.line, higher:true, detail:pond.lineG+' de '+pond.lineTotal+' lines'},
-    {label:'Dom. Scrum', avg:pond.scrumPct, tgt:tgtFallback.scrum, higher:true, detail:pond.scrumG+' de '+pond.scrumTotal+' scrums'},
+    {label:'Obt. Line', avg:pond.linePct, tgt:tgtFallback.line, higher:true, detail:pond.lineG+' obt. de '+pond.lineTotal+' totales'},
+    {label:'Dom. Scrum', avg:pond.scrumPct, tgt:tgtFallback.scrum, higher:true, detail:pond.scrumG+' dom. de '+pond.scrumTotal+' totales'},
     {label:'Tackles err.', avg:pond.tacklesProm, tgt:tgtFallback.tackles, higher:false, detail:pond.partidos+' partidos'}
   ];
 
