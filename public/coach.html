@@ -1622,6 +1622,18 @@ function renderDashFull(){
 
   document.getElementById('dash-full-content').innerHTML=`
     <div class="card" style="margin-bottom:12px">
+      <div style="font-size:14px;font-weight:600;color:#0D1B4E;margin-bottom:12px">Target por grupo · referencia del ciclo</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+        ${grpOrder.map(g=>{
+          const gc=GRUPOS[g],tgt=TARGETS[g]||0;
+          return `<div style="background:${gc.light};border-radius:8px;padding:10px 14px;border-left:4px solid ${gc.color}">
+            <div style="font-size:11px;font-weight:700;color:${gc.color}">${g}</div>
+            <div style="font-size:24px;font-weight:700;color:#0D1B4E;margin-top:2px">~${tgt}%</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+    <div class="card">
       <div style="font-size:14px;font-weight:600;color:#0D1B4E;margin-bottom:12px">Distribución por semana — % del tiempo de cancha</div>
       <div style="font-size:11px;color:#888;margin-bottom:12px">Verde = en target · Rojo = debajo · Amarillo = sobre target</div>
       <div style="overflow-x:auto">
@@ -1633,18 +1645,6 @@ function renderDashFull(){
           </tr></thead>
           <tbody>${semRows}</tbody>
         </table>
-      </div>
-    </div>
-    <div class="card">
-      <div style="font-size:14px;font-weight:600;color:#0D1B4E;margin-bottom:12px">Target por grupo · referencia del ciclo</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
-        ${grpOrder.map(g=>{
-          const gc=GRUPOS[g],tgt=TARGETS[g]||0;
-          return `<div style="background:${gc.light};border-radius:8px;padding:10px 14px;border-left:4px solid ${gc.color}">
-            <div style="font-size:11px;font-weight:700;color:${gc.color}">${g}</div>
-            <div style="font-size:24px;font-weight:700;color:#0D1B4E;margin-top:2px">~${tgt}%</div>
-          </div>`;
-        }).join('')}
       </div>
     </div>`;
 }
