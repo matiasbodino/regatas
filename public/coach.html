@@ -2056,19 +2056,23 @@ function renderPublishedBanner() {
 }
 
 function guardarSemana() {
-  var s = SEMS[curSem];
   var btn = document.getElementById('btn-guardar');
   saveToLocal();
-  markGuardado(s.sem);
+  // Bloquear todas las semanas que tienen al menos un bloque cargado
+  var count = 0;
+  SEMS.forEach(function(s) {
+    var tiene = (s.lun && s.lun.length > 0) || (s.mar && s.mar.length > 0) || (s.jue && s.jue.length > 0);
+    if (tiene) { markGuardado(s.sem); count++; }
+  });
   renderAll();
-  btn.textContent = '\u2713 Guardado';
+  btn.textContent = '\u2713 ' + count + ' semanas guardadas';
   btn.style.background = '#1A6B3E';
   btn.style.borderColor = '#1A6B3E';
   setTimeout(function() {
     btn.textContent = '\uD83D\uDCBE Guardar';
     btn.style.background = '#27AE60';
     btn.style.borderColor = '#27AE60';
-  }, 2000);
+  }, 2500);
 }
 
 function unlockSem(semNum) {
