@@ -2120,8 +2120,64 @@ function renderResultados() {
   }).join('');
 
   var emptyMsg = semsConDatos.length === 0
-    ? '<div style="text-align:center;padding:40px 20px;color:#888;font-size:13px">No hay resultados cargados. Cargá los datos en el Planificador \u2192 secci\u00F3n "Resultado del partido".</div>'
+    ? '<div style="text-align:center;padding:40px 20px;color:#888;font-size:13px">No hay resultados cargados. Carg\u00E1 los datos en el Planificador \u2192 secci\u00F3n "Resultado del partido".</div>'
     : '';
+
+  // Stats de puntos y W/E/L
+  var statsHtml = '';
+  if (semsConDatos.length > 0) {
+    var totalAFavor = 0, totalEnContra = 0, ganados = 0, empatados = 0, perdidos = 0;
+    semsConDatos.forEach(function(s) {
+      var r = s.resultado;
+      totalAFavor += (r.ptsNos || 0);
+      totalEnContra += (r.ptsRival || 0);
+      if (r.ptsNos > r.ptsRival) ganados++;
+      else if (r.ptsNos === r.ptsRival) empatados++;
+      else perdidos++;
+    });
+    var diferencia = totalAFavor - totalEnContra;
+    var difColor = diferencia > 0 ? '#27AE60' : diferencia < 0 ? '#E74C3C' : '#888';
+    var difSign = diferencia > 0 ? '+' : '';
+    var promEnContra = Math.round(totalEnContra / semsConDatos.length);
+
+    statsHtml = '<div class="card" style="margin-bottom:12px">'
+      + '<div style="font-size:14px;font-weight:600;color:#0D1B4E;margin-bottom:12px">Resumen de la temporada</div>'
+      + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">'
+      // W E L
+      + '<div style="background:#D6EFE0;border-radius:10px;padding:12px 14px;text-align:center">'
+      + '<div style="font-size:26px;font-weight:700;color:#1A6B3E">' + ganados + '</div>'
+      + '<div style="font-size:10px;color:#1A6B3E;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">Ganados</div>'
+      + '</div>'
+      + '<div style="background:#FEF9D9;border-radius:10px;padding:12px 14px;text-align:center">'
+      + '<div style="font-size:26px;font-weight:700;color:#7A5200">' + empatados + '</div>'
+      + '<div style="font-size:10px;color:#7A5200;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">Empates</div>'
+      + '</div>'
+      + '<div style="background:#FDECEC;border-radius:10px;padding:12px 14px;text-align:center">'
+      + '<div style="font-size:26px;font-weight:700;color:#C0392B">' + perdidos + '</div>'
+      + '<div style="font-size:10px;color:#C0392B;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">Perdidos</div>'
+      + '</div>'
+      + '</div>'
+      // Puntos
+      + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">'
+      + '<div style="background:#fff;border:0.5px solid #E2E7F5;border-radius:10px;padding:12px 14px">'
+      + '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Pts a favor</div>'
+      + '<div style="font-size:26px;font-weight:700;color:#0D1B4E">' + totalAFavor + '</div>'
+      + '</div>'
+      + '<div style="background:#fff;border:0.5px solid #E2E7F5;border-radius:10px;padding:12px 14px">'
+      + '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Pts en contra</div>'
+      + '<div style="font-size:26px;font-weight:700;color:#0D1B4E">' + totalEnContra + '</div>'
+      + '</div>'
+      + '<div style="background:#fff;border:0.5px solid #E2E7F5;border-radius:10px;padding:12px 14px">'
+      + '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Diferencia</div>'
+      + '<div style="font-size:26px;font-weight:700;color:' + difColor + '">' + difSign + diferencia + '</div>'
+      + '</div>'
+      + '<div style="background:#fff;border:0.5px solid #E2E7F5;border-radius:10px;padding:12px 14px">'
+      + '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Prom. en contra</div>'
+      + '<div style="font-size:26px;font-weight:700;color:#0D1B4E">' + promEnContra + '</div>'
+      + '</div>'
+      + '</div>'
+      + '</div>';
+  }
 
   document.getElementById('resultados-content').innerHTML =
     '<div class="card" style="margin-bottom:12px">'
@@ -2133,6 +2189,7 @@ function renderResultados() {
       + '<tbody>' + rows + '</tbody>'
       + '</table></div>' : '')
     + '</div>'
+    + statsHtml
     + (semsConDatos.length > 0 ? '<div class="card">'
       + '<div style="font-size:14px;font-weight:600;color:#0D1B4E;margin-bottom:12px">Promedios acumulados</div>'
       + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">' + cards + '</div>'
