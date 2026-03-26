@@ -6,6 +6,8 @@
 <meta name="theme-color" content="#0D1B4E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="/escudo.png">
 <title>Hoy · Regatas Bellavista</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -172,7 +174,7 @@ function renderApp(semana, dayNum, cumbresEstado) {
   // Header
   html += `
     <div class="header">
-      <div class="header-club">▲ REGATAS BELLAVISTA · PRIMERA</div>
+      <div class="header-club"><img src="/escudo.png" alt="" style="width:24px;height:auto;vertical-align:middle;margin-right:6px">REGATAS BELLAVISTA · PRIMERA</div>
       <div class="header-day">${formatFechaHoy(dayName)}</div>
       <div class="header-sub">${semana.rival} · ${localVisitante} · Sem ${semana.sem}</div>
     </div>
@@ -281,7 +283,7 @@ function renderEmpty(dayNum) {
   const proximo = proximoDia(hoy);
   return `
     <div class="header">
-      <div class="header-club">▲ REGATAS BELLAVISTA · PRIMERA</div>
+      <div class="header-club"><img src="/escudo.png" alt="" style="width:24px;height:auto;vertical-align:middle;margin-right:6px">REGATAS BELLAVISTA · PRIMERA</div>
     </div>
     <div class="gold-stripe"></div>
     <div class="empty">
@@ -295,7 +297,7 @@ function renderEmpty(dayNum) {
 function renderError() {
   return `
     <div class="header">
-      <div class="header-club">▲ REGATAS BELLAVISTA · PRIMERA</div>
+      <div class="header-club"><img src="/escudo.png" alt="" style="width:24px;height:auto;vertical-align:middle;margin-right:6px">REGATAS BELLAVISTA · PRIMERA</div>
     </div>
     <div class="gold-stripe"></div>
     <div class="empty">
