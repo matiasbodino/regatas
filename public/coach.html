@@ -349,6 +349,17 @@ select,input{font-family:inherit}
 .res-field{display:flex;flex-direction:column;gap:3px}
 .res-field-label{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.05em}
 .res-field-target{font-size:9px;color:#aaa}
+/* ── SCRUM/LINE SPLIT FW/BK ── */
+.blk-split{display:grid;grid-template-columns:1fr 1px 1fr;align-items:stretch;flex:1}
+.blk-split-divider{background:#E2E7F5;margin:8px 0}
+.blk-split-fw{padding:6px 8px}
+.blk-split-bk{padding:6px 8px;background:rgba(245,197,24,0.05)}
+.blk-badge-fw{display:inline-block;background:#1A5276;color:#AED6F1;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;margin-bottom:3px;letter-spacing:0.05em}
+.blk-badge-bk{display:inline-block;background:#FEF9D9;color:#5A4500;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;margin-bottom:3px;letter-spacing:0.05em}
+.blk-bk-sin{font-size:10px;color:#aaa;font-style:italic}
+.blk-bk-vid{display:inline-block;background:#0D1B4E;color:#F5C518;font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;text-decoration:none;margin-top:3px;cursor:pointer}
+.blk-bk-vid:hover{opacity:0.8}
+
 /* ── PIN LOCK ── */
 .pin-overlay{position:fixed;inset:0;background:var(--navy);z-index:9999;display:flex;align-items:center;justify-content:center}
 .pin-box{text-align:center;padding:40px 32px;max-width:320px;width:100%}
@@ -533,7 +544,7 @@ const TARGETS = {'Pto. Contacto':8,'Destrezas':10,'Ataque':37,'Defensa':23,'Scru
 const DOTS = {G:'#27AE60',Y:'#F5C518',R:'#E74C3C'};
 let _uid = 0;
 const uid = () => 'b'+(++_uid);
-const mk  = (g,m,f,d='G') => ({id:uid(),tipo:'bloque',grupo:g,mins:m,faceta:f,dot:d,open:false,horaInicio:null,contenidos:[],links:[]});
+const mk  = (g,m,f,d='G') => ({id:uid(),tipo:'bloque',grupo:g,mins:m,faceta:f,dot:d,open:false,horaInicio:null,contenidos:[],links:[],backsParalelo:null});
 const mkA = (m=1) => ({id:uid(),tipo:'agua',mins:m});
 const mkB = (f,m,p='',l='') => ({id:uid(),faceta:f,mins:m,premisa:p,link:l});
 
@@ -1117,6 +1128,36 @@ function renderDays(){
       const grOpts=Object.keys(GRUPOS).map(g=>`<option value="${g}"${g===bl.grupo?' selected':''  }>${g}</option>`).join('');
       const safeLink=(bl.link||''  ).replace(/"/g,'&quot;');
       const safePremisa=(bl.premisa||''  ).replace(/"/g,'&quot;');
+      // ── Backs paralelo editor section for Scrum/Line ──
+      var bpEditorHtml = '';
+      if (bl.grupo === 'Scrum / Line' && bl.open) {
+        var bpFaceta = (bl.backsParalelo && bl.backsParalelo.faceta) || '';
+        var bpLink = (bl.backsParalelo && bl.backsParalelo.link) || '';
+        var bpSafeLink = bpLink.replace(/"/g,'&quot;');
+        var bpSafeFaceta = bpFaceta.replace(/"/g,'&quot;');
+        var bpFacetaOpts = ['Semi-ataque Harlequins','Semi-ataque blanco','Carreras + Pases','Ola de Pases','Ola de Pases 4vs2','Evasión','3 vs 2','Ball Carry','Lanzamientos','Jugada 5y','Ataque 25y','Manos Rápidas','Destreza Oro'].map(function(f){
+          return '<option value="'+f+'"'+(f===bpFaceta?' selected':'')+'>'+f+'</option>';
+        }).join('');
+        bpEditorHtml = '<div style="margin-top:6px;padding-top:6px;border-top:1px dashed #E2E7F5">'
+          +'<div style="font-size:9px;font-weight:700;color:#F5C518;background:#1A5276;padding:3px 8px;border-radius:4px;display:inline-block;margin-bottom:6px">\uD83D\uDFE1 EJERCICIO BK EN PARALELO</div>'
+          +'<div class="ed-row" style="flex-direction:column;align-items:stretch;gap:3px">'
+          +'<span class="ed-label">Faceta BK</span>'
+          +'<select onchange="chBacksParaleloFaceta(\''+k+'\',\''+bl.id+'\',this.value)">'
+          +'<option value="">— sin ejercicio —</option>'
+          +bpFacetaOpts
+          +'<option value="__otra__">Otra: \u00BFCu\u00E1l?</option>'
+          +'</select>'
+          +'</div>'
+          +'<div class="ed-row" style="flex-direction:column;align-items:stretch;gap:3px;margin-top:4px">'
+          +'<span class="ed-label">Link video BK</span>'
+          +'<input type="text" value="'+bpSafeLink+'"'
+          +' placeholder="Link Drive del ejercicio de backs..."'
+          +' onchange="chBacksParaleloLink(\''+k+'\',\''+bl.id+'\',this.value)"'
+          +' style="width:100%;font-size:16px;padding:4px 7px;border-radius:5px;border:0.5px solid #C5CCE0;background:#fff;color:#1A1A2E">'
+          +'</div>'
+          +'</div>';
+      }
+
       const editor=bl.open?`<div class="block-editor">
         <div class="ed-row">
           <span class="ed-label">Grupo</span>
@@ -1181,19 +1222,51 @@ function renderDays(){
             🎥 + agregar link
           </button>
         </div>
+        ${bpEditorHtml}
       </div>`:''  ;
-      return `<div class="block-item" draggable="true"
-          ondragstart="dragStart(event,'${k}',${bi})"
-          ondragover="dragOver(event)"
-          ondragenter="dragEnter(event)"
-          ondragleave="dragLeave(event)"
-          ondrop="dragDrop(event,'${k}',${bi})"
-          ondragend="dragEnd(event)">
-        <div class="block-card">
-          <div class="block-top">
-            <div class="drag-handle" title="Arrastrá para reordenar" style="touch-action:none">⠿</div>
-            <div class="block-accent" style="background:${gc.color}"></div>
-            <div class="block-body" style="background:${gc.light}" onclick="toggleBlock('${k}','${bl.id}')">
+
+      // ── Build body: split for Scrum/Line, normal for others ──
+      var blockBodyHtml;
+      if (bl.grupo === 'Scrum / Line') {
+        var bpData = bl.backsParalelo;
+        var bkSide = '';
+        if (bpData && bpData.faceta) {
+          bkSide = '<div class="block-faceta" style="font-size:11px">' + bpData.faceta + '</div>';
+          if (bpData.link) {
+            bkSide += '<a class="blk-bk-vid" href="' + bpData.link.replace(/"/g,'&quot;') + '" target="_blank" onclick="event.stopPropagation()">\u25B6 video</a>';
+          }
+        } else {
+          bkSide = '<div class="blk-bk-sin">sin ejercicio BK</div>';
+        }
+        blockBodyHtml = `<div class="blk-split" onclick="toggleBlock('${k}','${bl.id}')" style="background:${gc.light};cursor:pointer">
+          <div class="blk-split-fw">
+            <div class="blk-badge-fw">FW</div>
+            <div class="block-faceta">${bl.faceta}</div>
+            ${(bl.contenidos&&bl.contenidos.length)?`<div class="ct-sum">${bl.contenidos.join(' + ')}</div>`:''}
+            <div class="block-mins-row">
+              <input class="block-hora-inline${bl.horaInicio?'':' auto-hora'}"
+                type="text" value="${horas[bi]}"
+                placeholder="00.00"
+                onclick="event.stopPropagation()"
+                onchange="chHora('${k}','${bl.id}',this.value)"
+                onkeydown="event.stopPropagation()"
+                style="width:42px;font-size:11px;font-weight:700;color:${bl.horaInicio?'#0D1B4E':'#888'};background:${bl.horaInicio?'#FEF9D9':'#F4F6FF'};border:0.5px solid ${bl.horaInicio?'#F5C518':'var(--bdr2)'};border-radius:4px;padding:2px 4px;text-align:center;cursor:text">
+              <span style="color:#ddd;font-size:10px">\u00B7</span>
+              <input class="block-mins-inline" type="number" value="${bl.mins}" min="1" max="120"
+                onclick="event.stopPropagation()"
+                onchange="chMins('${k}','${bl.id}',this.value)"
+                onkeydown="event.stopPropagation()">
+              <span style="font-size:10px;color:#aaa">min</span>
+            </div>
+          </div>
+          <div class="blk-split-divider"></div>
+          <div class="blk-split-bk">
+            <div class="blk-badge-bk">BK</div>
+            ${bkSide}
+          </div>
+        </div>`;
+      } else {
+        blockBodyHtml = `<div class="block-body" style="background:${gc.light}" onclick="toggleBlock('${k}','${bl.id}')">
               <div class="block-grupo" style="color:${gc.text}">${bl.grupo}</div>
               <div class="block-faceta">${bl.faceta}</div>
               ${(bl.contenidos&&bl.contenidos.length)?`<div class="ct-sum">${bl.contenidos.join(' + ')}</div>`:''}
@@ -1216,7 +1289,21 @@ function renderDays(){
                 ${(bl.links&&bl.links.length)?`<span title="${bl.links.length} video${bl.links.length>1?'s':''} cargado${bl.links.length>1?'s':''}" style="font-size:11px">🎥${bl.links.length>1?` ×${bl.links.length}`:''}</span>`:''}
               </div>
               ${bl.premisa?`<div style="font-size:10px;color:#888;font-style:italic;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${bl.premisa}">${bl.premisa.length>55?bl.premisa.slice(0,55)+'…':bl.premisa}</div>`:''}
-            </div>
+            </div>`;
+      }
+
+      return `<div class="block-item" draggable="true"
+          ondragstart="dragStart(event,'${k}',${bi})"
+          ondragover="dragOver(event)"
+          ondragenter="dragEnter(event)"
+          ondragleave="dragLeave(event)"
+          ondrop="dragDrop(event,'${k}',${bi})"
+          ondragend="dragEnd(event)">
+        <div class="block-card">
+          <div class="block-top">
+            <div class="drag-handle" title="Arrastrá para reordenar" style="touch-action:none">⠿</div>
+            <div class="block-accent" style="background:${gc.color}"></div>
+            ${blockBodyHtml}
             <div class="block-dot-wrap" style="background:${gc.light}">
               <div class="dot" style="background:${dot}" title="Cambiar estado"
                 onclick="event.stopPropagation();cycleDot('${k}','${bl.id}')"></div>
@@ -1307,6 +1394,28 @@ function rmContenido(dia,id,ci){
   renderDays();
 }
 function chPremisa(dia,id,val){const b=SEMS[curSem][dia].find(b=>b.id===id);if(b){b.premisa=val;renderDays();}}
+
+function chBacksParaleloFaceta(dia, id, val) {
+  var b = SEMS[curSem][dia].find(function(b){ return b.id === id; });
+  if (!b) return;
+  if (val === '__otra__') {
+    var custom = prompt('\u00BFCu\u00E1l faceta de Backs?', '');
+    if (!custom || !custom.trim()) return;
+    val = custom.trim();
+  }
+  if (val === '') { b.backsParalelo = null; renderDays(); return; }
+  if (!b.backsParalelo) b.backsParalelo = {faceta:'',link:''};
+  b.backsParalelo.faceta = val;
+  renderDays();
+}
+
+function chBacksParaleloLink(dia, id, val) {
+  var b = SEMS[curSem][dia].find(function(b){ return b.id === id; });
+  if (!b) return;
+  if (!b.backsParalelo) b.backsParalelo = {faceta:'',link:''};
+  b.backsParalelo.link = val.trim();
+  renderDays();
+}
 function delBlock(dia,id){SEMS[curSem][dia]=SEMS[curSem][dia].filter(b=>b.id!==id);renderAll();}
 function addBlock(dia){SEMS[curSem][dia].push(mk('Ataque',15,'Est. y semis separados'));renderAll();}
 function addAgua(dia){SEMS[curSem][dia].push(mkA(1));renderAll();}
