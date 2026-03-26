@@ -1180,6 +1180,23 @@ function fallbackCopy(text){
   document.body.removeChild(ta);
 }
 
+// Calcula fecha de lun/mar/jue a partir de la fecha del partido (sábado)
+var MESES_PARSE = {'Ene':0,'Feb':1,'Mar':2,'Abr':3,'May':4,'Jun':5,'Jul':6,'Ago':7,'Sep':8,'Oct':9,'Nov':10,'Dic':11};
+var MESES_CORTO = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+function fechaDia(fechaSabado, diaKey) {
+  var partes = fechaSabado.split(' ');
+  if (partes.length < 2) return fechaSabado;
+  var d = parseInt(partes[0]);
+  var m = MESES_PARSE[partes[1]];
+  if (isNaN(d) || m === undefined) return fechaSabado;
+  var sab = new Date(new Date().getFullYear(), m, d);
+  // lun = sab - 5, mar = sab - 4, jue = sab - 2
+  var offset = {lun:-5, mar:-4, jue:-2};
+  var target = new Date(sab);
+  target.setDate(target.getDate() + (offset[diaKey] || 0));
+  return target.getDate() + ' ' + MESES_CORTO[target.getMonth()];
+}
+
 function renderDays(){
   const s=SEMS[curSem];
   const DAYS=[{k:'lun',t:'LUNES'},{k:'mar',t:'MARTES'},{k:'jue',t:'JUEVES'}];
@@ -1418,7 +1435,7 @@ function renderDays(){
     }).join('');
     const backsDia = ['mar','jue'].includes(k) ? ((s.backs&&s.backs[k])||[]) : null;
     return `<div class="day-col">
-      <div class="day-hdr"><div class="day-hdr-title">${t} <span style="font-weight:400;opacity:0.7;font-size:11px">· ${s.fecha}</span></div><div class="day-hdr-sub">${s.rival} (${s.local}) · ${sub}</div></div>
+      <div class="day-hdr"><div class="day-hdr-title">${t} <span style="font-weight:400;opacity:0.7;font-size:11px">· ${fechaDia(s.fecha, k)}</span></div><div class="day-hdr-sub">${s.rival} (${s.local}) · ${sub}</div></div>
       <div class="blocks-list">
         ${blocks}
         <div style="display:flex;gap:5px;margin-top:2px">
