@@ -2285,35 +2285,37 @@ function calcCumbreKPIs(cumbreNum) {
   var c = CUMBRES.find(function(x){ return x.num === cumbreNum; });
   if (!c) return null;
   var tgt = c.targets || {peo:90,line:90,scrum:40,tackles:15};
+  var totalSemsDelCiclo = SEMS.filter(function(s){ return s.ciclo === c.nombre; }).length;
+  // Contar partidos con al menos resultado cargado (ptsNos o algún KPI)
   var semsConResultado = SEMS.filter(function(s) {
-    return s.ciclo === c.nombre
-      && s.resultado
-      && s.resultado.peo !== null
-      && s.resultado.line !== null
-      && s.resultado.scrum !== null
-      && s.resultado.tackles !== null;
+    if (s.ciclo !== c.nombre || !s.resultado) return false;
+    var r = s.resultado;
+    return r.ptsNos !== null || r.peo !== null || r.line !== null || r.scrum !== null || r.tackles !== null;
   });
   if (!semsConResultado.length) {
-    return {partidos:0,puntos:0,pool:0,pct:0,habilitada:false,detalle:[]};
+    return {partidos:0,puntos:0,pool:0,pct:0,habilitada:false,detalle:[],totalSems:totalSemsDelCiclo,rivales:[]};
   }
-  var pool = semsConResultado.length * 4;
+  var pool = 0;
   var puntos = 0;
   var detalle = [];
+  var rivales = [];
   semsConResultado.forEach(function(s) {
     var r = s.resultado;
-    var kpis = {
-      peo: r.peo >= tgt.peo,
-      line: r.line >= tgt.line,
-      scrum: r.scrum >= tgt.scrum,
-      tackles: r.tackles <= tgt.tackles
-    };
-    var pts = (kpis.peo?1:0)+(kpis.line?1:0)+(kpis.scrum?1:0)+(kpis.tackles?1:0);
+    var kpis = {peo:null,line:null,scrum:null,tackles:null};
+    var pts = 0;
+    var kpiCount = 0;
+    if (r.peo !== null) { kpis.peo = r.peo >= tgt.peo; if(kpis.peo) pts++; kpiCount++; }
+    if (r.line !== null) { kpis.line = r.line >= tgt.line; if(kpis.line) pts++; kpiCount++; }
+    if (r.scrum !== null) { kpis.scrum = r.scrum >= tgt.scrum; if(kpis.scrum) pts++; kpiCount++; }
+    if (r.tackles !== null) { kpis.tackles = r.tackles <= tgt.tackles; if(kpis.tackles) pts++; kpiCount++; }
+    pool += kpiCount;
     puntos += pts;
+    rivales.push(s.rival);
     detalle.push({sem:s.sem,rival:s.rival,fecha:s.fecha,pts:pts,kpis:kpis,res:(r.ptsNos||'?')+'-'+(r.ptsRival||'?')});
   });
-  var pct = Math.round(puntos / pool * 100);
+  var pct = pool > 0 ? Math.round(puntos / pool * 100) : 0;
   var umbral = c.umbral || 75;
-  return {partidos:semsConResultado.length,puntos:puntos,pool:pool,pct:pct,habilitada:pct>=umbral,umbral:umbral,detalle:detalle};
+  return {partidos:semsConResultado.length,puntos:puntos,pool:pool,pct:pct,habilitada:pct>=umbral,umbral:umbral,detalle:detalle,totalSems:totalSemsDelCiclo,rivales:rivales};
 }
 
 function buildBanderaWidget(c) {
@@ -2331,9 +2333,13 @@ function buildBanderaWidget(c) {
     +'<div style="position:absolute;top:-3px;left:75%;width:2px;height:16px;background:#0D1B4E;border-radius:1px"></div>'
     +'<div style="position:absolute;top:-18px;left:73%;font-size:9px;font-weight:700;color:#0D1B4E">75%</div>'
     +'</div>';
-  html += '<div style="font-size:10px;color:#888;margin-bottom:8px">'
+  html += '<div style="font-size:10px;color:#888;margin-bottom:4px">'
     +stats.puntos+' de '+stats.pool+' KPIs \u00B7 '
     +stats.partidos+' partido'+(stats.partidos!==1?'s':'')+' jugado'+(stats.partidos!==1?'s':'')
+    +'</div>'
+    +'<div style="font-size:10px;color:#aaa;margin-bottom:8px">'
+    +stats.partidos+'/'+stats.totalSems
+    +(stats.rivales.length>0?' ('+stats.rivales.join(', ')+')':'')
     +'</div>';
   // Tabla de detalle colapsable
   if (stats.detalle.length > 0) {
@@ -2345,10 +2351,10 @@ function buildBanderaWidget(c) {
       html += '<tr>'
         +'<td style="font-weight:600">'+d.rival+'</td>'
         +'<td>'+d.res+'</td>'
-        +'<td><span class="kpi-dot" style="background:'+(d.kpis.peo?'#27AE60':'#E74C3C')+'"></span></td>'
-        +'<td><span class="kpi-dot" style="background:'+(d.kpis.line?'#27AE60':'#E74C3C')+'"></span></td>'
-        +'<td><span class="kpi-dot" style="background:'+(d.kpis.scrum?'#27AE60':'#E74C3C')+'"></span></td>'
-        +'<td><span class="kpi-dot" style="background:'+(d.kpis.tackles?'#27AE60':'#E74C3C')+'"></span></td>'
+        +'<td>'+(d.kpis.peo===null?'<span class="kpi-dot" style="background:#ccc"></span>':'<span class="kpi-dot" style="background:'+(d.kpis.peo?'#27AE60':'#E74C3C')+'"></span>')+'</td>'
+        +'<td>'+(d.kpis.line===null?'<span class="kpi-dot" style="background:#ccc"></span>':'<span class="kpi-dot" style="background:'+(d.kpis.line?'#27AE60':'#E74C3C')+'"></span>')+'</td>'
+        +'<td>'+(d.kpis.scrum===null?'<span class="kpi-dot" style="background:#ccc"></span>':'<span class="kpi-dot" style="background:'+(d.kpis.scrum?'#27AE60':'#E74C3C')+'"></span>')+'</td>'
+        +'<td>'+(d.kpis.tackles===null?'<span class="kpi-dot" style="background:#ccc"></span>':'<span class="kpi-dot" style="background:'+(d.kpis.tackles?'#27AE60':'#E74C3C')+'"></span>')+'</td>'
         +'</tr>';
     });
     html += '</tbody></table></div></div>';
