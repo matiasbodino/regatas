@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0D1B4E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" href="/escudo.png">
+<title>Partido en Vivo - Regatas</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #f0f0f0;
+  color: #222;
+  overflow: hidden;
+}
+.header {
+  background: #0D1B4E;
+  padding: 12px 16px;
+  text-align: center;
+}
+.header-title {
+  color: #F5C518;
+  font-weight: 700;
+  font-size: 18px;
+}
+.header-sub {
+  color: rgba(255,255,255,0.5);
+  font-size: 13px;
+  margin-top: 2px;
+}
+.scoreboard {
+  background: #fff;
+  text-align: center;
+  padding: 10px 16px 8px;
+  border-bottom: 1px solid #e0e0e0;
+}
+.score-big {
+  font-size: 44px;
+  font-weight: 800;
+  color: #0D1B4E;
+  letter-spacing: 2px;
+}
+.clock-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+.clock-input {
+  width: 70px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  padding: 4px;
+  background: #fafafa;
+}
+.clock-label {
+  font-size: 13px;
+  color: #888;
+}
+.events-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 10px;
+  -webkit-overflow-scrolling: touch;
+}
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #888;
+  margin: 6px 0 4px;
+}
+.btn-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.btn {
+  flex: 1;
+  min-height: 48px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4px 6px;
+  line-height: 1.2;
+}
+.btn-green { background: #27AE60; color: #fff; }
+.btn-gray { background: #e0e0e0; color: #555; }
+.btn-navy { background: #0D1B4E; color: #F5C518; }
+.btn-red-light { background: #FDECEC; color: #c0392b; }
+.btn-red { background: #E74C3C; color: #fff; }
+.crono-section {
+  background: #fff;
+  border-top: 1px solid #e0e0e0;
+  max-height: 140px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.crono-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #888;
+  padding: 6px 12px 2px;
+  position: sticky;
+  top: 0;
+  background: #fff;
+}
+.crono-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 12px;
+  font-size: 13px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.crono-text { flex: 1; }
+.crono-del {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: #FDECEC;
+  color: #E74C3C;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+.crono-empty {
+  padding: 12px;
+  text-align: center;
+  color: #bbb;
+  font-size: 13px;
+}
+.bottom-bar {
+  background: #fff;
+  padding: 8px 12px;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  border-top: 1px solid #e0e0e0;
+}
+.btn-save {
+  width: 100%;
+  min-height: 48px;
+  background: #F5C518;
+  color: #0D1B4E;
+  border: none;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 16px;
+  cursor: pointer;
+}
+.btn-save.saved {
+  background: #27AE60;
+  color: #fff;
+}
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  height: 100dvh;
+}
+.sem-selector {
+  padding: 16px;
+  text-align: center;
+}
+.sem-selector select {
+  font-size: 16px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 2px solid #F5C518;
+}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#0D1B4E;display:flex;justify-content:center;gap:0;border-top:2px solid #F5C518;z-index:100}
+.bottom-nav a{flex:1;text-align:center;padding:12px 0 10px;text-decoration:none;font-size:11px;font-weight:700;letter-spacing:0.05em;color:rgba(255,255,255,0.5)}
+.bottom-nav a.active{color:#F5C518}
+.bottom-nav a span{display:block;font-size:18px;margin-bottom:2px}
+</style>
+</head>
+<body>
+<div class="app-container">
+  <div class="header">
+    <div class="header-title" id="headerTitle">REGATAS</div>
+    <div class="header-sub" id="headerSub">Cargando...</div>
+  </div>
+
+  <div class="scoreboard">
+    <div class="score-big" id="scoreDisplay">0 - 0</div>
+    <div class="clock-row">
+      <span class="clock-label">Min:</span>
+      <input type="text" class="clock-input" id="clockInput" placeholder="00" inputmode="numeric">
+    </div>
+  </div>
+
+  <div class="events-area" id="eventsArea">
+    <div class="section-label">REGATAS</div>
+    <div class="btn-row">
+      <button class="btn btn-green" onclick="addEvent('try_nos', '+Try', 5, 0); event.stopPropagation();">+Try 5pts</button>
+      <button class="btn btn-green" onclick="addEvent('conv_ok', 'Conv OK', 2, 0); event.stopPropagation();">Conv &#10003; 2pts</button>
+      <button class="btn btn-gray" onclick="addEvent('conv_miss', 'Conv X', 0, 0); event.stopPropagation();">Conv &#10007;</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-green" onclick="addEvent('penal_ok', 'Penal OK', 3, 0); event.stopPropagation();">+Penal &#10003; 3pts</button>
+      <button class="btn btn-gray" onclick="addEvent('penal_miss', 'Penal X', 0, 0); event.stopPropagation();">+Penal &#10007;</button>
+      <button class="btn btn-green" onclick="addEvent('drop_nos', 'Drop', 3, 0); event.stopPropagation();">+Drop 3pts</button>
+    </div>
+
+    <div class="section-label">SET PIECES</div>
+    <div class="btn-row">
+      <button class="btn btn-navy" onclick="addEvent('scrum_g', 'Scrum G', 0, 0); event.stopPropagation();">Scrum G</button>
+      <button class="btn btn-red-light" onclick="addEvent('scrum_p', 'Scrum P', 0, 0); event.stopPropagation();">Scrum P</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-navy" onclick="addEvent('line_g', 'Line G', 0, 0); event.stopPropagation();">Line G</button>
+      <button class="btn btn-red-light" onclick="addEvent('line_p', 'Line P', 0, 0); event.stopPropagation();">Line P</button>
+    </div>
+
+    <div class="section-label">RIVAL</div>
+    <div class="btn-row">
+      <button class="btn btn-red" onclick="addEvent('try_rival', 'Try Rival', 0, 5); event.stopPropagation();">+Try rival 5pts</button>
+      <button class="btn btn-red" onclick="addEvent('conv_rival', 'Conv Rival', 0, 2); event.stopPropagation();">+Conv rival 2pts</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-red" onclick="addEvent('penal_rival', 'Penal Rival', 0, 3); event.stopPropagation();">+Penal rival 3pts</button>
+      <button class="btn btn-red" onclick="addEvent('drop_rival', 'Drop Rival', 0, 3); event.stopPropagation();">+Drop rival 3pts</button>
+    </div>
+  </div>
+
+  <div class="crono-section" id="cronoSection">
+    <div class="crono-title">Cronologia</div>
+    <div id="cronoList">
+      <div class="crono-empty">Sin eventos</div>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    <button class="btn-save" id="btnSave" onclick="guardarResultado(); event.stopPropagation();">&#128190; Guardar resultado</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+var SUPABASE_URL = 'https://trzfaqdmasdswmuenlmu.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRyemZhcWRtYXNkc3dtdWVubG11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0ODA4NTMsImV4cCI6MjA5MDA1Njg1M30.rhXSHLpSSu3TL2gJWpGhRtGqNVgSSW9Kzr2E0IJmRNw';
+var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+var meses = { 'Ene': 0, 'Feb': 1, 'Mar': 2, 'Abr': 3, 'May': 4, 'Jun': 5, 'Jul': 6, 'Ago': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dic': 11 };
+
+var eventos = [];
+var eventIdCounter = 0;
+var ptsNos = 0;
+var ptsRival = 0;
+var triesA = 0;
+var triesC = 0;
+var scrumG = 0;
+var scrumP = 0;
+var lineG = 0;
+var lineP = 0;
+var penalesOk = 0;
+var penalesMiss = 0;
+var semana = null;
+var semNum = null;
+var datosGlobal = null;
+
+function parseFecha(fechaStr) {
+  if (!fechaStr) return null;
+  var parts = fechaStr.trim().split(' ');
+  if (parts.length < 2) return null;
+  var dia = parseInt(parts[0], 10);
+  var mesStr = parts[1];
+  var mesNum = meses[mesStr];
+  if (mesNum === undefined) return null;
+  var now = new Date();
+  var year = now.getFullYear();
+  var d = new Date(year, mesNum, dia);
+  return d;
+}
+
+function getUrlParam(name) {
+  var params = new URLSearchParams(window.location.search);
+  return params.get(name);
+}
+
+function init() {
+  sb.from('semana_activa').select('datos').eq('id', 1).single().then(function(res) {
+    if (res.error || !res.data) {
+      document.getElementById('headerSub').textContent = 'Error cargando datos';
+      return;
+    }
+    var datos = res.data.datos;
+    datosGlobal = datos;
+    var semanas = datos.semanas;
+    var semParam = getUrlParam('sem');
+
+    if (semParam && semanas[semParam]) {
+      semNum = semParam;
+      semana = semanas[semParam];
+      setupMatch();
+      return;
+    }
+
+    var hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    var bestKey = null;
+    var bestDiff = Infinity;
+    var keys = Object.keys(semanas);
+
+    for (var i = 0; i < keys.length; i++) {
+      var k = keys[i];
+      var s = semanas[k];
+      var fd = parseFecha(s.fecha);
+      if (!fd) continue;
+      var diff = fd.getTime() - hoy.getTime();
+      var absDiff = Math.abs(diff);
+      if (diff >= 0) {
+        if (absDiff < bestDiff) {
+          bestDiff = absDiff;
+          bestKey = k;
+        }
+      }
+    }
+
+    if (!bestKey) {
+      for (var j = 0; j < keys.length; j++) {
+        var k2 = keys[j];
+        var s2 = semanas[k2];
+        var fd2 = parseFecha(s2.fecha);
+        if (!fd2) continue;
+        var diff2 = Math.abs(fd2.getTime() - hoy.getTime());
+        if (diff2 < bestDiff) {
+          bestDiff = diff2;
+          bestKey = k2;
+        }
+      }
+    }
+
+    if (bestKey) {
+      semNum = bestKey;
+      semana = semanas[bestKey];
+      setupMatch();
+    } else {
+      document.getElementById('headerSub').textContent = 'No hay partidos publicados';
+    }
+  });
+}
+
+function setupMatch() {
+  var rival = semana.rival || 'Rival';
+  var fecha = semana.fecha || '';
+  var localTxt = semana.local ? 'Local' : 'Visitante';
+  document.getElementById('headerTitle').textContent = '\u25B2 REGATAS vs ' + rival.toUpperCase();
+  document.getElementById('headerSub').textContent = fecha + ' \u00B7 ' + localTxt;
+
+  if (semana.resultado) {
+    var r = semana.resultado;
+    ptsNos = r.ptsNos || 0;
+    ptsRival = r.ptsRival || 0;
+    triesA = r.triesA || 0;
+    triesC = r.triesC || 0;
+    scrumG = r.scrumG || 0;
+    scrumP = r.scrumP || 0;
+    lineG = r.lineG || 0;
+    lineP = r.lineP || 0;
+    penalesMiss = r.penales || 0;
+  }
+  updateScore();
+}
+
+function updateScore() {
+  document.getElementById('scoreDisplay').textContent = ptsNos + ' - ' + ptsRival;
+}
+
+function getMinuto() {
+  var v = document.getElementById('clockInput').value.trim();
+  if (!v) return '?';
+  return v;
+}
+
+function addEvent(tipo, descripcion, ptsN, ptsR) {
+  if (navigator.vibrate) navigator.vibrate(50);
+
+  switch (tipo) {
+    case 'try_nos': ptsNos += 5; triesA++; break;
+    case 'conv_ok': ptsNos += 2; break;
+    case 'conv_miss': break;
+    case 'penal_ok': ptsNos += 3; penalesOk++; break;
+    case 'penal_miss': penalesMiss++; break;
+    case 'drop_nos': ptsNos += 3; break;
+    case 'scrum_g': scrumG++; break;
+    case 'scrum_p': scrumP++; break;
+    case 'line_g': lineG++; break;
+    case 'line_p': lineP++; break;
+    case 'try_rival': ptsRival += 5; triesC++; break;
+    case 'conv_rival': ptsRival += 2; break;
+    case 'penal_rival': ptsRival += 3; break;
+    case 'drop_rival': ptsRival += 3; break;
+  }
+
+  var ev = {
+    id: ++eventIdCounter,
+    minuto: getMinuto(),
+    tipo: tipo,
+    descripcion: descripcion,
+    ptsNos: ptsNos,
+    ptsRival: ptsRival
+  };
+  eventos.push(ev);
+  updateScore();
+  renderCrono();
+}
+
+function removeEvent(evId) {
+  if (navigator.vibrate) navigator.vibrate(50);
+  var idx = -1;
+  for (var i = 0; i < eventos.length; i++) {
+    if (eventos[i].id === evId) { idx = i; break; }
+  }
+  if (idx === -1) return;
+  eventos.splice(idx, 1);
+  recalculate();
+  updateScore();
+  renderCrono();
+}
+
+function recalculate() {
+  ptsNos = 0;
+  ptsRival = 0;
+  triesA = 0;
+  triesC = 0;
+  scrumG = 0;
+  scrumP = 0;
+  lineG = 0;
+  lineP = 0;
+  penalesOk = 0;
+  penalesMiss = 0;
+
+  if (semana && semana.resultado) {
+    ptsNos = semana.resultado.ptsNos || 0;
+    ptsRival = semana.resultado.ptsRival || 0;
+    triesA = semana.resultado.triesA || 0;
+    triesC = semana.resultado.triesC || 0;
+    scrumG = semana.resultado.scrumG || 0;
+    scrumP = semana.resultado.scrumP || 0;
+    lineG = semana.resultado.lineG || 0;
+    lineP = semana.resultado.lineP || 0;
+    penalesMiss = semana.resultado.penales || 0;
+  }
+
+  for (var i = 0; i < eventos.length; i++) {
+    var t = eventos[i].tipo;
+    switch (t) {
+      case 'try_nos': ptsNos += 5; triesA++; break;
+      case 'conv_ok': ptsNos += 2; break;
+      case 'penal_ok': ptsNos += 3; penalesOk++; break;
+      case 'penal_miss': penalesMiss++; break;
+      case 'drop_nos': ptsNos += 3; break;
+      case 'scrum_g': scrumG++; break;
+      case 'scrum_p': scrumP++; break;
+      case 'line_g': lineG++; break;
+      case 'line_p': lineP++; break;
+      case 'try_rival': ptsRival += 5; triesC++; break;
+      case 'conv_rival': ptsRival += 2; break;
+      case 'penal_rival': ptsRival += 3; break;
+      case 'drop_rival': ptsRival += 3; break;
+    }
+    eventos[i].ptsNos = ptsNos;
+    eventos[i].ptsRival = ptsRival;
+  }
+}
+
+function renderCrono() {
+  var container = document.getElementById('cronoList');
+  if (eventos.length === 0) {
+    container.innerHTML = '<div class="crono-empty">Sin eventos</div>';
+    return;
+  }
+  var html = '';
+  for (var i = eventos.length - 1; i >= 0; i--) {
+    var ev = eventos[i];
+    html += '<div class="crono-item">';
+    html += '<span class="crono-text">' + ev.minuto + "' " + ev.descripcion + ' (' + ev.ptsNos + '-' + ev.ptsRival + ')</span>';
+    html += '<button class="crono-del" onclick="removeEvent(' + ev.id + '); event.stopPropagation();">\u00D7</button>';
+    html += '</div>';
+  }
+  container.innerHTML = html;
+}
+
+function guardarResultado() {
+  if (!semNum) {
+    alert('No hay semana seleccionada');
+    return;
+  }
+  var btn = document.getElementById('btnSave');
+  btn.textContent = 'Guardando...';
+  btn.disabled = true;
+
+  sb.from('semana_activa').select('datos').eq('id', 1).single().then(function(res) {
+    if (res.error || !res.data) {
+      btn.textContent = 'Error al leer datos';
+      btn.disabled = false;
+      return;
+    }
+    var datos = res.data.datos;
+    if (!datos.semanas[semNum]) {
+      btn.textContent = 'Semana no encontrada';
+      btn.disabled = false;
+      return;
+    }
+
+    var totalLine = lineG + lineP;
+    var totalScrum = scrumG + scrumP;
+    var linePct = totalLine > 0 ? Math.round((lineG / totalLine) * 100) : 0;
+    var scrumPct = totalScrum > 0 ? Math.round((scrumG / totalScrum) * 100) : 0;
+
+    var resultado = {
+      ptsNos: ptsNos,
+      ptsRival: ptsRival,
+      triesA: triesA,
+      triesC: triesC,
+      scrumG: scrumG,
+      scrumP: scrumP,
+      lineG: lineG,
+      lineP: lineP,
+      penales: penalesMiss,
+      line: linePct,
+      scrum: scrumPct
+    };
+
+    datos.semanas[semNum].resultado = resultado;
+
+    sb.from('semana_activa').update({ datos: datos }).eq('id', 1).then(function(upRes) {
+      if (upRes.error) {
+        btn.textContent = 'Error al guardar';
+        btn.disabled = false;
+        return;
+      }
+      btn.textContent = '\u2713 Guardado';
+      btn.classList.add('saved');
+      setTimeout(function() {
+        window.location.href = '/coach';
+      }, 2000);
+    });
+  });
+}
+
+init();
+</script>
+<nav class="bottom-nav">
+  <a href="/hoy"><span>📋</span>HOY</a>
+  <a href="/partido" class="active"><span>🏉</span>PARTIDO</a>
+</nav>
+</body>
+</html>

@@ -3168,7 +3168,7 @@ function renderTrackerBtn() {
   else { label = 'vs ' + p.rival; sublabel = p.fecha; }
 
   var localLabel = p.local === 'L' ? 'Local' : 'Visitante';
-  var url = '/cancha?sem=' + p.sem;
+  var url = '/partido?sem=' + p.sem;
   var pulseStyle = (diffDias >= 0 && diffDias <= 1) ? 'animation:tracker-pulse 2s ease-in-out infinite;' : '';
 
   var svgCancha = '<svg width="18" height="18" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">'

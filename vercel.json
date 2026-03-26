@@ -4,6 +4,7 @@
     { "source": "/hoy", "destination": "/hoy.html" },
     { "source": "/cancha", "destination": "/cancha.html" },
     { "source": "/tracker", "destination": "/cancha.html" },
+    { "source": "/partido", "destination": "/partido.html" },
     { "source": "/", "destination": "/coach.html" }
   ]
 }
