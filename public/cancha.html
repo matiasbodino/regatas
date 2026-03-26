@@ -361,6 +361,36 @@ function renderEmpty(msg, sub) {
 
 // ── INIT ─────────────────────────────────────────────────────
 
+function loadSemFromLocal(semNum) {
+  try {
+    var raw = localStorage.getItem('cumbre_a_cumbre_2026');
+    if (!raw) return null;
+    var data = JSON.parse(raw);
+    if (!data.sems) return null;
+    // semNum es 1-based, array es 0-based
+    var idx = data.sems.findIndex(function(s) { return s.sem === semNum; });
+    if (idx === -1) return null;
+    return data.sems[idx];
+  } catch(e) { return null; }
+}
+
+function loadLatestFromLocal() {
+  try {
+    var raw = localStorage.getItem('cumbre_a_cumbre_2026');
+    if (!raw) return null;
+    var data = JSON.parse(raw);
+    if (!data.sems) return null;
+    // Buscar la última semana con bloques cargados
+    for (var i = data.sems.length - 1; i >= 0; i--) {
+      var s = data.sems[i];
+      if ((s.lun && s.lun.length > 0) || (s.mar && s.mar.length > 0) || (s.jue && s.jue.length > 0)) {
+        return s;
+      }
+    }
+    return null;
+  } catch(e) { return null; }
+}
+
 function getSemFromURL() {
   var params = new URLSearchParams(window.location.search);
   var sem = parseInt(params.get('sem'));
@@ -399,6 +429,15 @@ async function init() {
       if (semana.jue && semana.jue.length > 0) dayKey = 'jue';
       else if (semana.mar && semana.mar.length > 0) dayKey = 'mar';
       else if (semana.lun && semana.lun.length > 0) dayKey = 'lun';
+    }
+
+    // Fallback: si Supabase no tiene la semana, intentar localStorage
+    if (!semana && semPreseleccionada) {
+      semana = loadSemFromLocal(semPreseleccionada);
+    }
+    if (!semana && !semPreseleccionada) {
+      // Intentar la última semana de localStorage
+      semana = loadLatestFromLocal();
     }
 
     if (!semana || !dayKey || !semana[dayKey] || semana[dayKey].length === 0) {
