@@ -298,7 +298,15 @@ async function init() {
 
     if (error) throw error;
 
-    const semana = data?.datos;
+    const raw = data?.datos;
+
+    // Resolver formato: nuevo ({semanas, ultimaSem}) o viejo ({sem,...})
+    var semana = null;
+    if (raw && raw.semanas && raw.ultimaSem) {
+      semana = raw.semanas[raw.ultimaSem];
+    } else if (raw && raw.sem) {
+      semana = raw;
+    }
 
     // Si no hay datos publicados
     if (!semana || !semana.sem) {

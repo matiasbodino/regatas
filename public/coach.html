@@ -349,6 +349,16 @@ select,input{font-family:inherit}
 .res-field{display:flex;flex-direction:column;gap:3px}
 .res-field-label{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.05em}
 .res-field-target{font-size:9px;color:#aaa}
+/* ── PUBLISHED LOCK ── */
+.published-banner{background:#27AE60;color:#fff;padding:10px 16px;border-radius:10px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.published-banner-text{font-size:13px;font-weight:600}
+.published-banner-btn{background:#fff;color:#27AE60;border:none;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.published-banner-btn:active{opacity:0.8}
+.planner-locked .blocks-list{pointer-events:none;opacity:0.6}
+.planner-locked .add-btn{display:none}
+.planner-locked .backs-add-btn{display:none}
+.planner-locked .res-section input{pointer-events:none;opacity:0.6}
+
 /* ── SCRUM/LINE SPLIT FW/BK ── */
 .blk-split{display:grid;grid-template-columns:1fr 1px 1fr;align-items:stretch;flex:1}
 .blk-split-divider{background:#E2E7F5;margin:8px 0}
@@ -440,7 +450,8 @@ select,input{font-family:inherit}
     <div><div class="sem-rival" id="sem-rival-txt">—</div><div class="sem-meta" id="sem-meta-txt">—</div></div>
     <div class="sem-badge" id="sem-badge">—</div>
   </div>
-  <div class="planner-layout">
+  <div id="published-banner-container"></div>
+  <div class="planner-layout" id="planner-layout">
     <div class="dashboard">
       <div class="dash-title">Distribución <span class="dash-total" id="dash-label"></span></div>
       <div id="dash-rows"></div>
@@ -1351,7 +1362,7 @@ function renderDays(){
       </div>
     </div>`;
   }).join('');
-}function renderAll(){renderKPIs();renderDashWidget();renderDays();renderResultadoSection();}
+}function renderAll(){renderKPIs();renderDashWidget();renderDays();renderResultadoSection();renderPublishedBanner();}
 
 function toggleBlock(dia,id){const b=SEMS[curSem][dia].find(b=>b.id===id);if(b){b.open=!b.open;renderDays();}}
 function chGrupo(dia,id,val){const b=SEMS[curSem][dia].find(b=>b.id===id);if(b){b.grupo=val;b.faceta=(FACETAS[val]||[''])[0];renderAll();}}
@@ -2007,6 +2018,30 @@ function renderResultadoSection() {
   document.getElementById('resultado-section').innerHTML = html;
 }
 
+// ── PUBLISHED LOCK BANNER ─────────────────────────────────────
+
+function renderPublishedBanner() {
+  var s = SEMS[curSem];
+  var container = document.getElementById('published-banner-container');
+  var layout = document.getElementById('planner-layout');
+  if (!container || !layout) return;
+  if (isSemPublished(s.sem)) {
+    container.innerHTML = '<div class="published-banner">'
+      + '<div class="published-banner-text">\u2705 Semana ' + s.sem + ' publicada \u2014 edici\u00F3n bloqueada</div>'
+      + '<button class="published-banner-btn" onclick="unlockSem(' + s.sem + ')">Editar</button>'
+      + '</div>';
+    layout.classList.add('planner-locked');
+  } else {
+    container.innerHTML = '';
+    layout.classList.remove('planner-locked');
+  }
+}
+
+function unlockSem(semNum) {
+  unmarkPublished(semNum);
+  renderAll();
+}
+
 // ── RESULTADOS PAGE ──────────────────────────────────────────
 
 function renderResultados() {
@@ -2151,6 +2186,26 @@ function cycleDot(dia, id) {
 // ── STORAGE ──────────────────────────────────────────────────
 const STORAGE_KEY       = 'cumbre_a_cumbre_2026';
 const STORAGE_KEY_CUMBRES = 'cumbre_a_cumbre_meta_2026';
+const STORAGE_KEY_PUBLISHED = 'cumbre_published_sems';
+
+// Track which weeks have been published (locked for editing)
+function getPublishedSems() {
+  try { var raw = localStorage.getItem(STORAGE_KEY_PUBLISHED); return raw ? JSON.parse(raw) : {}; }
+  catch(e) { return {}; }
+}
+function markPublished(semNum) {
+  var p = getPublishedSems();
+  p[semNum] = true;
+  try { localStorage.setItem(STORAGE_KEY_PUBLISHED, JSON.stringify(p)); } catch(e) {}
+}
+function unmarkPublished(semNum) {
+  var p = getPublishedSems();
+  delete p[semNum];
+  try { localStorage.setItem(STORAGE_KEY_PUBLISHED, JSON.stringify(p)); } catch(e) {}
+}
+function isSemPublished(semNum) {
+  return !!getPublishedSems()[semNum];
+}
 
 function saveCumbres() {
   try {
@@ -2297,18 +2352,43 @@ function importData(event) {
 
 // ── PUBLICAR A SUPABASE ──────────────────────────────────────
 async function publicarSemana() {
+  var semData = SEMS[curSem];
+  if (!confirm('Publicar Semana ' + semData.sem + ' vs ' + semData.rival + '?\nLos jugadores van a ver esta semana.')) return;
   const btn = document.getElementById('btn-publicar')
   btn.textContent = 'Publicando...'
   btn.disabled = true
   try {
+    // Leer datos existentes para acumular semanas
+    var existing = {};
+    var readResult = await supabaseClient
+      .from('semana_activa')
+      .select('datos')
+      .eq('id', 1)
+      .single();
+    if (readResult.data && readResult.data.datos) {
+      var d = readResult.data.datos;
+      // Migrar formato viejo (objeto con .sem) al nuevo (con .semanas)
+      if (d.semanas) {
+        existing = d;
+      } else if (d.sem) {
+        existing = { semanas: {}, ultimaSem: d.sem };
+        existing.semanas[d.sem] = d;
+      }
+    }
+    if (!existing.semanas) existing.semanas = {};
+    // Guardar la semana actual y marcarla como última
+    existing.semanas[semData.sem] = semData;
+    existing.ultimaSem = semData.sem;
     const { error } = await supabaseClient
       .from('semana_activa')
       .upsert({
         id: 1,
-        datos: SEMS[curSem],
+        datos: existing,
         updated_at: new Date().toISOString()
       })
     if (error) throw error
+    markPublished(semData.sem)
+    renderAll()
     btn.textContent = '✓ Publicado'
     btn.style.background = '#27AE60'
     btn.style.borderColor = '#27AE60'

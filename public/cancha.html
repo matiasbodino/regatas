@@ -374,7 +374,13 @@ async function init() {
     var result = await sb.from('semana_activa').select('datos').eq('id', 1).single();
 
     if (result.error) throw result.error;
-    semana = result.data ? result.data.datos : null;
+    var raw = result.data ? result.data.datos : null;
+    // Resolver formato: nuevo ({semanas, ultimaSem}) o viejo ({sem,...})
+    if (raw && raw.semanas && raw.ultimaSem) {
+      semana = raw.semanas[raw.ultimaSem];
+    } else if (raw && raw.sem) {
+      semana = raw;
+    }
 
     if (!semana || !semana[dayKey] || semana[dayKey].length === 0) {
       renderEmpty('Sin entrenamiento publicado', 'El coach a\u00FAn no public\u00F3 la semana');
