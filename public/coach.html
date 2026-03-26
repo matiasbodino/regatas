@@ -955,7 +955,7 @@ function swSem(i){curSem=i;renderTabs();renderAll();renderTrackerBtn();}
 function renderKPIs(){
   const s=SEMS[curSem], d=calcDist(s);
   const total=Object.entries(d).filter(([k])=>k!=='Gimnasio').reduce((a,[,v])=>a+v,0);
-  const bloques=['lun','mar','jue'].reduce((a,day)=>a+(s[day]||[]).filter(b=>b.grupo!=='Gimnasio').length,0);
+  const bloques=['lun','mar','jue'].reduce((a,day)=>a+(s[day]||[]).filter(b=>b.tipo!=='agua').length,0);
   const top=Object.entries(d).filter(([k])=>k!=='Gimnasio').sort((a,b)=>b[1]-a[1])[0];
   document.getElementById('kpi-total').textContent=total+' min';
   document.getElementById('kpi-bloques').textContent=bloques;
