@@ -430,6 +430,7 @@ select,input{font-family:inherit}
     <span id="save-indicator" style="font-size:10px;color:rgba(255,255,255,0.35);white-space:nowrap">sin cambios</span>
     <button onclick="exportData()" title="Exportar datos" style="padding:4px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.7);font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap">⬇ Exportar</button>
     <label title="Importar datos" style="padding:4px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.7);font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap">⬆ Importar<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
+    <button id="btn-guardar" onclick="guardarSemana()" title="Guardar semana y bloquear edición" style="padding:4px 10px;border-radius:6px;border:1px solid #27AE60;background:#27AE60;color:#fff;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">💾 Guardar</button>
     <button id="btn-publicar" onclick="publicarSemana()" title="Publicar semana activa para jugadores" style="padding:4px 10px;border-radius:6px;border:1px solid #F5C518;background:#F5C518;color:#0D1B4E;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">📢 Publicar</button>
   </div>
 </nav>
@@ -2036,16 +2037,36 @@ function renderPublishedBanner() {
   var container = document.getElementById('published-banner-container');
   var layout = document.getElementById('planner-layout');
   if (!container || !layout) return;
-  if (isSemPublished(s.sem)) {
-    container.innerHTML = '<div class="published-banner">'
-      + '<div class="published-banner-text">\u2705 Semana ' + s.sem + ' publicada \u2014 edici\u00F3n bloqueada</div>'
-      + '<button class="published-banner-btn" onclick="unlockSem(' + s.sem + ')">Editar</button>'
+  var lockType = getSemLockType(s.sem);
+  if (lockType) {
+    var icon = lockType === 'publicado' ? '\u2705' : '\uD83D\uDCBE';
+    var label = lockType === 'publicado' ? 'publicada' : 'guardada';
+    var bannerBg = lockType === 'publicado' ? '#27AE60' : '#2B4EA0';
+    container.innerHTML = '<div class="published-banner" style="background:' + bannerBg + '">'
+      + '<div class="published-banner-text">' + icon + ' Semana ' + s.sem + ' ' + label + ' \u2014 edici\u00F3n bloqueada</div>'
+      + '<button class="published-banner-btn" style="color:' + bannerBg + '" onclick="unlockSem(' + s.sem + ')">Editar</button>'
       + '</div>';
     layout.classList.add('planner-locked');
   } else {
     container.innerHTML = '';
     layout.classList.remove('planner-locked');
   }
+}
+
+function guardarSemana() {
+  var s = SEMS[curSem];
+  var btn = document.getElementById('btn-guardar');
+  saveToLocal();
+  markGuardado(s.sem);
+  renderAll();
+  btn.textContent = '\u2713 Guardado';
+  btn.style.background = '#1A6B3E';
+  btn.style.borderColor = '#1A6B3E';
+  setTimeout(function() {
+    btn.textContent = '\uD83D\uDCBE Guardar';
+    btn.style.background = '#27AE60';
+    btn.style.borderColor = '#27AE60';
+  }, 2000);
 }
 
 function unlockSem(semNum) {
@@ -2427,23 +2448,32 @@ const STORAGE_KEY       = 'cumbre_a_cumbre_2026';
 const STORAGE_KEY_CUMBRES = 'cumbre_a_cumbre_meta_2026';
 const STORAGE_KEY_PUBLISHED = 'cumbre_published_sems';
 
-// Track which weeks have been published (locked for editing)
-function getPublishedSems() {
+// Track which weeks are locked (guardado or publicado)
+// Values: 'guardado' | 'publicado' | undefined
+function getLockedSems() {
   try { var raw = localStorage.getItem(STORAGE_KEY_PUBLISHED); return raw ? JSON.parse(raw) : {}; }
   catch(e) { return {}; }
 }
 function markPublished(semNum) {
-  var p = getPublishedSems();
-  p[semNum] = true;
+  var p = getLockedSems();
+  p[semNum] = 'publicado';
+  try { localStorage.setItem(STORAGE_KEY_PUBLISHED, JSON.stringify(p)); } catch(e) {}
+}
+function markGuardado(semNum) {
+  var p = getLockedSems();
+  p[semNum] = 'guardado';
   try { localStorage.setItem(STORAGE_KEY_PUBLISHED, JSON.stringify(p)); } catch(e) {}
 }
 function unmarkPublished(semNum) {
-  var p = getPublishedSems();
+  var p = getLockedSems();
   delete p[semNum];
   try { localStorage.setItem(STORAGE_KEY_PUBLISHED, JSON.stringify(p)); } catch(e) {}
 }
-function isSemPublished(semNum) {
-  return !!getPublishedSems()[semNum];
+function isSemLocked(semNum) {
+  return !!getLockedSems()[semNum];
+}
+function getSemLockType(semNum) {
+  return getLockedSems()[semNum] || null;
 }
 
 function saveCumbres() {
