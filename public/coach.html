@@ -511,10 +511,31 @@ select,input{font-family:inherit}
     <div><h2>Resultados · Temporada 2026</h2><p>KPIs de partido y tendencias acumuladas</p></div>
     <div class="tri">▲</div>
   </div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+    <div id="res-toggle" style="display:flex;border-radius:8px;overflow:hidden;border:1px solid #E2E7F5;flex-shrink:0">
+      <button onclick="setResVista('acumulado')" id="res-btn-acumulado"
+        style="padding:6px 14px;font-size:11px;font-weight:700;border:none;cursor:pointer;background:#0D1B4E;color:#F5C518">
+        ACUMULADO
+      </button>
+      <button onclick="setResVista('ciclo')" id="res-btn-ciclo"
+        style="padding:6px 14px;font-size:11px;font-weight:700;border:none;cursor:pointer;background:#fff;color:#888">
+        POR CICLO
+      </button>
+    </div>
+    <select id="res-ciclo-select" onchange="renderResultados()"
+      style="display:none;padding:6px 10px;font-size:11px;border-radius:8px;border:1px solid #E2E7F5;font-weight:600;color:#0D1B4E">
+    </select>
+    <div style="flex:1"></div>
+    <button onclick="capturarResultados()" id="btn-captura"
+      style="padding:6px 14px;font-size:11px;font-weight:700;border-radius:8px;border:1px solid #E2E7F5;background:#fff;color:#0D1B4E;cursor:pointer;display:flex;align-items:center;gap:4px">
+      📷 Compartir
+    </button>
+  </div>
   <div id="resultados-content"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
 // ── PIN LOCK ─────────────────────────────────────────────────────
 var PIN_CODE = 'Gonza2026';
@@ -2101,199 +2122,313 @@ function unlockSem(semNum) {
 
 // ── RESULTADOS PAGE ──────────────────────────────────────────
 
-function renderResultados() {
-  var semsConDatos = SEMS.filter(function(s) {
-    var r = s.resultado;
-    return r && r.ptsNos !== null && r.ptsRival !== null;
-  });
+var resVista = 'acumulado'; // 'acumulado' o 'ciclo'
 
-  var rows = semsConDatos.map(function(s) {
-    var r = s.resultado;
-    var tgt = getTargetsByCiclo(s.ciclo);
-    var ganamos = r.ptsNos > r.ptsRival;
-    var empate = r.ptsNos === r.ptsRival;
-    var resClass = ganamos ? 'res-win' : (empate ? '' : 'res-loss');
-    var resText = r.ptsNos + ' - ' + r.ptsRival;
+function setResVista(modo) {
+  resVista = modo;
+  var btnAcum = document.getElementById('res-btn-acumulado');
+  var btnCiclo = document.getElementById('res-btn-ciclo');
+  var selCiclo = document.getElementById('res-ciclo-select');
+  if (modo === 'acumulado') {
+    btnAcum.style.background = '#0D1B4E'; btnAcum.style.color = '#F5C518';
+    btnCiclo.style.background = '#fff'; btnCiclo.style.color = '#888';
+    selCiclo.style.display = 'none';
+  } else {
+    btnCiclo.style.background = '#0D1B4E'; btnCiclo.style.color = '#F5C518';
+    btnAcum.style.background = '#fff'; btnAcum.style.color = '#888';
+    // Poblar selector de ciclos con los que tienen datos
+    var opts = '';
+    CUMBRES.forEach(function(c) {
+      var tiene = SEMS.filter(function(s) {
+        return s.ciclo === c.nombre && s.resultado && s.resultado.ptsNos !== null;
+      }).length > 0;
+      if (tiene) opts += '<option value="' + c.nombre + '">' + c.nombre + '</option>';
+    });
+    if (!opts) opts = '<option value="">Sin datos</option>';
+    selCiclo.innerHTML = opts;
+    selCiclo.style.display = 'block';
+  }
+  renderResultados();
+}
 
-    var peoClass = r.peo !== null ? (r.peo >= tgt.peo ? 'kpi-ok' : 'kpi-fail') : '';
-    var lineClass = r.line !== null ? (r.line >= tgt.line ? 'kpi-ok' : 'kpi-fail') : '';
-    var scrumClass = r.scrum !== null ? (r.scrum >= tgt.scrum ? 'kpi-ok' : 'kpi-fail') : '';
-    var tacklesClass = r.tackles !== null ? (r.tackles <= tgt.tackles ? 'kpi-ok' : 'kpi-fail') : '';
-
-    return '<tr>'
-      + '<td style="font-weight:600">Sem ' + s.sem + '</td>'
-      + '<td>' + s.fecha + '</td>'
-      + '<td style="font-weight:600">' + s.rival + '</td>'
-      + '<td>' + (s.local === 'L' ? 'L' : 'V') + '</td>'
-      + '<td class="' + resClass + '">' + resText + '</td>'
-      + '<td style="font-size:10px;color:#888">' + s.ciclo + '</td>'
-      + '<td class="' + peoClass + '">' + (r.peo !== null ? r.peo + '%' : '—') + '</td>'
-      + '<td class="' + lineClass + '">' + (r.line !== null ? r.line + '%' : '—') + '</td>'
-      + '<td class="' + scrumClass + '">' + (r.scrum !== null ? r.scrum + '%' : '—') + '</td>'
-      + '<td class="' + tacklesClass + '">' + (r.tackles !== null ? r.tackles + '%' : '—') + '</td>'
-      + '</tr>';
-  }).join('');
-
-  // Promedios — agrupa por ciclo para mostrar targets específicos
-  // Para los promedios globales usamos el promedio de todos los targets de los ciclos involucrados
+function buildKpiCards(semsData, targets) {
   var kpiFields = [
     {key:'peo', label:'PEO', higher:true},
     {key:'line', label:'Obtención Line', higher:true},
     {key:'scrum', label:'Dominio Scrum', higher:true},
     {key:'tackles', label:'Tackles errados', higher:false}
   ];
-
-  var cards = kpiFields.map(function(f) {
-    var vals = semsConDatos.filter(function(s) { return s.resultado[f.key] !== null; })
+  return kpiFields.map(function(f) {
+    var vals = semsData.filter(function(s) { return s.resultado[f.key] !== null; })
       .map(function(s) { return s.resultado[f.key]; });
     var avg = vals.length > 0 ? Math.round(vals.reduce(function(a,b){return a+b;},0) / vals.length) : null;
-    // Promedio de targets de los ciclos involucrados
-    var tgtVals = semsConDatos.filter(function(s) { return s.resultado[f.key] !== null; })
-      .map(function(s) { return getTargetsByCiclo(s.ciclo)[f.key]; });
-    var avgTarget = tgtVals.length > 0 ? Math.round(tgtVals.reduce(function(a,b){return a+b;},0) / tgtVals.length) : (f.higher ? 90 : 15);
-    var ok = avg !== null ? (f.higher ? avg >= avgTarget : avg <= avgTarget) : false;
+    var tgt = targets ? targets[f.key] : null;
+    if (!tgt) {
+      var tgtVals = semsData.filter(function(s) { return s.resultado[f.key] !== null; })
+        .map(function(s) { return getTargetsByCiclo(s.ciclo)[f.key]; });
+      tgt = tgtVals.length > 0 ? Math.round(tgtVals.reduce(function(a,b){return a+b;},0) / tgtVals.length) : (f.higher ? 90 : 15);
+    }
+    var ok = avg !== null ? (f.higher ? avg >= tgt : avg <= tgt) : false;
     var color = avg !== null ? (ok ? '#27AE60' : '#E74C3C') : '#aaa';
-    var pct = avg !== null ? Math.min(100, f.higher ? (avg / avgTarget * 100) : (avgTarget / Math.max(avg,1) * 100)) : 0;
-
+    var pct = avg !== null ? Math.min(100, f.higher ? (avg / tgt * 100) : (tgt / Math.max(avg,1) * 100)) : 0;
     return '<div style="background:#fff;border:0.5px solid #E2E7F5;border-radius:10px;padding:12px 14px">'
       + '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">' + f.label + '</div>'
-      + '<div style="font-size:26px;font-weight:700;color:' + color + '">' + (avg !== null ? avg + '%' : '—') + '</div>'
-      + '<div style="font-size:10px;color:#aaa;margin-top:2px">target: ' + (f.higher ? '' : '<') + avgTarget + '% · ' + vals.length + ' partidos</div>'
+      + '<div style="font-size:26px;font-weight:700;color:' + color + '">' + (avg !== null ? avg + '%' : '\u2014') + '</div>'
+      + '<div style="font-size:10px;color:#aaa;margin-top:2px">target: ' + (f.higher ? '' : '<') + tgt + '% \u00B7 ' + vals.length + ' partidos</div>'
       + '<div style="height:6px;border-radius:3px;background:#EDF0F8;margin-top:6px;overflow:hidden">'
       + '<div style="height:100%;border-radius:3px;background:' + color + ';width:' + pct + '%"></div>'
-      + '</div>'
-      + '</div>';
+      + '</div></div>';
   }).join('');
+}
 
-  var emptyMsg = semsConDatos.length === 0
-    ? '<div style="text-align:center;padding:40px 20px;color:#888;font-size:13px">No hay resultados cargados. Carg\u00E1 los datos en el Planificador \u2192 secci\u00F3n "Resultado del partido".</div>'
-    : '';
+function buildWEL(semsData) {
+  var totalAFavor = 0, totalEnContra = 0, ganados = 0, empatados = 0, perdidos = 0;
+  semsData.forEach(function(s) {
+    var r = s.resultado;
+    totalAFavor += (r.ptsNos || 0);
+    totalEnContra += (r.ptsRival || 0);
+    if (r.ptsNos > r.ptsRival) ganados++;
+    else if (r.ptsNos === r.ptsRival) empatados++;
+    else perdidos++;
+  });
+  var diferencia = totalAFavor - totalEnContra;
+  var difColor = diferencia > 0 ? '#27AE60' : diferencia < 0 ? '#E74C3C' : '#888';
+  var difSign = diferencia > 0 ? '+' : '';
+  var promEnContra = semsData.length > 0 ? Math.round(totalEnContra / semsData.length) : 0;
+  return '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">'
+    + '<div style="background:#D6EFE0;border-radius:10px;padding:12px 14px;text-align:center">'
+    + '<div style="font-size:26px;font-weight:700;color:#1A6B3E">' + ganados + '</div>'
+    + '<div style="font-size:10px;color:#1A6B3E;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">Ganados</div></div>'
+    + '<div style="background:#FEF9D9;border-radius:10px;padding:12px 14px;text-align:center">'
+    + '<div style="font-size:26px;font-weight:700;color:#7A5200">' + empatados + '</div>'
+    + '<div style="font-size:10px;color:#7A5200;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">Empates</div></div>'
+    + '<div style="background:#FDECEC;border-radius:10px;padding:12px 14px;text-align:center">'
+    + '<div style="font-size:26px;font-weight:700;color:#C0392B">' + perdidos + '</div>'
+    + '<div style="font-size:10px;color:#C0392B;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">Perdidos</div></div>'
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">'
+    + '<div style="background:#fff;border:0.5px solid #E2E7F5;border-radius:10px;padding:12px 14px">'
+    + '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Pts a favor</div>'
+    + '<div style="font-size:26px;font-weight:700;color:#0D1B4E">' + totalAFavor + '</div></div>'
+    + '<div style="background:#fff;border:0.5px solid #E2E7F5;border-radius:10px;padding:12px 14px">'
+    + '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Pts en contra</div>'
+    + '<div style="font-size:26px;font-weight:700;color:#0D1B4E">' + totalEnContra + '</div></div>'
+    + '<div style="background:#fff;border:0.5px solid #E2E7F5;border-radius:10px;padding:12px 14px">'
+    + '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Diferencia</div>'
+    + '<div style="font-size:26px;font-weight:700;color:' + difColor + '">' + difSign + diferencia + '</div></div>'
+    + '<div style="background:#fff;border:0.5px solid #E2E7F5;border-radius:10px;padding:12px 14px">'
+    + '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Prom. en contra</div>'
+    + '<div style="font-size:26px;font-weight:700;color:#0D1B4E">' + promEnContra + '</div></div>'
+    + '</div>';
+}
 
-  // Stats de puntos y W/E/L
-  var statsHtml = '';
-  if (semsConDatos.length > 0) {
-    var totalAFavor = 0, totalEnContra = 0, ganados = 0, empatados = 0, perdidos = 0;
-    semsConDatos.forEach(function(s) {
-      var r = s.resultado;
-      totalAFavor += (r.ptsNos || 0);
-      totalEnContra += (r.ptsRival || 0);
-      if (r.ptsNos > r.ptsRival) ganados++;
-      else if (r.ptsNos === r.ptsRival) empatados++;
-      else perdidos++;
-    });
-    var diferencia = totalAFavor - totalEnContra;
-    var difColor = diferencia > 0 ? '#27AE60' : diferencia < 0 ? '#E74C3C' : '#888';
-    var difSign = diferencia > 0 ? '+' : '';
-    var promEnContra = Math.round(totalEnContra / semsConDatos.length);
+function buildPartidosTable(semsData, showCicloCol) {
+  var rows = semsData.map(function(s) {
+    var r = s.resultado;
+    var tgt = getTargetsByCiclo(s.ciclo);
+    var ganamos = r.ptsNos > r.ptsRival;
+    var empate = r.ptsNos === r.ptsRival;
+    var resClass = ganamos ? 'res-win' : (empate ? '' : 'res-loss');
+    var peoClass = r.peo !== null ? (r.peo >= tgt.peo ? 'kpi-ok' : 'kpi-fail') : '';
+    var lineClass = r.line !== null ? (r.line >= tgt.line ? 'kpi-ok' : 'kpi-fail') : '';
+    var scrumClass = r.scrum !== null ? (r.scrum >= tgt.scrum ? 'kpi-ok' : 'kpi-fail') : '';
+    var tacklesClass = r.tackles !== null ? (r.tackles <= tgt.tackles ? 'kpi-ok' : 'kpi-fail') : '';
+    return '<tr>'
+      + '<td style="font-weight:600">Sem ' + s.sem + '</td>'
+      + '<td>' + s.fecha + '</td>'
+      + '<td style="font-weight:600">' + s.rival + '</td>'
+      + '<td>' + (s.local === 'L' ? 'L' : 'V') + '</td>'
+      + '<td class="' + resClass + '">' + r.ptsNos + ' - ' + r.ptsRival + '</td>'
+      + (showCicloCol ? '<td style="font-size:10px;color:#888">' + s.ciclo + '</td>' : '')
+      + '<td class="' + peoClass + '">' + (r.peo !== null ? r.peo + '%' : '\u2014') + '</td>'
+      + '<td class="' + lineClass + '">' + (r.line !== null ? r.line + '%' : '\u2014') + '</td>'
+      + '<td class="' + scrumClass + '">' + (r.scrum !== null ? r.scrum + '%' : '\u2014') + '</td>'
+      + '<td class="' + tacklesClass + '">' + (r.tackles !== null ? r.tackles + '%' : '\u2014') + '</td>'
+      + '</tr>';
+  }).join('');
+  var cicloTh = showCicloCol ? '<th>Ciclo</th>' : '';
+  return '<div style="overflow-x:auto"><table class="res-table">'
+    + '<thead><tr><th>Sem</th><th>Fecha</th><th>Rival</th><th>L/V</th><th>Resultado</th>' + cicloTh + '<th>PEO</th><th>Line</th><th>Scrum</th><th>Tackles</th></tr></thead>'
+    + '<tbody>' + rows + '</tbody></table></div>';
+}
 
-    statsHtml = '<div class="card" style="margin-bottom:12px">'
-      + '<div style="font-size:14px;font-weight:600;color:#0D1B4E;margin-bottom:12px">Resumen de la temporada</div>'
-      + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">'
-      // W E L
-      + '<div style="background:#D6EFE0;border-radius:10px;padding:12px 14px;text-align:center">'
-      + '<div style="font-size:26px;font-weight:700;color:#1A6B3E">' + ganados + '</div>'
-      + '<div style="font-size:10px;color:#1A6B3E;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">Ganados</div>'
-      + '</div>'
-      + '<div style="background:#FEF9D9;border-radius:10px;padding:12px 14px;text-align:center">'
-      + '<div style="font-size:26px;font-weight:700;color:#7A5200">' + empatados + '</div>'
-      + '<div style="font-size:10px;color:#7A5200;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">Empates</div>'
-      + '</div>'
-      + '<div style="background:#FDECEC;border-radius:10px;padding:12px 14px;text-align:center">'
-      + '<div style="font-size:26px;font-weight:700;color:#C0392B">' + perdidos + '</div>'
-      + '<div style="font-size:10px;color:#C0392B;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">Perdidos</div>'
-      + '</div>'
-      + '</div>'
-      // Puntos
-      + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">'
-      + '<div style="background:#fff;border:0.5px solid #E2E7F5;border-radius:10px;padding:12px 14px">'
-      + '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Pts a favor</div>'
-      + '<div style="font-size:26px;font-weight:700;color:#0D1B4E">' + totalAFavor + '</div>'
-      + '</div>'
-      + '<div style="background:#fff;border:0.5px solid #E2E7F5;border-radius:10px;padding:12px 14px">'
-      + '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Pts en contra</div>'
-      + '<div style="font-size:26px;font-weight:700;color:#0D1B4E">' + totalEnContra + '</div>'
-      + '</div>'
-      + '<div style="background:#fff;border:0.5px solid #E2E7F5;border-radius:10px;padding:12px 14px">'
-      + '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Diferencia</div>'
-      + '<div style="font-size:26px;font-weight:700;color:' + difColor + '">' + difSign + diferencia + '</div>'
-      + '</div>'
-      + '<div style="background:#fff;border:0.5px solid #E2E7F5;border-radius:10px;padding:12px 14px">'
-      + '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Prom. en contra</div>'
-      + '<div style="font-size:26px;font-weight:700;color:#0D1B4E">' + promEnContra + '</div>'
-      + '</div>'
-      + '</div>'
-      + '</div>';
+function renderResultados() {
+  var allConDatos = SEMS.filter(function(s) {
+    var r = s.resultado;
+    return r && r.ptsNos !== null && r.ptsRival !== null;
+  });
+
+  if (allConDatos.length === 0) {
+    document.getElementById('resultados-content').innerHTML =
+      '<div style="text-align:center;padding:40px 20px;color:#888;font-size:13px">No hay resultados cargados. Carg\u00E1 los datos en el Planificador \u2192 secci\u00F3n "Resultado del partido".</div>';
+    return;
   }
 
-  // Resumen de KPIs por ciclo
-  var cicloKpisHtml = '';
-  if (semsConDatos.length > 0) {
+  var html = '';
+
+  if (resVista === 'ciclo') {
+    // ── VISTA POR CICLO ──
+    var selCiclo = document.getElementById('res-ciclo-select');
+    var cicloNombre = selCiclo ? selCiclo.value : '';
+    var cumbre = CUMBRES.find(function(c) { return c.nombre === cicloNombre; });
+    if (!cumbre) { document.getElementById('resultados-content').innerHTML = ''; return; }
+
+    var semsCiclo = allConDatos.filter(function(s) { return s.ciclo === cicloNombre; });
+    var tgt = cumbre.targets || {peo:90,line:90,scrum:40,tackles:15};
+    var totalSemsCiclo = cumbre.sems.length;
+
+    // Calcular KPIs cumplidos para progreso de bandera
+    var kpisCumplidos = 0, kpisTotal = 0;
+    semsCiclo.forEach(function(s) {
+      var r = s.resultado;
+      if (r.peo !== null) { kpisTotal++; if (r.peo >= tgt.peo) kpisCumplidos++; }
+      if (r.line !== null) { kpisTotal++; if (r.line >= tgt.line) kpisCumplidos++; }
+      if (r.scrum !== null) { kpisTotal++; if (r.scrum >= tgt.scrum) kpisCumplidos++; }
+      if (r.tackles !== null) { kpisTotal++; if (r.tackles <= tgt.tackles) kpisCumplidos++; }
+    });
+    var pctKpis = kpisTotal > 0 ? Math.round(kpisCumplidos / kpisTotal * 100) : 0;
+    var pctColor = pctKpis >= (cumbre.umbral || 75) ? '#27AE60' : '#E74C3C';
+
+    // Rivales jugados
+    var rivales = semsCiclo.map(function(s) { return s.rival; }).join(', ');
+
+    // Header del ciclo
+    html += '<div id="res-capture" style="background:#F8F9FD;border-radius:12px;padding:16px">';
+    html += '<div style="background:' + cumbre.color + ';border-radius:10px;padding:14px 16px;margin-bottom:12px;position:relative">'
+      + '<div style="font-size:10px;color:rgba(255,255,255,0.6);letter-spacing:0.08em;text-transform:uppercase">\u25B2 Ciclo ' + cumbre.num + ' \u00B7 ' + cumbre.alt + '</div>'
+      + '<div style="font-size:22px;font-weight:700;color:#F5C518;margin-top:2px">' + cumbre.nombre.toUpperCase() + '</div>'
+      + '<div style="font-size:11px;color:rgba(255,255,255,0.8);margin-top:2px">' + cumbre.sub + ' \u00B7 ' + semsCiclo.length + '/' + totalSemsCiclo + ' partidos \u00B7 ' + rivales + '</div>'
+      + '</div>';
+
+    // KPI cards del ciclo
+    html += '<div class="card" style="margin-bottom:12px">'
+      + '<div style="font-size:12px;font-weight:600;color:#0D1B4E;margin-bottom:8px">KPIs del ciclo</div>'
+      + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">'
+      + buildKpiCards(semsCiclo, tgt)
+      + '</div></div>';
+
+    // Progreso de bandera
+    html += '<div class="card" style="margin-bottom:12px">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
+      + '<span style="font-size:12px;font-weight:600;color:#0D1B4E">Progreso bandera</span>'
+      + '<span style="font-size:20px;font-weight:700;color:' + pctColor + '">' + pctKpis + '%</span></div>'
+      + '<div style="height:8px;border-radius:4px;background:#EDF0F8;overflow:hidden;position:relative">'
+      + '<div style="height:100%;border-radius:4px;background:' + pctColor + ';width:' + pctKpis + '%"></div>'
+      + '<div style="position:absolute;left:' + (cumbre.umbral || 75) + '%;top:-2px;bottom:-2px;width:2px;background:#0D1B4E"></div>'
+      + '</div>'
+      + '<div style="font-size:10px;color:#aaa;margin-top:4px">' + kpisCumplidos + '/' + kpisTotal + ' KPIs cumplidos \u00B7 umbral ' + (cumbre.umbral || 75) + '%</div>'
+      + '</div>';
+
+    // W/E/L del ciclo
+    html += '<div class="card" style="margin-bottom:12px">'
+      + '<div style="font-size:12px;font-weight:600;color:#0D1B4E;margin-bottom:8px">Resultados del ciclo</div>'
+      + buildWEL(semsCiclo) + '</div>';
+
+    // Partidos del ciclo
+    html += '<div class="card">'
+      + '<div style="font-size:12px;font-weight:600;color:#0D1B4E;margin-bottom:8px">Partidos</div>'
+      + buildPartidosTable(semsCiclo, false) + '</div>';
+
+    html += '</div>'; // cierra res-capture
+
+  } else {
+    // ── VISTA ACUMULADA ──
+    html += '<div id="res-capture" style="background:#F8F9FD;border-radius:12px;padding:16px">';
+
+    // Promedios acumulados
+    html += '<div class="card" style="margin-bottom:12px">'
+      + '<div style="font-size:14px;font-weight:600;color:#0D1B4E;margin-bottom:12px">Promedios acumulados</div>'
+      + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">'
+      + buildKpiCards(allConDatos, null)
+      + '</div></div>';
+
+    // Resumen W/E/L
+    html += '<div class="card" style="margin-bottom:12px">'
+      + '<div style="font-size:14px;font-weight:600;color:#0D1B4E;margin-bottom:12px">Resumen de la temporada</div>'
+      + buildWEL(allConDatos) + '</div>';
+
+    // KPIs por ciclo
     var ciclosConDatos = [];
     CUMBRES.forEach(function(c) {
-      var semsDelCiclo = semsConDatos.filter(function(s) { return s.ciclo === c.nombre; });
+      var semsDelCiclo = allConDatos.filter(function(s) { return s.ciclo === c.nombre; });
       if (semsDelCiclo.length === 0) return;
       var tgt = c.targets || {peo:90,line:90,scrum:40,tackles:15};
-      var totPeo = 0, totLine = 0, totScrum = 0, totTackles = 0, n = 0;
+      var totPeo=0,totLine=0,totScrum=0,totTackles=0,n=0;
       semsDelCiclo.forEach(function(s) {
         var r = s.resultado;
-        if (r.peo !== null) totPeo += r.peo;
-        if (r.line !== null) totLine += r.line;
-        if (r.scrum !== null) totScrum += r.scrum;
-        if (r.tackles !== null) totTackles += r.tackles;
-        n++;
+        if(r.peo!==null)totPeo+=r.peo; if(r.line!==null)totLine+=r.line;
+        if(r.scrum!==null)totScrum+=r.scrum; if(r.tackles!==null)totTackles+=r.tackles; n++;
       });
-      var avgPeo = n > 0 ? Math.round(totPeo / n) : null;
-      var avgLine = n > 0 ? Math.round(totLine / n) : null;
-      var avgScrum = n > 0 ? Math.round(totScrum / n) : null;
-      var avgTackles = n > 0 ? Math.round(totTackles / n) : null;
-      ciclosConDatos.push({nombre:c.nombre, color:c.color, n:n, tgt:tgt,
-        avgPeo:avgPeo, avgLine:avgLine, avgScrum:avgScrum, avgTackles:avgTackles});
+      ciclosConDatos.push({nombre:c.nombre,color:c.color,n:n,tgt:tgt,
+        avgPeo:n>0?Math.round(totPeo/n):null, avgLine:n>0?Math.round(totLine/n):null,
+        avgScrum:n>0?Math.round(totScrum/n):null, avgTackles:n>0?Math.round(totTackles/n):null});
     });
     if (ciclosConDatos.length > 0) {
       var cicloRows = ciclosConDatos.map(function(ci) {
-        var peoOk = ci.avgPeo !== null ? (ci.avgPeo >= ci.tgt.peo ? 'kpi-ok' : 'kpi-fail') : '';
-        var lineOk = ci.avgLine !== null ? (ci.avgLine >= ci.tgt.line ? 'kpi-ok' : 'kpi-fail') : '';
-        var scrumOk = ci.avgScrum !== null ? (ci.avgScrum >= ci.tgt.scrum ? 'kpi-ok' : 'kpi-fail') : '';
-        var tackOk = ci.avgTackles !== null ? (ci.avgTackles <= ci.tgt.tackles ? 'kpi-ok' : 'kpi-fail') : '';
+        var peoOk=ci.avgPeo!==null?(ci.avgPeo>=ci.tgt.peo?'kpi-ok':'kpi-fail'):'';
+        var lineOk=ci.avgLine!==null?(ci.avgLine>=ci.tgt.line?'kpi-ok':'kpi-fail'):'';
+        var scrumOk=ci.avgScrum!==null?(ci.avgScrum>=ci.tgt.scrum?'kpi-ok':'kpi-fail'):'';
+        var tackOk=ci.avgTackles!==null?(ci.avgTackles<=ci.tgt.tackles?'kpi-ok':'kpi-fail'):'';
         return '<tr>'
-          + '<td style="font-weight:700;color:' + ci.color + '">\u25B2 ' + ci.nombre + '</td>'
-          + '<td>' + ci.n + '</td>'
-          + '<td class="' + peoOk + '">' + (ci.avgPeo !== null ? ci.avgPeo + '%' : '\u2014') + '<div style="font-size:9px;color:#aaa">tgt ' + ci.tgt.peo + '%</div></td>'
-          + '<td class="' + lineOk + '">' + (ci.avgLine !== null ? ci.avgLine + '%' : '\u2014') + '<div style="font-size:9px;color:#aaa">tgt ' + ci.tgt.line + '%</div></td>'
-          + '<td class="' + scrumOk + '">' + (ci.avgScrum !== null ? ci.avgScrum + '%' : '\u2014') + '<div style="font-size:9px;color:#aaa">tgt ' + ci.tgt.scrum + '%</div></td>'
-          + '<td class="' + tackOk + '">' + (ci.avgTackles !== null ? ci.avgTackles + '%' : '\u2014') + '<div style="font-size:9px;color:#aaa">tgt <' + ci.tgt.tackles + '%</div></td>'
+          + '<td style="font-weight:700;color:'+ci.color+'">\u25B2 '+ci.nombre+'</td>'
+          + '<td>'+ci.n+'</td>'
+          + '<td class="'+peoOk+'">'+(ci.avgPeo!==null?ci.avgPeo+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">tgt '+ci.tgt.peo+'%</div></td>'
+          + '<td class="'+lineOk+'">'+(ci.avgLine!==null?ci.avgLine+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">tgt '+ci.tgt.line+'%</div></td>'
+          + '<td class="'+scrumOk+'">'+(ci.avgScrum!==null?ci.avgScrum+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">tgt '+ci.tgt.scrum+'%</div></td>'
+          + '<td class="'+tackOk+'">'+(ci.avgTackles!==null?ci.avgTackles+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">tgt <'+ci.tgt.tackles+'%</div></td>'
           + '</tr>';
       }).join('');
-      cicloKpisHtml = '<div class="card" style="margin-bottom:12px">'
+      html += '<div class="card" style="margin-bottom:12px">'
         + '<div style="font-size:14px;font-weight:600;color:#0D1B4E;margin-bottom:12px">KPIs por ciclo</div>'
-        + '<div style="overflow-x:auto">'
-        + '<table class="res-table">'
+        + '<div style="overflow-x:auto"><table class="res-table">'
         + '<thead><tr><th>Ciclo</th><th>Partidos</th><th>PEO</th><th>Line</th><th>Scrum</th><th>Tackles</th></tr></thead>'
-        + '<tbody>' + cicloRows + '</tbody>'
-        + '</table></div></div>';
+        + '<tbody>' + cicloRows + '</tbody></table></div></div>';
     }
+
+    // Partidos jugados
+    html += '<div class="card">'
+      + '<div style="font-size:14px;font-weight:600;color:#0D1B4E;margin-bottom:12px">Partidos jugados</div>'
+      + buildPartidosTable(allConDatos, true) + '</div>';
+
+    html += '</div>'; // cierra res-capture
   }
 
-  document.getElementById('resultados-content').innerHTML =
-    // 1. Promedios acumulados
-    (semsConDatos.length > 0 ? '<div class="card" style="margin-bottom:12px">'
-      + '<div style="font-size:14px;font-weight:600;color:#0D1B4E;margin-bottom:12px">Promedios acumulados</div>'
-      + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">' + cards + '</div>'
-      + '</div>' : '')
-    // 2. Resumen de la temporada (W/E/L + puntos)
-    + statsHtml
-    // 3. KPIs por ciclo
-    + cicloKpisHtml
-    // 4. Partidos jugados
-    + '<div class="card">'
-    + '<div style="font-size:14px;font-weight:600;color:#0D1B4E;margin-bottom:12px">Partidos jugados</div>'
-    + emptyMsg
-    + (semsConDatos.length > 0 ? '<div style="overflow-x:auto">'
-      + '<table class="res-table">'
-      + '<thead><tr><th>Sem</th><th>Fecha</th><th>Rival</th><th>L/V</th><th>Resultado</th><th>Ciclo</th><th>PEO</th><th>Line</th><th>Scrum</th><th>Tackles</th></tr></thead>'
-      + '<tbody>' + rows + '</tbody>'
-      + '</table></div>' : '')
-    + '</div>';
+  document.getElementById('resultados-content').innerHTML = html;
+}
+
+function capturarResultados() {
+  var el = document.getElementById('res-capture');
+  if (!el) return;
+  var btn = document.getElementById('btn-captura');
+  btn.textContent = 'Generando...';
+  btn.disabled = true;
+  html2canvas(el, {
+    backgroundColor: '#F8F9FD',
+    scale: 2,
+    useCORS: true,
+    logging: false
+  }).then(function(canvas) {
+    var link = document.createElement('a');
+    var vista = resVista === 'ciclo'
+      ? (document.getElementById('res-ciclo-select').value || 'ciclo')
+      : 'temporada';
+    link.download = 'Regatas_' + vista + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    btn.textContent = '\u2713 Descargado';
+    btn.style.background = '#27AE60'; btn.style.color = '#fff'; btn.style.borderColor = '#27AE60';
+    setTimeout(function() {
+      btn.textContent = '\uD83D\uDCF7 Compartir';
+      btn.style.background = ''; btn.style.color = ''; btn.style.borderColor = '';
+      btn.disabled = false;
+    }, 2500);
+  }).catch(function() {
+    btn.textContent = '\u26A0 Error';
+    setTimeout(function() {
+      btn.textContent = '\uD83D\uDCF7 Compartir';
+      btn.disabled = false;
+    }, 2500);
+  });
 }
 
 // ── GAMIFICACIÓN — BANDERAS ───────────────────────────────────
