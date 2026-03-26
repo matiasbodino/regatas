@@ -1065,31 +1065,47 @@ function chHora(dia, id, val) {
 
 
 function buildWAText(dia,blocks,sem){
-  // Solo manda bloques que tienen al menos un link
-  const vidEmoji=String.fromCodePoint(0x1F3A5);
-  const DAY_LABELS={lun:'Lunes',mar:'Martes',jue:'Jueves'};
+  var vidEmoji=String.fromCodePoint(0x1F3A5);
+  var DAY_LABELS={lun:'Lunes',mar:'Martes',jue:'Jueves'};
 
-  const blocksConLinks=blocks.filter(bl=>{
+  // Incluir bloques que tienen links propios O links de backsParalelo
+  var blocksConLinks=blocks.filter(function(bl){
     if(bl.tipo==='agua') return false;
-    const links=(bl.links&&bl.links.length?bl.links:[bl.link]).filter(Boolean);
-    return links.length>0;
+    var fwLinks=(bl.links&&bl.links.length?bl.links:[bl.link]).filter(Boolean);
+    var bkLink=bl.backsParalelo&&bl.backsParalelo.link?bl.backsParalelo.link:'';
+    return fwLinks.length>0||bkLink.length>0;
   });
 
-  if(!blocksConLinks.length) return null; // sin links
+  if(!blocksConLinks.length) return null;
 
-  const lines=[
-    `*${DAY_LABELS[dia]} ${sem.fecha} · ${sem.rival} (${sem.local})*`,
-    ``,
+  var lines=[
+    '*'+DAY_LABELS[dia]+' '+sem.fecha+' · '+sem.rival+' ('+sem.local+')*',
+    '',
   ];
 
-  blocksConLinks.forEach(bl=>{
-    lines.push(`*${bl.faceta}*`);
-    const links=(bl.links&&bl.links.length?bl.links:[bl.link]).filter(Boolean);
-    links.forEach(lnk=>lines.push(`${vidEmoji} ${lnk}`));
-    lines.push(``);
+  blocksConLinks.forEach(function(bl){
+    var fwLinks=(bl.links&&bl.links.length?bl.links:[bl.link]).filter(Boolean);
+    var bkLink=bl.backsParalelo&&bl.backsParalelo.link?bl.backsParalelo.link:'';
+    var bkFacetas=bl.backsParalelo&&bl.backsParalelo.facetas?bl.backsParalelo.facetas:[];
+    var hasBk=bkLink.length>0;
+
+    // Links de forwards (prefijo FW solo si también hay BK)
+    if(fwLinks.length>0){
+      lines.push('*'+(hasBk?'FW · ':'')+bl.faceta+'*');
+      fwLinks.forEach(function(lnk){lines.push(vidEmoji+' '+lnk);});
+    }
+
+    // Link de backs paralelo
+    if(hasBk){
+      var bkLabel=bkFacetas.length>0?bkFacetas.join(' + '):'Backs';
+      lines.push('*BK · '+bkLabel+'*');
+      lines.push(vidEmoji+' '+bkLink);
+    }
+
+    lines.push('');
   });
 
-  lines.push(`_Ser Mejores, Siempre_`);
+  lines.push('_Ser Mejores, Siempre_');
   return lines.join('\n');
 }
 
@@ -1111,12 +1127,15 @@ function copyWA(dia){
 }
 
 function getWABtnLabel(dia){
-  const s=SEMS[curSem];
-  const blocks=(s[dia]||[]).filter(bl=>{
+  var s=SEMS[curSem];
+  var blocks=(s[dia]||[]).filter(function(bl){
     if(bl.tipo==='agua') return false;
-    return (bl.links&&bl.links.length?bl.links:[bl.link]).filter(Boolean).length>0;
+    var fwLinks=(bl.links&&bl.links.length?bl.links:[bl.link]).filter(Boolean);
+    var bkLink=bl.backsParalelo&&bl.backsParalelo.link?bl.backsParalelo.link:'';
+    return fwLinks.length>0||bkLink.length>0;
   });
-  return blocks.length>0?`📋 Copiar links (${blocks.length} bloque${blocks.length>1?'s':''})`:'📋 Sin videos cargados';
+  if(blocks.length>0) return '📋 Copiar links ('+blocks.length+' bloque'+(blocks.length>1?'s':'')+')';
+  return '📋 Sin videos cargados';
 }
 
 function fallbackCopy(text){
