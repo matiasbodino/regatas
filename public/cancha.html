@@ -361,11 +361,18 @@ function renderEmpty(msg, sub) {
 
 // ── INIT ─────────────────────────────────────────────────────
 
+function getSemFromURL() {
+  var params = new URLSearchParams(window.location.search);
+  var sem = parseInt(params.get('sem'));
+  return isNaN(sem) ? null : sem;
+}
+
 async function init() {
   var dayNum = new Date().getDay();
   var dayKey = DAY_KEYS[dayNum];
+  var semPreseleccionada = getSemFromURL();
 
-  if (!dayKey) {
+  if (!dayKey && !semPreseleccionada) {
     var prox = dayNum < 1 ? 'Lunes' : dayNum < 2 ? 'Martes' : dayNum < 4 ? 'Jueves' : 'Lunes';
     renderEmpty('Hoy no hay entrenamiento', 'Pr\u00F3ximo: ' + prox);
     return;
@@ -377,16 +384,35 @@ async function init() {
 
     if (result.error) throw result.error;
     var raw = result.data ? result.data.datos : null;
-    // Resolver formato: nuevo ({semanas, ultimaSem}) o viejo ({sem,...})
-    if (raw && raw.semanas && raw.ultimaSem) {
+
+    // Si viene ?sem=X, buscar esa semana específica
+    if (semPreseleccionada && raw && raw.semanas) {
+      semana = raw.semanas[semPreseleccionada] || null;
+    } else if (raw && raw.semanas && raw.ultimaSem) {
       semana = raw.semanas[raw.ultimaSem];
     } else if (raw && raw.sem) {
       semana = raw;
     }
 
-    if (!semana || !semana[dayKey] || semana[dayKey].length === 0) {
+    // Si no hay día de entrenamiento pero hay sem preseleccionada, usar el día más cercano
+    if (semPreseleccionada && semana && !dayKey) {
+      if (semana.jue && semana.jue.length > 0) dayKey = 'jue';
+      else if (semana.mar && semana.mar.length > 0) dayKey = 'mar';
+      else if (semana.lun && semana.lun.length > 0) dayKey = 'lun';
+    }
+
+    if (!semana || !dayKey || !semana[dayKey] || semana[dayKey].length === 0) {
       renderEmpty('Sin entrenamiento publicado', 'El coach a\u00FAn no public\u00F3 la semana');
       return;
+    }
+
+    // Actualizar header con info del partido
+    if (semana.rival) {
+      var hdrTitle = document.querySelector('.hdr-title');
+      if (hdrTitle) hdrTitle.textContent = '\u25B2 REGATAS vs ' + semana.rival.toUpperCase();
+      var hdrSub = document.querySelector('.hdr-sub');
+      var DAY_NAMES = {lun:'Lunes',mar:'Martes',jue:'Jueves'};
+      if (hdrSub) hdrSub.textContent = (DAY_NAMES[dayKey] || '') + ' ' + (semana.fecha || '') + ' \u00B7 ' + (semana.local === 'L' ? 'Local' : 'Visitante');
     }
 
     blocks = semana[dayKey];
