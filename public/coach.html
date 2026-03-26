@@ -2202,8 +2202,67 @@ function renderResultados() {
       + '</div>';
   }
 
+  // Resumen de KPIs por ciclo
+  var cicloKpisHtml = '';
+  if (semsConDatos.length > 0) {
+    var ciclosConDatos = [];
+    CUMBRES.forEach(function(c) {
+      var semsDelCiclo = semsConDatos.filter(function(s) { return s.ciclo === c.nombre; });
+      if (semsDelCiclo.length === 0) return;
+      var tgt = c.targets || {peo:90,line:90,scrum:40,tackles:15};
+      var totPeo = 0, totLine = 0, totScrum = 0, totTackles = 0, n = 0;
+      semsDelCiclo.forEach(function(s) {
+        var r = s.resultado;
+        if (r.peo !== null) totPeo += r.peo;
+        if (r.line !== null) totLine += r.line;
+        if (r.scrum !== null) totScrum += r.scrum;
+        if (r.tackles !== null) totTackles += r.tackles;
+        n++;
+      });
+      var avgPeo = n > 0 ? Math.round(totPeo / n) : null;
+      var avgLine = n > 0 ? Math.round(totLine / n) : null;
+      var avgScrum = n > 0 ? Math.round(totScrum / n) : null;
+      var avgTackles = n > 0 ? Math.round(totTackles / n) : null;
+      ciclosConDatos.push({nombre:c.nombre, color:c.color, n:n, tgt:tgt,
+        avgPeo:avgPeo, avgLine:avgLine, avgScrum:avgScrum, avgTackles:avgTackles});
+    });
+    if (ciclosConDatos.length > 0) {
+      var cicloRows = ciclosConDatos.map(function(ci) {
+        var peoOk = ci.avgPeo !== null ? (ci.avgPeo >= ci.tgt.peo ? 'kpi-ok' : 'kpi-fail') : '';
+        var lineOk = ci.avgLine !== null ? (ci.avgLine >= ci.tgt.line ? 'kpi-ok' : 'kpi-fail') : '';
+        var scrumOk = ci.avgScrum !== null ? (ci.avgScrum >= ci.tgt.scrum ? 'kpi-ok' : 'kpi-fail') : '';
+        var tackOk = ci.avgTackles !== null ? (ci.avgTackles <= ci.tgt.tackles ? 'kpi-ok' : 'kpi-fail') : '';
+        return '<tr>'
+          + '<td style="font-weight:700;color:' + ci.color + '">\u25B2 ' + ci.nombre + '</td>'
+          + '<td>' + ci.n + '</td>'
+          + '<td class="' + peoOk + '">' + (ci.avgPeo !== null ? ci.avgPeo + '%' : '\u2014') + '<div style="font-size:9px;color:#aaa">tgt ' + ci.tgt.peo + '%</div></td>'
+          + '<td class="' + lineOk + '">' + (ci.avgLine !== null ? ci.avgLine + '%' : '\u2014') + '<div style="font-size:9px;color:#aaa">tgt ' + ci.tgt.line + '%</div></td>'
+          + '<td class="' + scrumOk + '">' + (ci.avgScrum !== null ? ci.avgScrum + '%' : '\u2014') + '<div style="font-size:9px;color:#aaa">tgt ' + ci.tgt.scrum + '%</div></td>'
+          + '<td class="' + tackOk + '">' + (ci.avgTackles !== null ? ci.avgTackles + '%' : '\u2014') + '<div style="font-size:9px;color:#aaa">tgt <' + ci.tgt.tackles + '%</div></td>'
+          + '</tr>';
+      }).join('');
+      cicloKpisHtml = '<div class="card" style="margin-bottom:12px">'
+        + '<div style="font-size:14px;font-weight:600;color:#0D1B4E;margin-bottom:12px">KPIs por ciclo</div>'
+        + '<div style="overflow-x:auto">'
+        + '<table class="res-table">'
+        + '<thead><tr><th>Ciclo</th><th>Partidos</th><th>PEO</th><th>Line</th><th>Scrum</th><th>Tackles</th></tr></thead>'
+        + '<tbody>' + cicloRows + '</tbody>'
+        + '</table></div></div>';
+    }
+  }
+
   document.getElementById('resultados-content').innerHTML =
-    '<div class="card" style="margin-bottom:12px">'
+    // 1. Promedios acumulados
+    (semsConDatos.length > 0 ? '<div class="card" style="margin-bottom:12px">'
+      + '<div style="font-size:14px;font-weight:600;color:#0D1B4E;margin-bottom:12px">Promedios acumulados</div>'
+      + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">' + cards + '</div>'
+      + '</div>' : '')
+    // 2. Resumen de la temporada (W/E/L + puntos)
+    + statsHtml
+    // 3. KPIs por ciclo
+    + cicloKpisHtml
+    // 4. Partidos jugados
+    + '<div class="card">'
     + '<div style="font-size:14px;font-weight:600;color:#0D1B4E;margin-bottom:12px">Partidos jugados</div>'
     + emptyMsg
     + (semsConDatos.length > 0 ? '<div style="overflow-x:auto">'
@@ -2211,12 +2270,7 @@ function renderResultados() {
       + '<thead><tr><th>Sem</th><th>Fecha</th><th>Rival</th><th>L/V</th><th>Resultado</th><th>Ciclo</th><th>PEO</th><th>Line</th><th>Scrum</th><th>Tackles</th></tr></thead>'
       + '<tbody>' + rows + '</tbody>'
       + '</table></div>' : '')
-    + '</div>'
-    + statsHtml
-    + (semsConDatos.length > 0 ? '<div class="card">'
-      + '<div style="font-size:14px;font-weight:600;color:#0D1B4E;margin-bottom:12px">Promedios acumulados</div>'
-      + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">' + cards + '</div>'
-      + '</div>' : '');
+    + '</div>';
 }
 
 // ── GAMIFICACIÓN — BANDERAS ───────────────────────────────────
