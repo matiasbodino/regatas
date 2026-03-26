@@ -50,21 +50,37 @@ html, body {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  margin-top: 4px;
+  margin-top: 2px;
 }
-.clock-input {
-  width: 70px;
-  text-align: center;
-  font-size: 16px;
-  font-weight: 600;
-  border: 2px solid #ccc;
-  border-radius: 8px;
-  padding: 4px;
-  background: #fafafa;
+.clock-display {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0D1B4E;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1px;
 }
-.clock-label {
+.clock-controls {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding-bottom: 4px;
+}
+.clock-btn {
+  padding: 6px 16px;
   font-size: 13px;
-  color: #888;
+  font-weight: 700;
+  border-radius: 8px;
+  border: 1.5px solid #0D1B4E;
+  background: #0D1B4E;
+  color: #F5C518;
+  cursor: pointer;
+  min-height: 36px;
+}
+.clock-btn.running {
+  background: #E74C3C;
+  border-color: #E74C3C;
+  color: #fff;
 }
 .events-area {
   flex: 1;
@@ -204,8 +220,11 @@ html, body {
   <div class="scoreboard">
     <div class="score-big" id="scoreDisplay">0 - 0</div>
     <div class="clock-row">
-      <span class="clock-label">Min:</span>
-      <input type="text" class="clock-input" id="clockInput" placeholder="00" inputmode="numeric">
+      <span class="clock-display" id="clockDisplay">00:00</span>
+    </div>
+    <div class="clock-controls">
+      <button class="clock-btn" id="btnTiempo" onclick="toggleTiempo()">&#9654; 1er Tiempo</button>
+      <button class="clock-btn" id="btnPausa" onclick="togglePausa()" style="display:none">&#9208; Pausa</button>
     </div>
   </div>
 
@@ -387,10 +406,83 @@ function updateScore() {
   document.getElementById('scoreDisplay').textContent = ptsNos + ' - ' + ptsRival;
 }
 
+// ── TIMER ─────────────────────────────────────────────────────
+var timerInterval = null;
+var timerSeconds = 0;
+var timerRunning = false;
+var timerHalf = 0; // 0=no iniciado, 1=1T, 2=2T
+
+function formatClock(secs) {
+  var m = Math.floor(secs / 60);
+  var s = secs % 60;
+  return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+function updateClockDisplay() {
+  document.getElementById('clockDisplay').textContent = formatClock(timerSeconds);
+}
+
+function toggleTiempo() {
+  var btn = document.getElementById('btnTiempo');
+  var btnPausa = document.getElementById('btnPausa');
+  if (timerHalf === 0) {
+    // Iniciar 1er tiempo
+    timerHalf = 1;
+    timerSeconds = 0;
+    timerRunning = true;
+    btn.style.display = 'none';
+    btnPausa.style.display = 'block';
+    btnPausa.innerHTML = '&#9208; Pausa';
+    btnPausa.className = 'clock-btn running';
+    startTimer();
+  } else if (timerHalf === 1) {
+    // Iniciar 2do tiempo
+    timerHalf = 2;
+    timerSeconds = 40 * 60;
+    timerRunning = true;
+    btn.style.display = 'none';
+    btnPausa.style.display = 'block';
+    btnPausa.innerHTML = '&#9208; Pausa';
+    btnPausa.className = 'clock-btn running';
+    startTimer();
+  }
+}
+
+function togglePausa() {
+  var btnPausa = document.getElementById('btnPausa');
+  var btnTiempo = document.getElementById('btnTiempo');
+  if (timerRunning) {
+    // Pausar
+    timerRunning = false;
+    clearInterval(timerInterval);
+    btnPausa.innerHTML = '&#9654; Reanudar';
+    btnPausa.className = 'clock-btn';
+    // Si es 1T pausado, mostrar botón de 2T
+    if (timerHalf === 1) {
+      btnTiempo.innerHTML = '&#9654; 2do Tiempo';
+      btnTiempo.style.display = 'block';
+    }
+  } else {
+    // Reanudar
+    timerRunning = true;
+    btnPausa.innerHTML = '&#9208; Pausa';
+    btnPausa.className = 'clock-btn running';
+    btnTiempo.style.display = 'none';
+    startTimer();
+  }
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timerInterval = setInterval(function() {
+    if (!timerRunning) return;
+    timerSeconds++;
+    updateClockDisplay();
+  }, 1000);
+}
+
 function getMinuto() {
-  var v = document.getElementById('clockInput').value.trim();
-  if (!v) return '?';
-  return v;
+  return Math.floor(timerSeconds / 60).toString();
 }
 
 function addEvent(tipo, descripcion, ptsN, ptsR) {
@@ -495,7 +587,9 @@ function renderCrono() {
   for (var i = eventos.length - 1; i >= 0; i--) {
     var ev = eventos[i];
     html += '<div class="crono-item">';
-    html += '<span class="crono-text">' + ev.minuto + "' " + ev.descripcion + ' (' + ev.ptsNos + '-' + ev.ptsRival + ')</span>';
+    var noScore = (ev.tipo === 'scrum_g' || ev.tipo === 'scrum_p' || ev.tipo === 'line_g' || ev.tipo === 'line_p' || ev.tipo === 'conv_miss' || ev.tipo === 'penal_miss');
+    var scoreText = noScore ? '' : ' (' + ev.ptsNos + '-' + ev.ptsRival + ')';
+    html += '<span class="crono-text">' + ev.minuto + "' " + ev.descripcion + scoreText + '</span>';
     html += '<button class="crono-del" onclick="removeEvent(' + ev.id + '); event.stopPropagation();">\u00D7</button>';
     html += '</div>';
   }
