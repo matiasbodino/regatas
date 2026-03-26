@@ -529,6 +529,8 @@ function guardarResultado() {
     var linePct = totalLine > 0 ? Math.round((lineG / totalLine) * 100) : 0;
     var scrumPct = totalScrum > 0 ? Math.round((scrumG / totalScrum) * 100) : 0;
 
+    // Preservar KPIs que no se trackean en partido (peo, tackles)
+    var prev = datos.semanas[semNum].resultado || {};
     var resultado = {
       ptsNos: ptsNos,
       ptsRival: ptsRival,
@@ -540,7 +542,9 @@ function guardarResultado() {
       lineP: lineP,
       penales: penalesMiss,
       line: linePct,
-      scrum: scrumPct
+      scrum: scrumPct,
+      peo: prev.peo !== undefined ? prev.peo : null,
+      tackles: prev.tackles !== undefined ? prev.tackles : null
     };
 
     datos.semanas[semNum].resultado = resultado;
@@ -551,6 +555,10 @@ function guardarResultado() {
         btn.disabled = false;
         return;
       }
+
+      // También guardar en localStorage para que coach lo vea inmediato
+      guardarEnLocal(resultado);
+
       btn.textContent = '\u2713 Guardado';
       btn.classList.add('saved');
       setTimeout(function() {
@@ -558,6 +566,20 @@ function guardarResultado() {
       }, 2000);
     });
   });
+}
+
+function guardarEnLocal(resultado) {
+  try {
+    var raw = localStorage.getItem('cumbre_a_cumbre_2026');
+    if (!raw) return;
+    var data = JSON.parse(raw);
+    if (!data.sems) return;
+    // Encontrar la semana por número (semNum es 1-based)
+    var idx = data.sems.findIndex(function(s) { return s.sem === semNum; });
+    if (idx === -1) return;
+    data.sems[idx].resultado = resultado;
+    localStorage.setItem('cumbre_a_cumbre_2026', JSON.stringify(data));
+  } catch(e) {}
 }
 
 init();
