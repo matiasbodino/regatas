@@ -684,23 +684,29 @@ function goPage(id) {
 const CUMBRES = [
   {num:1, nombre:'Kosciuszko', sub:'La Promesa',    alt:'2.228m', color:'#0D1B4E', sems:[1,2,3],
    foco:'Instalar hábitos. Punto de contacto. El estándar mínimo en cada repetición.',
-   frase:'"Empezamos."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados']},
+   frase:'"Empezamos."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados'], targets:{peo:90,line:90,scrum:40,tackles:15}},
   {num:2, nombre:'Kilimanjaro', sub:'La Identidad', alt:'5.895m', color:'#1A3470', sems:[4,5,6],
    foco:'Identidad bajo presión. Defensa instalada. ¿Quiénes somos cuando la exigencia sube?',
-   frase:'"Sabemos quiénes somos."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados']},
+   frase:'"Sabemos quiénes somos."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados'], targets:{peo:90,line:90,scrum:40,tackles:15}},
   {num:3, nombre:'Elbrus',      sub:'El Pack',       alt:'5.642m', color:'#2B4EA0', sems:[7,8,9,10,11],
    foco:'Liderazgo interno visible. 5 partidos seguidos. Nadie escala solo.',
-   frase:'"Nadie escala solo."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados']},
+   frase:'"Nadie escala solo."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados'], targets:{peo:90,line:90,scrum:40,tackles:15}},
   {num:4, nombre:'Aconcagua',   sub:'La Nuestra',    alt:'6.961m', color:'#0D1B4E', sems:[12,13,14,15,16],
    foco:'Clímax. La montaña de casa. No le tenemos miedo — la conocemos.',
-   frase:'"Esta siempre fue nuestra."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados']},
+   frase:'"Esta siempre fue nuestra."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados'], targets:{peo:90,line:90,scrum:40,tackles:15}},
   {num:5, nombre:'Vinson',      sub:'El Carácter',   alt:'4.892m', color:'#1A3470', sems:[17,18,19,20,21],
    foco:'Segunda vuelta. Nadie te ve escalarla. La escalás porque sos ese tipo de equipo.',
-   frase:'"Lo hicimos aunque nadie nos miraba."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados']},
+   frase:'"Lo hicimos aunque nadie nos miraba."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados'], targets:{peo:90,line:90,scrum:40,tackles:15}},
   {num:6, nombre:'Everest',     sub:'La Razón',      alt:'8.849m', color:'#2B4EA0', sems:[22,23,24,25],
    foco:'No hay más montañas. Todo lo construido desde Kosciuszko se juega acá.',
-   frase:'"Llegamos juntos."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados']},
+   frase:'"Llegamos juntos."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados'], targets:{peo:90,line:90,scrum:40,tackles:15}},
 ];
+
+function getTargetsByCiclo(cicloName) {
+  var c = CUMBRES.find(function(c) { return c.nombre === cicloName; });
+  if (c && c.targets) return c.targets;
+  return {peo:90,line:90,scrum:40,tackles:15};
+}
 
 function getSemsByCiclo(cicloName) {
   return SEMS.filter(s => s.ciclo === cicloName);
@@ -793,6 +799,26 @@ function renderCumbres() {
                     onfocus="this.style.background='#fff';this.style.borderColor='#2B4EA0'"
                     onblur="this.style.background='#EBF0FF';this.style.borderColor='#C5CCE0'">
                 `).join('')}
+              </div>
+            </div>
+
+            <div style="margin-bottom:10px">
+              <div style="font-size:9px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px">TARGETS NUMÉRICOS</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+                ${[
+                  {key:'peo',label:'% PEO',val:c.targets.peo},
+                  {key:'line',label:'% Line',val:c.targets.line},
+                  {key:'scrum',label:'% Scrum',val:c.targets.scrum},
+                  {key:'tackles',label:'% Tackles err.',val:c.targets.tackles}
+                ].map(function(t){return '<div style="display:flex;align-items:center;gap:4px">'
+                  +'<span style="font-size:9px;color:#888;min-width:55px">'+t.label+'</span>'
+                  +'<input type="number" min="0" max="100" value="'+t.val+'"'
+                  +' onclick="event.stopPropagation()"'
+                  +' onchange="updateCumbreTarget('+c.num+',\''+t.key+'\',this.value)"'
+                  +' style="width:50px;font-size:11px;font-weight:600;color:#0D1B4E;background:#FEF9D9;border:0.5px solid #F5C518;border-radius:5px;padding:3px 5px;text-align:center;outline:none;font-family:inherit"'
+                  +' onfocus="this.style.background=\'#fff\'"'
+                  +' onblur="this.style.background=\'#FEF9D9\'">'
+                  +'</div>';}).join('')}
               </div>
             </div>
 
@@ -1791,15 +1817,16 @@ function chResultado(field, val) {
 function renderResultadoSection() {
   var s = SEMS[curSem];
   var r = ensureResultado(s);
+  var tgt = getTargetsByCiclo(s.ciclo);
   var html = '<div class="res-section">'
     + '<div class="res-section-title">Resultado del partido · Sem ' + s.sem + ' vs ' + s.rival + '</div>'
     + '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">'
     + '<div class="res-field">'
-    + '<div class="res-field-label">Nuestros pts</div>'
+    + '<div class="res-field-label">Puntos a favor</div>'
     + '<input class="res-input" type="number" min="0" value="' + (r.ptsNos !== null ? r.ptsNos : '') + '" onchange="chResultado(\'ptsNos\',this.value)" onclick="event.stopPropagation()">'
     + '</div>'
     + '<div class="res-field">'
-    + '<div class="res-field-label">Pts rival</div>'
+    + '<div class="res-field-label">Puntos en contra</div>'
     + '<input class="res-input" type="number" min="0" value="' + (r.ptsRival !== null ? r.ptsRival : '') + '" onchange="chResultado(\'ptsRival\',this.value)" onclick="event.stopPropagation()">'
     + '</div>'
     + '<div class="res-field">'
@@ -1811,27 +1838,27 @@ function renderResultadoSection() {
     + '<input class="res-input" type="number" min="0" value="' + (r.triesC !== null ? r.triesC : '') + '" onchange="chResultado(\'triesC\',this.value)" onclick="event.stopPropagation()">'
     + '</div>'
     + '</div>'
-    + '<div class="res-section-title" style="margin-top:8px">KPIs observados</div>'
+    + '<div class="res-section-title" style="margin-top:8px">KPIs observados · ▲ ' + s.ciclo + '</div>'
     + '<div class="res-grid">'
     + '<div class="res-field">'
     + '<div class="res-field-label">% PEO</div>'
     + '<input class="res-input" type="number" min="0" max="100" value="' + (r.peo !== null ? r.peo : '') + '" onchange="chResultado(\'peo\',this.value)" onclick="event.stopPropagation()">'
-    + '<div class="res-field-target">target: 90%</div>'
+    + '<div class="res-field-target">target: ' + tgt.peo + '%</div>'
     + '</div>'
     + '<div class="res-field">'
     + '<div class="res-field-label">% Line</div>'
     + '<input class="res-input" type="number" min="0" max="100" value="' + (r.line !== null ? r.line : '') + '" onchange="chResultado(\'line\',this.value)" onclick="event.stopPropagation()">'
-    + '<div class="res-field-target">target: 90%</div>'
+    + '<div class="res-field-target">target: ' + tgt.line + '%</div>'
     + '</div>'
     + '<div class="res-field">'
     + '<div class="res-field-label">% Scrum</div>'
     + '<input class="res-input" type="number" min="0" max="100" value="' + (r.scrum !== null ? r.scrum : '') + '" onchange="chResultado(\'scrum\',this.value)" onclick="event.stopPropagation()">'
-    + '<div class="res-field-target">target: 40%</div>'
+    + '<div class="res-field-target">target: ' + tgt.scrum + '%</div>'
     + '</div>'
     + '<div class="res-field">'
     + '<div class="res-field-label">% Tackles err.</div>'
     + '<input class="res-input" type="number" min="0" max="100" value="' + (r.tackles !== null ? r.tackles : '') + '" onchange="chResultado(\'tackles\',this.value)" onclick="event.stopPropagation()">'
-    + '<div class="res-field-target">target: &lt;15%</div>'
+    + '<div class="res-field-target">target: &lt;' + tgt.tackles + '%</div>'
     + '</div>'
     + '</div>'
     + '</div>';
@@ -1848,15 +1875,16 @@ function renderResultados() {
 
   var rows = semsConDatos.map(function(s) {
     var r = s.resultado;
+    var tgt = getTargetsByCiclo(s.ciclo);
     var ganamos = r.ptsNos > r.ptsRival;
     var empate = r.ptsNos === r.ptsRival;
     var resClass = ganamos ? 'res-win' : (empate ? '' : 'res-loss');
     var resText = r.ptsNos + ' - ' + r.ptsRival;
 
-    var peoClass = r.peo !== null ? (r.peo >= 90 ? 'kpi-ok' : 'kpi-fail') : '';
-    var lineClass = r.line !== null ? (r.line >= 90 ? 'kpi-ok' : 'kpi-fail') : '';
-    var scrumClass = r.scrum !== null ? (r.scrum >= 40 ? 'kpi-ok' : 'kpi-fail') : '';
-    var tacklesClass = r.tackles !== null ? (r.tackles <= 15 ? 'kpi-ok' : 'kpi-fail') : '';
+    var peoClass = r.peo !== null ? (r.peo >= tgt.peo ? 'kpi-ok' : 'kpi-fail') : '';
+    var lineClass = r.line !== null ? (r.line >= tgt.line ? 'kpi-ok' : 'kpi-fail') : '';
+    var scrumClass = r.scrum !== null ? (r.scrum >= tgt.scrum ? 'kpi-ok' : 'kpi-fail') : '';
+    var tacklesClass = r.tackles !== null ? (r.tackles <= tgt.tackles ? 'kpi-ok' : 'kpi-fail') : '';
 
     return '<tr>'
       + '<td style="font-weight:600">Sem ' + s.sem + '</td>'
@@ -1864,6 +1892,7 @@ function renderResultados() {
       + '<td style="font-weight:600">' + s.rival + '</td>'
       + '<td>' + (s.local === 'L' ? 'L' : 'V') + '</td>'
       + '<td class="' + resClass + '">' + resText + '</td>'
+      + '<td style="font-size:10px;color:#888">' + s.ciclo + '</td>'
       + '<td class="' + peoClass + '">' + (r.peo !== null ? r.peo + '%' : '—') + '</td>'
       + '<td class="' + lineClass + '">' + (r.line !== null ? r.line + '%' : '—') + '</td>'
       + '<td class="' + scrumClass + '">' + (r.scrum !== null ? r.scrum + '%' : '—') + '</td>'
@@ -1871,26 +1900,31 @@ function renderResultados() {
       + '</tr>';
   }).join('');
 
-  // Promedios
+  // Promedios — agrupa por ciclo para mostrar targets específicos
+  // Para los promedios globales usamos el promedio de todos los targets de los ciclos involucrados
   var kpiFields = [
-    {key:'peo', label:'PEO', target:90, higher:true},
-    {key:'line', label:'Obtención Line', target:90, higher:true},
-    {key:'scrum', label:'Dominio Scrum', target:40, higher:true},
-    {key:'tackles', label:'Tackles errados', target:15, higher:false}
+    {key:'peo', label:'PEO', higher:true},
+    {key:'line', label:'Obtención Line', higher:true},
+    {key:'scrum', label:'Dominio Scrum', higher:true},
+    {key:'tackles', label:'Tackles errados', higher:false}
   ];
 
   var cards = kpiFields.map(function(f) {
     var vals = semsConDatos.filter(function(s) { return s.resultado[f.key] !== null; })
       .map(function(s) { return s.resultado[f.key]; });
     var avg = vals.length > 0 ? Math.round(vals.reduce(function(a,b){return a+b;},0) / vals.length) : null;
-    var ok = avg !== null ? (f.higher ? avg >= f.target : avg <= f.target) : false;
+    // Promedio de targets de los ciclos involucrados
+    var tgtVals = semsConDatos.filter(function(s) { return s.resultado[f.key] !== null; })
+      .map(function(s) { return getTargetsByCiclo(s.ciclo)[f.key]; });
+    var avgTarget = tgtVals.length > 0 ? Math.round(tgtVals.reduce(function(a,b){return a+b;},0) / tgtVals.length) : (f.higher ? 90 : 15);
+    var ok = avg !== null ? (f.higher ? avg >= avgTarget : avg <= avgTarget) : false;
     var color = avg !== null ? (ok ? '#27AE60' : '#E74C3C') : '#aaa';
-    var pct = avg !== null ? Math.min(100, f.higher ? (avg / f.target * 100) : (f.target / Math.max(avg,1) * 100)) : 0;
+    var pct = avg !== null ? Math.min(100, f.higher ? (avg / avgTarget * 100) : (avgTarget / Math.max(avg,1) * 100)) : 0;
 
     return '<div style="background:#fff;border:0.5px solid #E2E7F5;border-radius:10px;padding:12px 14px">'
       + '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">' + f.label + '</div>'
       + '<div style="font-size:26px;font-weight:700;color:' + color + '">' + (avg !== null ? avg + '%' : '—') + '</div>'
-      + '<div style="font-size:10px;color:#aaa;margin-top:2px">target: ' + (f.higher ? '' : '<') + f.target + '% · ' + vals.length + ' partidos</div>'
+      + '<div style="font-size:10px;color:#aaa;margin-top:2px">target: ' + (f.higher ? '' : '<') + avgTarget + '% · ' + vals.length + ' partidos</div>'
       + '<div style="height:6px;border-radius:3px;background:#EDF0F8;margin-top:6px;overflow:hidden">'
       + '<div style="height:100%;border-radius:3px;background:' + color + ';width:' + pct + '%"></div>'
       + '</div>'
@@ -1898,7 +1932,7 @@ function renderResultados() {
   }).join('');
 
   var emptyMsg = semsConDatos.length === 0
-    ? '<div style="text-align:center;padding:40px 20px;color:#888;font-size:13px">No hay resultados cargados. Cargá los datos en el Planificador → sección "Resultado del partido".</div>'
+    ? '<div style="text-align:center;padding:40px 20px;color:#888;font-size:13px">No hay resultados cargados. Cargá los datos en el Planificador \u2192 secci\u00F3n "Resultado del partido".</div>'
     : '';
 
   document.getElementById('resultados-content').innerHTML =
@@ -1907,7 +1941,7 @@ function renderResultados() {
     + emptyMsg
     + (semsConDatos.length > 0 ? '<div style="overflow-x:auto">'
       + '<table class="res-table">'
-      + '<thead><tr><th>Sem</th><th>Fecha</th><th>Rival</th><th>L/V</th><th>Resultado</th><th>PEO</th><th>Line</th><th>Scrum</th><th>Tackles</th></tr></thead>'
+      + '<thead><tr><th>Sem</th><th>Fecha</th><th>Rival</th><th>L/V</th><th>Resultado</th><th>Ciclo</th><th>PEO</th><th>Line</th><th>Scrum</th><th>Tackles</th></tr></thead>'
       + '<tbody>' + rows + '</tbody>'
       + '</table></div>' : '')
     + '</div>'
@@ -1983,7 +2017,8 @@ function saveCumbres() {
       sub: c.sub,
       foco: c.foco,
       frase: c.frase,
-      kpis: c.kpis
+      kpis: c.kpis,
+      targets: c.targets
     }));
     localStorage.setItem(STORAGE_KEY_CUMBRES, JSON.stringify(meta));
   } catch(e) {}
@@ -2001,6 +2036,7 @@ function loadCumbres() {
       if (saved.foco)  c.foco  = saved.foco;
       if (saved.frase) c.frase = saved.frase;
       if (saved.kpis)  c.kpis  = saved.kpis;
+      if (saved.targets) c.targets = saved.targets;
     });
   } catch(e) {}
 }
@@ -2020,6 +2056,16 @@ function updateCumbreKpi(num, idx, val) {
   if (!c) return;
   c.kpis[idx] = val;
   saveCumbres();
+}
+
+function updateCumbreTarget(num, key, val) {
+  const c = CUMBRES.find(c => c.num === num);
+  if (!c) return;
+  if (!c.targets) c.targets = {peo:90,line:90,scrum:40,tackles:15};
+  c.targets[key] = Math.max(0, Math.min(100, parseInt(val) || 0));
+  saveCumbres();
+  const ind = document.getElementById('save-indicator');
+  if (ind) { ind.textContent = 'guardado ' + new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}); ind.style.color='rgba(245,197,24,0.8)'; }
 }
 let saveTimer = null;
 
