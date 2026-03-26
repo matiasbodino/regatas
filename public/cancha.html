@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0D1B4E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Modo Cancha · Regatas</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0D1B4E;--gold:#F5C518;--bg:#EDF0F8;--txt:#1A1A2E;
+  --green:#27AE60;--white:#fff;--muted:#6B7A99;
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);font-size:16px;line-height:1.4}
+
+/* ── LAYOUT ── */
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh}
+
+/* ── HEADER ── */
+.hdr{background:var(--navy);padding:10px 16px;flex-shrink:0}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.hdr-title{font-size:13px;font-weight:700;color:var(--gold);letter-spacing:0.05em}
+.hdr-sub{font-size:11px;color:rgba(255,255,255,0.5)}
+.hdr-day{font-size:11px;font-weight:700;color:var(--white)}
+.progress-bar{height:6px;background:rgba(255,255,255,0.15);border-radius:3px;overflow:hidden;margin-top:4px}
+.progress-fill{height:100%;background:var(--gold);border-radius:3px;transition:width 0.4s ease}
+
+/* ── SCROLL AREA ── */
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 16px}
+
+/* ── DONE BLOCKS ── */
+.done-list{margin-bottom:8px}
+.done-item{display:flex;align-items:center;gap:8px;padding:6px 10px;opacity:0.4;font-size:14px}
+.done-check{color:var(--green);font-weight:700;font-size:16px;flex-shrink:0}
+.done-name{text-decoration:line-through;color:var(--muted);flex:1}
+.done-mins{font-size:12px;color:var(--muted)}
+
+/* ── ACTIVE BLOCK ── */
+.active-card{background:var(--white);border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(13,27,78,0.15);margin-bottom:12px}
+.active-accent{height:12px}
+.active-body{padding:20px}
+.active-grupo{font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px}
+.active-faceta{font-size:28px;font-weight:800;color:var(--navy);line-height:1.15;margin-bottom:4px}
+.active-contenidos{font-size:14px;color:var(--muted);font-style:italic;margin-bottom:4px}
+.active-premisa{font-size:13px;color:#888;font-style:italic;margin-bottom:8px}
+.active-timer{font-size:84px;font-weight:800;color:var(--navy);text-align:center;font-variant-numeric:tabular-nums;line-height:1;padding:12px 0}
+.active-timer.warning{color:#E67E22}
+.active-timer.danger{color:#E74C3C}
+.active-meta{display:flex;align-items:center;justify-content:center;gap:12px;font-size:13px;color:var(--muted)}
+.active-vids{display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+.vid-btn{background:var(--navy);color:var(--gold);border:none;border-radius:8px;padding:10px 18px;font-size:14px;font-weight:700;cursor:pointer;min-height:44px}
+.vid-btn:active{opacity:0.7}
+
+/* ── AGUA ACTIVE ── */
+.agua-active{background:#EBF5FB;border:2px solid #BDE0F0;border-radius:16px;padding:24px;text-align:center;margin-bottom:12px}
+.agua-emoji{font-size:48px;margin-bottom:8px}
+.agua-title{font-size:24px;font-weight:700;color:#2471A3}
+.agua-timer{font-size:72px;font-weight:800;color:#2471A3;font-variant-numeric:tabular-nums;padding:12px 0}
+
+/* ── QUEUE ── */
+.queue{margin-bottom:80px}
+.queue-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px}
+.queue-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--white);border:0.5px solid #E2E7F5;border-radius:10px;margin-bottom:6px;min-height:44px}
+.queue-accent{width:4px;height:28px;border-radius:2px;flex-shrink:0}
+.queue-name{flex:1;font-size:14px;font-weight:600}
+.queue-mins{font-size:13px;color:var(--muted)}
+.queue-agua{background:#EBF5FB;border-color:#BDE0F0}
+.queue-agua-text{font-size:14px;color:#2471A3;font-weight:600}
+
+/* ── EMPTY ── */
+.empty-state{text-align:center;padding:60px 20px}
+.empty-tri{font-size:56px;color:var(--gold);margin-bottom:12px}
+.empty-title{font-size:22px;font-weight:700;color:var(--navy);margin-bottom:8px}
+.empty-sub{font-size:15px;color:var(--muted)}
+
+/* ── FOOTER BUTTON ── */
+.footer-btn{position:fixed;bottom:0;left:0;right:0;padding:12px 16px;background:linear-gradient(transparent, var(--bg) 20%);z-index:10}
+.next-btn{width:100%;padding:18px;font-size:20px;font-weight:800;border:none;border-radius:14px;background:var(--green);color:var(--white);cursor:pointer;letter-spacing:0.03em;min-height:60px;text-transform:uppercase}
+.next-btn:active{transform:scale(0.97);opacity:0.9}
+.next-btn.done{background:var(--navy);color:var(--gold)}
+
+/* ── FINISHED ── */
+.finished{text-align:center;padding:40px 20px}
+.finished-tri{font-size:64px;color:var(--gold);margin-bottom:16px}
+.finished-title{font-size:24px;font-weight:800;color:var(--navy);margin-bottom:8px}
+.finished-sub{font-size:15px;color:var(--muted);margin-bottom:4px}
+.finished-motto{font-size:14px;color:var(--gold);font-style:italic;margin-top:16px}
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <div style="text-align:center;padding:80px 20px;color:#888">Cargando...</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+// ── CONFIG ───────────────────────────────────────────────────
+var SUPABASE_URL = 'https://trzfaqdmasdswmuenlmu.supabase.co';
+var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRyemZhcWRtYXNkc3dtdWVubG11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0ODA4NTMsImV4cCI6MjA5MDA1Njg1M30.rhXSHLpSSu3TL2gJWpGhRtGqNVgSSW9Kzr2E0IJmRNw';
+
+var GRUPOS = {
+  'Gimnasio':      {color:'#444C6E', light:'#F0F0F4'},
+  'Pto. Contacto': {color:'#C0392B', light:'#FDECEC'},
+  'Destrezas':     {color:'#2B4EA0', light:'#EBF0FF'},
+  'Ataque':        {color:'#1A6B3E', light:'#D6EFE0'},
+  'Defensa':       {color:'#6B2D8B', light:'#F0E8FA'},
+  'Scrum / Line':  {color:'#7A5200', light:'#FEF9D9'},
+  'Pie / Salidas': {color:'#4A3010', light:'#FDF4E3'}
+};
+
+var DAY_NAMES = {1:'LUNES', 2:'MARTES', 4:'JUEVES'};
+var DAY_KEYS  = {1:'lun',  2:'mar',    4:'jue'};
+
+// ── STATE ────────────────────────────────────────────────────
+var blocks = [];
+var currentIdx = 0;
+var timerInterval = null;
+var secondsLeft = 0;
+var semana = null;
+
+// ── HELPERS ──────────────────────────────────────────────────
+
+function padTwo(n) {
+  return n < 10 ? '0' + n : '' + n;
+}
+
+function formatTimer(secs) {
+  var m = Math.floor(secs / 60);
+  var s = secs % 60;
+  return padTwo(m) + ':' + padTwo(s);
+}
+
+function getGrupo(bl) {
+  return GRUPOS[bl.grupo] || GRUPOS['Ataque'];
+}
+
+function vibrate() {
+  if (navigator.vibrate) {
+    navigator.vibrate([100, 50, 100]);
+  }
+}
+
+// ── TIMER ────────────────────────────────────────────────────
+
+function startTimer(mins) {
+  stopTimer();
+  secondsLeft = Math.max(0, (mins || 0) * 60);
+  updateTimerDisplay();
+  timerInterval = setInterval(function() {
+    secondsLeft--;
+    if (secondsLeft <= 0) {
+      secondsLeft = 0;
+      stopTimer();
+      vibrate();
+    }
+    updateTimerDisplay();
+  }, 1000);
+}
+
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+}
+
+function updateTimerDisplay() {
+  var el = document.getElementById('timer');
+  if (!el) return;
+  el.textContent = formatTimer(secondsLeft);
+  // Color warnings
+  el.className = 'active-timer';
+  if (secondsLeft <= 30 && secondsLeft > 0) {
+    el.className = 'active-timer danger';
+  } else if (secondsLeft <= 60 && secondsLeft > 30) {
+    el.className = 'active-timer warning';
+  }
+}
+
+// ── RENDER ───────────────────────────────────────────────────
+
+function render() {
+  var app = document.getElementById('app');
+  var totalMins = blocks.reduce(function(a, b) { return a + b.mins; }, 0);
+  var doneMins = 0;
+  for (var i = 0; i < currentIdx; i++) { doneMins += blocks[i].mins; }
+  var pct = totalMins > 0 ? Math.round(doneMins / totalMins * 100) : 0;
+
+  var dayNum = new Date().getDay();
+  var dayName = DAY_NAMES[dayNum] || 'HOY';
+  var rival = semana ? semana.rival : '';
+  var loc = semana ? (semana.local === 'L' ? 'Local' : 'Visitante') : '';
+
+  // Header
+  var html = '<div class="hdr">'
+    + '<div class="hdr-top">'
+    + '<div>'
+    + '<div class="hdr-title">\u25B2 MODO CANCHA</div>'
+    + '<div class="hdr-sub">' + dayName + ' \u00B7 ' + rival + ' \u00B7 ' + loc + '</div>'
+    + '</div>'
+    + '<div class="hdr-day">' + pct + '% completado</div>'
+    + '</div>'
+    + '<div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%"></div></div>'
+    + '</div>';
+
+  // Finished state
+  if (currentIdx >= blocks.length) {
+    html += '<div class="scroll">'
+      + '<div class="finished">'
+      + '<div class="finished-tri">\u25B2</div>'
+      + '<div class="finished-title">Entrenamiento completo</div>'
+      + '<div class="finished-sub">' + totalMins + ' minutos \u00B7 ' + blocks.length + ' bloques</div>'
+      + '<div class="finished-motto">Ser Mejores, Siempre</div>'
+      + '</div>'
+      + '</div>';
+    app.innerHTML = html;
+    return;
+  }
+
+  html += '<div class="scroll">';
+
+  // Done blocks
+  if (currentIdx > 0) {
+    html += '<div class="done-list">';
+    for (var d = 0; d < currentIdx; d++) {
+      var db = blocks[d];
+      if (db.tipo === 'agua') {
+        html += '<div class="done-item">'
+          + '<span class="done-check">\u2713</span>'
+          + '<span class="done-name">\uD83D\uDCA7 Agua</span>'
+          + '<span class="done-mins">' + db.mins + ' min</span>'
+          + '</div>';
+      } else {
+        html += '<div class="done-item">'
+          + '<span class="done-check">\u2713</span>'
+          + '<span class="done-name">' + db.faceta + '</span>'
+          + '<span class="done-mins">' + db.mins + ' min</span>'
+          + '</div>';
+      }
+    }
+    html += '</div>';
+  }
+
+  // Active block
+  var active = blocks[currentIdx];
+  if (active.tipo === 'agua') {
+    html += '<div class="agua-active">'
+      + '<div class="agua-emoji">\uD83D\uDCA7</div>'
+      + '<div class="agua-title">Agua \u00B7 ' + active.mins + ' min</div>'
+      + '<div id="timer" class="agua-timer">' + formatTimer(secondsLeft) + '</div>'
+      + '</div>';
+  } else {
+    var gc = getGrupo(active);
+    var contenidos = (active.contenidos && active.contenidos.length)
+      ? '<div class="active-contenidos">' + active.contenidos.join(' \u00B7 ') + '</div>'
+      : '';
+    var premisa = active.premisa
+      ? '<div class="active-premisa">' + active.premisa + '</div>'
+      : '';
+    var links = (active.links && active.links.length) ? active.links.filter(Boolean) : [];
+    var vidHtml = '';
+    if (links.length > 0) {
+      vidHtml = '<div class="active-vids">';
+      for (var v = 0; v < links.length; v++) {
+        var safeLink = links[v].replace(/'/g, "\\'");
+        vidHtml += '<button class="vid-btn" onclick="window.open(\'' + safeLink + '\',\'_blank\')">'
+          + '\u25B6 Video' + (links.length > 1 ? ' ' + (v + 1) : '')
+          + '</button>';
+      }
+      vidHtml += '</div>';
+    }
+
+    html += '<div class="active-card">'
+      + '<div class="active-accent" style="background:' + gc.color + '"></div>'
+      + '<div class="active-body">'
+      + '<div class="active-grupo" style="color:' + gc.color + '">' + active.grupo + '</div>'
+      + '<div class="active-faceta">' + active.faceta + '</div>'
+      + contenidos
+      + premisa
+      + '<div id="timer" class="active-timer">' + formatTimer(secondsLeft) + '</div>'
+      + '<div class="active-meta">'
+      + '<span>Bloque ' + (currentIdx + 1) + ' de ' + blocks.length + '</span>'
+      + '<span>\u00B7</span>'
+      + '<span>' + active.mins + ' min</span>'
+      + '</div>'
+      + vidHtml
+      + '</div>'
+      + '</div>';
+  }
+
+  // Queue
+  var remaining = blocks.length - currentIdx - 1;
+  if (remaining > 0) {
+    html += '<div class="queue">';
+    html += '<div class="queue-title">Siguiente (' + remaining + ' bloques)</div>';
+    for (var q = currentIdx + 1; q < blocks.length; q++) {
+      var qb = blocks[q];
+      if (qb.tipo === 'agua') {
+        html += '<div class="queue-item queue-agua">'
+          + '<span class="queue-agua-text">\uD83D\uDCA7 Agua \u00B7 ' + qb.mins + ' min</span>'
+          + '</div>';
+      } else {
+        var qgc = getGrupo(qb);
+        html += '<div class="queue-item">'
+          + '<div class="queue-accent" style="background:' + qgc.color + '"></div>'
+          + '<div class="queue-name">' + qb.faceta + '</div>'
+          + '<div class="queue-mins">' + qb.mins + ' min</div>'
+          + '</div>';
+      }
+    }
+    html += '</div>';
+  }
+
+  html += '</div>';
+
+  // Footer button
+  var isLast = currentIdx >= blocks.length - 1;
+  var btnText = isLast ? '\u2713 FINALIZAR' : 'SIGUIENTE BLOQUE \u25B6';
+  var btnClass = isLast ? 'next-btn done' : 'next-btn';
+  html += '<div class="footer-btn">'
+    + '<button class="' + btnClass + '" onclick="nextBlock()">' + btnText + '</button>'
+    + '</div>';
+
+  app.innerHTML = html;
+}
+
+function nextBlock() {
+  vibrate();
+  stopTimer();
+  currentIdx++;
+  if (currentIdx < blocks.length) {
+    startTimer(blocks[currentIdx].mins);
+  }
+  render();
+  // Scroll to top of scroll area
+  var scrollEl = document.querySelector('.scroll');
+  if (scrollEl) scrollEl.scrollTop = 0;
+}
+
+// ── EMPTY / ERROR STATES ─────────────────────────────────────
+
+function renderEmpty(msg, sub) {
+  var app = document.getElementById('app');
+  app.innerHTML = '<div class="hdr">'
+    + '<div class="hdr-top"><div class="hdr-title">\u25B2 MODO CANCHA</div></div>'
+    + '</div>'
+    + '<div class="scroll">'
+    + '<div class="empty-state">'
+    + '<div class="empty-tri">\u25B2</div>'
+    + '<div class="empty-title">' + msg + '</div>'
+    + '<div class="empty-sub">' + sub + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
+// ── INIT ─────────────────────────────────────────────────────
+
+async function init() {
+  var dayNum = new Date().getDay();
+  var dayKey = DAY_KEYS[dayNum];
+
+  if (!dayKey) {
+    var prox = dayNum < 1 ? 'Lunes' : dayNum < 2 ? 'Martes' : dayNum < 4 ? 'Jueves' : 'Lunes';
+    renderEmpty('Hoy no hay entrenamiento', 'Pr\u00F3ximo: ' + prox);
+    return;
+  }
+
+  try {
+    var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    var result = await sb.from('semana_activa').select('datos').eq('id', 1).single();
+
+    if (result.error) throw result.error;
+    semana = result.data ? result.data.datos : null;
+
+    if (!semana || !semana[dayKey] || semana[dayKey].length === 0) {
+      renderEmpty('Sin entrenamiento publicado', 'El coach a\u00FAn no public\u00F3 la semana');
+      return;
+    }
+
+    blocks = semana[dayKey];
+    currentIdx = 0;
+    startTimer(blocks[0].mins);
+    render();
+
+  } catch (e) {
+    renderEmpty('Error al cargar', 'Verific\u00E1 tu conexi\u00F3n');
+  }
+}
+
+init();
+</script>
+</body>
+</html>

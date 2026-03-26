@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0D1B4E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Hoy · Regatas Bellavista</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0D1B4E;--gold:#F5C518;--bg:#F4F6FB;--txt:#1A1A2E;--muted:#6B7A99;
+  --bdr:#E2E7F5;--white:#fff;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);font-size:14px;line-height:1.5;min-height:100vh}
+
+/* ── CONTAINER ── */
+.container{max-width:480px;margin:0 auto;padding:0 0 32px}
+
+/* ── HEADER ── */
+.header{background:var(--navy);padding:20px 20px 16px;text-align:center}
+.header-club{font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px}
+.header-day{font-size:28px;font-weight:800;color:var(--gold);line-height:1.1;margin-bottom:4px}
+.header-sub{font-size:13px;color:rgba(255,255,255,0.6)}
+.gold-stripe{height:3px;background:var(--gold)}
+
+/* ── KPIs ── */
+.kpi-row{display:flex;gap:8px;padding:12px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.kpi-pill{flex:0 0 auto;background:var(--white);border:0.5px solid var(--bdr);border-radius:8px;padding:8px 14px;text-align:center;min-width:80px}
+.kpi-val{font-size:16px;font-weight:700;color:var(--navy)}
+.kpi-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-top:2px}
+
+/* ── BLOCKS ── */
+.blocks{padding:0 16px}
+.block-card{background:var(--white);border:0.5px solid var(--bdr);border-radius:10px;overflow:hidden;margin-bottom:8px}
+.block-top{display:flex;align-items:stretch}
+.block-accent{width:4px;flex-shrink:0}
+.block-body{flex:1;padding:10px 12px}
+.block-grupo{font-size:9px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;margin-bottom:2px}
+.block-faceta{font-size:15px;font-weight:600;color:var(--txt);line-height:1.3}
+.block-contenidos{font-size:12px;color:var(--muted);font-style:italic;margin-top:3px}
+.block-premisa{font-size:11px;color:#888;font-style:italic;margin-top:3px}
+.block-meta{display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap}
+.block-hora{font-size:12px;font-weight:700;color:var(--navy);background:#F0F2F8;border-radius:4px;padding:2px 6px}
+.block-mins{font-size:11px;color:var(--muted)}
+.block-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.block-vid{background:var(--navy);color:var(--gold);border:none;border-radius:4px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.02em}
+.block-vid:active{opacity:0.7}
+
+/* ── AGUA ── */
+.agua{display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 16px;margin:6px 16px;border-radius:8px;background:#EBF5FB;border:0.5px solid #BDE0F0}
+.agua-text{font-size:12px;font-weight:600;color:#2471A3}
+
+/* ── FOCO CARD ── */
+.foco-card{background:var(--navy);border-radius:10px;margin:16px 16px 0;padding:16px 20px;text-align:center}
+.foco-ciclo{font-size:11px;font-weight:700;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px}
+.foco-text{font-size:13px;color:rgba(255,255,255,0.75);line-height:1.5}
+.foco-frase{font-size:14px;font-weight:600;color:var(--gold);font-style:italic;margin-top:8px}
+
+/* ── FOOTER ── */
+.footer{text-align:center;padding:20px 16px 0;font-size:12px;color:#bbb;font-style:italic}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:60px 24px}
+.empty-tri{font-size:48px;color:var(--gold);margin-bottom:12px}
+.empty-title{font-size:20px;font-weight:700;color:var(--navy);margin-bottom:8px}
+.empty-sub{font-size:14px;color:var(--muted)}
+
+/* ── LOADING ── */
+.loading{text-align:center;padding:80px 24px;color:var(--muted);font-size:14px}
+</style>
+</head>
+<body>
+
+<div class="container" id="app">
+  <div class="loading">Cargando...</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+// ── CONFIG ───────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://trzfaqdmasdswmuenlmu.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRyemZhcWRtYXNkc3dtdWVubG11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0ODA4NTMsImV4cCI6MjA5MDA1Njg1M30.rhXSHLpSSu3TL2gJWpGhRtGqNVgSSW9Kzr2E0IJmRNw'
+
+// ── COLORES POR GRUPO (mismos que coach.html) ────────────────────
+const GRUPOS = {
+  'Gimnasio':      {color:'#444C6E', light:'#F0F0F4', text:'#888'},
+  'Pto. Contacto': {color:'#C0392B', light:'#FDECEC', text:'#C0392B'},
+  'Destrezas':     {color:'#2B4EA0', light:'#EBF0FF', text:'#2B4EA0'},
+  'Ataque':        {color:'#1A6B3E', light:'#D6EFE0', text:'#1A6B3E'},
+  'Defensa':       {color:'#6B2D8B', light:'#F0E8FA', text:'#6B2D8B'},
+  'Scrum / Line':  {color:'#7A5200', light:'#FEF9D9', text:'#7A5200'},
+  'Pie / Salidas': {color:'#4A3010', light:'#FDF4E3', text:'#8B5E1A'},
+};
+
+const DOTS = {G:'#27AE60', Y:'#F5C518', R:'#E74C3C'};
+
+const DAY_NAMES = {1:'LUNES', 2:'MARTES', 4:'JUEVES'};
+const DAY_KEYS  = {1:'lun',  2:'mar',    4:'jue'};
+
+// ── HELPERS ──────────────────────────────────────────────────────
+
+// Convierte minutos acumulados desde 20:00 a formato HH.MM
+function minsToHora(totalMins) {
+  const base = 20 * 60;
+  const abs = base + totalMins;
+  const h = Math.floor(abs / 60) % 24;
+  const m = abs % 60;
+  return h.toString().padStart(2,'0') + '.' + m.toString().padStart(2,'0');
+}
+
+// Parsea "21.05" a minutos desde 20:00 (= 65)
+function horaToMins(hora) {
+  if (!hora) return null;
+  const parts = hora.replace(':','.').split('.');
+  const h = parseInt(parts[0]) || 0;
+  const m = parseInt(parts[1]) || 0;
+  return (h * 60 + m) - (20 * 60);
+}
+
+// Calcula la hora de cada bloque cascadeando desde 20:00
+function calcHoras(blocks) {
+  let cumMins = 0;
+  return blocks.map(bl => {
+    if (bl.tipo !== 'agua' && bl.horaInicio) {
+      const parsed = horaToMins(bl.horaInicio);
+      if (parsed !== null) cumMins = parsed;
+    }
+    const display = minsToHora(cumMins);
+    cumMins += bl.mins;
+    return display;
+  });
+}
+
+// Formatea la fecha de hoy: "MARTES 25 MAR"
+function formatFechaHoy(dayName) {
+  const now = new Date();
+  const meses = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+  return dayName + ' ' + now.getDate() + ' ' + meses[now.getMonth()];
+}
+
+// Determina el próximo día de entrenamiento (lun/mar/jue)
+function proximoDia(hoy) {
+  // hoy = 0(dom)..6(sab)
+  const orden = [1, 2, 4]; // lun, mar, jue
+  for (const d of orden) {
+    if (d > hoy) return DAY_NAMES[d];
+  }
+  return DAY_NAMES[1]; // si es jue/vie/sab/dom → próximo lunes
+}
+
+// ── RENDER ───────────────────────────────────────────────────────
+
+function renderApp(semana, dayNum) {
+  const app = document.getElementById('app');
+  const dayKey = DAY_KEYS[dayNum];
+  const dayName = DAY_NAMES[dayNum];
+
+  // Si no hay datos para este día
+  if (!semana || !semana[dayKey] || semana[dayKey].length === 0) {
+    app.innerHTML = renderEmpty(dayNum);
+    return;
+  }
+
+  const blocks = semana[dayKey];
+  const horas = calcHoras(blocks);
+  const localVisitante = semana.local === 'L' ? 'Local' : 'Visitante';
+
+  let html = '';
+
+  // Header
+  html += `
+    <div class="header">
+      <div class="header-club">▲ REGATAS BELLAVISTA · PRIMERA</div>
+      <div class="header-day">${formatFechaHoy(dayName)}</div>
+      <div class="header-sub">${semana.rival} · ${localVisitante} · Sem ${semana.sem}</div>
+    </div>
+    <div class="gold-stripe"></div>`;
+
+  // KPIs (hardcodeados)
+  html += `
+    <div class="kpi-row">
+      <div class="kpi-pill"><div class="kpi-val">90%</div><div class="kpi-label">PEO</div></div>
+      <div class="kpi-pill"><div class="kpi-val">90%</div><div class="kpi-label">Line</div></div>
+      <div class="kpi-pill"><div class="kpi-val">40%</div><div class="kpi-label">Scrum</div></div>
+      <div class="kpi-pill"><div class="kpi-val">&lt;15%</div><div class="kpi-label">Tackles err.</div></div>
+    </div>`;
+
+  // Bloques
+  html += '<div class="blocks">';
+  blocks.forEach((bl, i) => {
+    if (bl.tipo === 'agua') {
+      html += `
+        <div class="agua">
+          <span>💧</span>
+          <span class="agua-text">${horas[i]} · Agua ${bl.mins} min</span>
+        </div>`;
+      return;
+    }
+
+    const gc = GRUPOS[bl.grupo] || GRUPOS['Ataque'];
+    const dot = DOTS[bl.dot] || DOTS.G;
+
+    // Contenidos: "X · Y · Z"
+    const contenidosHtml = (bl.contenidos && bl.contenidos.length)
+      ? `<div class="block-contenidos">${bl.contenidos.join(' · ')}</div>`
+      : '';
+
+    // Premisa
+    const premisaHtml = bl.premisa
+      ? `<div class="block-premisa">${bl.premisa}</div>`
+      : '';
+
+    // Botones de video (uno por link)
+    const links = (bl.links && bl.links.length) ? bl.links.filter(Boolean) : [];
+    const vidBtns = links.map((lnk, li) =>
+      `<button class="block-vid" onclick="window.open('${lnk.replace(/'/g,"\\'")}','_blank')">▶${links.length > 1 ? ' '+(li+1) : ''}</button>`
+    ).join('');
+
+    html += `
+      <div class="block-card">
+        <div class="block-top">
+          <div class="block-accent" style="background:${gc.color}"></div>
+          <div class="block-body" style="background:${gc.light}">
+            <div class="block-grupo" style="color:${gc.text}">${bl.grupo}</div>
+            <div class="block-faceta">${bl.faceta}</div>
+            ${contenidosHtml}
+            ${premisaHtml}
+            <div class="block-meta">
+              <span class="block-hora">${horas[i]}</span>
+              <span class="block-mins">${bl.mins} min</span>
+              ${vidBtns}
+              <div class="block-dot" style="background:${dot}"></div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  });
+  html += '</div>';
+
+  // Foco del ciclo
+  if (semana.ciclo) {
+    html += `
+      <div class="foco-card">
+        <div class="foco-ciclo">▲ ${semana.ciclo}</div>
+      </div>`;
+  }
+
+  // Footer
+  html += '<div class="footer">Ser Mejores, Siempre</div>';
+
+  app.innerHTML = html;
+}
+
+function renderEmpty(dayNum) {
+  const hoy = new Date().getDay();
+  const proximo = proximoDia(hoy);
+  return `
+    <div class="header">
+      <div class="header-club">▲ REGATAS BELLAVISTA · PRIMERA</div>
+    </div>
+    <div class="gold-stripe"></div>
+    <div class="empty">
+      <div class="empty-tri">▲</div>
+      <div class="empty-title">Descansá hoy</div>
+      <div class="empty-sub">Próximo entrenamiento: ${proximo}</div>
+    </div>
+    <div class="footer">Ser Mejores, Siempre</div>`;
+}
+
+function renderError() {
+  return `
+    <div class="header">
+      <div class="header-club">▲ REGATAS BELLAVISTA · PRIMERA</div>
+    </div>
+    <div class="gold-stripe"></div>
+    <div class="empty">
+      <div class="empty-tri">▲</div>
+      <div class="empty-title">El entrenamiento aún no fue publicado</div>
+      <div class="empty-sub">El coach todavía no publicó la semana</div>
+    </div>
+    <div class="footer">Ser Mejores, Siempre</div>`;
+}
+
+// ── INIT ─────────────────────────────────────────────────────────
+async function init() {
+  const app = document.getElementById('app');
+  const dayNum = new Date().getDay(); // 0=dom, 1=lun, 2=mar, ..., 6=sab
+
+  try {
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const { data, error } = await sb
+      .from('semana_activa')
+      .select('datos')
+      .eq('id', 1)
+      .single();
+
+    if (error) throw error;
+
+    const semana = data?.datos;
+
+    // Si no hay datos publicados
+    if (!semana || !semana.sem) {
+      app.innerHTML = renderError();
+      return;
+    }
+
+    // Si es día de entrenamiento (lun=1, mar=2, jue=4)
+    if (DAY_KEYS[dayNum]) {
+      renderApp(semana, dayNum);
+    } else {
+      // No es día de entreno → estado vacío
+      app.innerHTML = renderEmpty(dayNum);
+    }
+
+  } catch(e) {
+    app.innerHTML = renderError();
+  }
+}
+
+init();
+</script>
+</body>
+</html>

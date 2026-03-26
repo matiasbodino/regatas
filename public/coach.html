@@ -1,0 +1,2115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0D1B4E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Cumbre a Cumbre · Regatas Bellavista 2026</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0D1B4E;--mnav:#1A3470;--lnav:#2B4EA0;--xnav:#EBF0FF;
+  --gold:#F5C518;--lgold:#FEF9D9;--dgold:#5A4500;
+  --white:#fff;--bg:#EDF0F8;--txt:#1A1A2E;--muted:#6B7A99;
+  --bdr:#E2E7F5;--bdr2:#C5CCE0;
+  --red:#C0392B;--lred:#FDECEC;
+  --green:#1A6B3E;--lgreen:#D6EFE0;
+  --dot-g:#27AE60;--dot-y:#F5C518;--dot-r:#E74C3C;
+  --r-md:8px;--r-lg:12px;--r-xl:16px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);font-size:14px;line-height:1.5}
+h1,h2,h3{font-weight:600;line-height:1.2}
+button{cursor:pointer;font-family:inherit}
+select,input{font-family:inherit}
+
+/* ── NAV ── */
+.nav{background:var(--navy);position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:0;border-bottom:3px solid var(--gold)}
+.nav-brand{padding:12px 20px;display:flex;align-items:center;gap:10px;border-right:1px solid rgba(255,255,255,0.1)}
+.nav-brand .tri{color:var(--gold);font-size:20px}
+.nav-brand .title{color:var(--white);font-size:13px;font-weight:600;letter-spacing:0.02em}
+.nav-brand .sub{color:rgba(255,255,255,0.4);font-size:10px;margin-top:1px}
+.nav-links{display:flex;flex:1;overflow-x:auto}
+.nav-link{padding:0 16px;height:44px;display:flex;align-items:center;font-size:12px;font-weight:500;color:rgba(255,255,255,0.55);border:none;background:none;border-bottom:3px solid transparent;margin-bottom:-3px;white-space:nowrap;letter-spacing:0.03em;transition:color 0.15s}
+.nav-link:hover{color:rgba(255,255,255,0.85)}
+.nav-link.active{color:var(--gold);border-bottom-color:var(--gold)}
+
+/* ── PAGES ── */
+.page{display:none;padding:20px;max-width:1200px;margin:0 auto}
+.page.active{display:block}
+
+/* ── CARDS ── */
+.card{background:var(--white);border:0.5px solid var(--bdr);border-radius:var(--r-lg);padding:16px 20px}
+.card+.card{margin-top:12px}
+
+/* ── SECTION HEADERS ── */
+.section-hdr{background:var(--navy);border-radius:var(--r-lg);padding:14px 20px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.section-hdr h2{color:var(--gold);font-size:18px;font-weight:700}
+.section-hdr p{color:rgba(255,255,255,0.5);font-size:12px;margin-top:2px}
+.section-hdr .tri{color:var(--gold);font-size:36px;opacity:0.2;line-height:1}
+.gold-stripe{height:3px;background:var(--gold);border-radius:2px;margin-bottom:14px}
+
+/* ── TABS (semana selector) ── */
+.sem-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.sem-tab{padding:5px 12px;border-radius:20px;border:1px solid var(--bdr2);font-size:12px;font-weight:500;background:var(--white);color:var(--muted);transition:all 0.15s}
+.sem-tab:hover{background:var(--xnav)}
+.sem-tab.active{background:var(--navy);color:var(--gold);border-color:var(--navy)}
+
+/* ── KPI PILLS ── */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.kpi-card{background:var(--white);border:0.5px solid var(--bdr);border-radius:var(--r-md);padding:10px 14px}
+.kpi-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:3px}
+.kpi-val{font-size:22px;font-weight:700;color:var(--navy);line-height:1}
+.kpi-sub{font-size:10px;color:#aaa;margin-top:2px}
+
+/* ── LAYOUT: dashboard + days ── */
+.planner-layout{display:grid;grid-template-columns:240px 1fr;gap:12px;align-items:start}
+.dashboard{background:var(--white);border:0.5px solid var(--bdr);border-radius:var(--r-lg);padding:14px}
+.dash-title{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:10px;padding-bottom:8px;border-bottom:0.5px solid var(--bdr);display:flex;justify-content:space-between;align-items:center}
+.dash-total{font-size:11px;color:var(--muted);font-weight:400}
+.dash-row{display:grid;grid-template-columns:88px 36px 1fr 38px 34px;align-items:center;gap:5px;margin-bottom:7px}
+.dash-name{font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:5px}
+.dash-swatch{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.dash-mins{font-size:11px;color:var(--muted);text-align:right}
+.dash-bar-bg{height:6px;border-radius:3px;background:var(--bg);overflow:hidden}
+.dash-bar-fill{height:100%;border-radius:3px;transition:width 0.35s ease}
+.dash-pct{font-size:12px;font-weight:700;text-align:right}
+.dash-tgt{font-size:10px;color:#aaa;text-align:right}
+.dash-sep{border:none;border-top:0.5px solid var(--bdr);margin:8px 0 6px}
+
+/* ── DAYS GRID ── */
+.days-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.day-col{background:var(--white);border:0.5px solid var(--bdr);border-radius:var(--r-lg);overflow:hidden}
+.day-hdr{background:var(--mnav);padding:8px 12px}
+.day-hdr-title{font-size:12px;font-weight:700;color:var(--gold);letter-spacing:0.05em}
+.day-hdr-sub{font-size:10px;color:rgba(255,255,255,0.4);margin-top:1px}
+.blocks-list{padding:8px;display:flex;flex-direction:column;gap:5px;min-height:60px}
+
+/* ── DRAG & DROP ── */
+.block-item{border-radius:var(--r-md);overflow:visible;position:relative;transition:transform 0.15s,box-shadow 0.15s;user-select:none}
+.block-item.dragging{opacity:0.45;transform:scale(0.97)}
+.block-item.drag-over{border-top:2.5px solid var(--gold)}
+.block-card{border:0.5px solid var(--bdr);border-radius:var(--r-md);overflow:hidden;background:var(--white);box-shadow:0 1px 3px rgba(13,27,78,0.07)}
+.block-card:hover{box-shadow:0 2px 8px rgba(13,27,78,0.12);border-color:var(--bdr2)}
+.drag-handle{width:20px;display:flex;align-items:center;justify-content:center;cursor:grab;color:#ccc;font-size:13px;flex-shrink:0;padding:0 2px}
+.drag-handle:active{cursor:grabbing}
+.drag-handle:hover{color:#999}
+.block-top{display:flex;align-items:stretch}
+.block-accent{width:4px;flex-shrink:0}
+.block-body{flex:1;padding:6px 8px;cursor:pointer}
+.block-grupo{font-size:9px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;margin-bottom:1px}
+.block-faceta{font-size:12px;font-weight:600;color:var(--txt);line-height:1.25}
+.block-mins-row{display:flex;align-items:center;gap:5px;margin-top:2px}
+.block-mins-inline{font-size:11px;font-weight:600;color:#444;background:#F0F2F8;border:0.5px solid var(--bdr2);border-radius:4px;padding:1px 5px;width:42px;text-align:center;cursor:text}
+.block-mins-inline:focus{outline:none;border-color:var(--lnav);background:var(--white)}
+.block-mins-inline:focus{outline:none;border-color:var(--lnav);background:var(--white)}
+.dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;cursor:pointer}
+.dot:hover{transform:scale(1.3)}
+.block-dot-wrap{display:flex;align-items:center;justify-content:center;padding:0 8px;gap:4px;flex-direction:column}
+.block-editor{background:#F4F6FF;border-top:0.5px solid var(--bdr);padding:8px;display:flex;flex-direction:column;gap:5px}
+.ed-row{display:flex;align-items:center;gap:6px}
+.ed-label{font-size:10px;color:var(--muted);white-space:nowrap;min-width:30px}
+.ed-row select,.ed-row input{font-size:11px;padding:3px 5px;border-radius:5px;border:0.5px solid var(--bdr2);background:var(--white);color:var(--txt)}
+.ed-row select{flex:1}
+.ed-row input[type=number]{width:50px;text-align:center}
+.del-btn{background:none;border:none;color:#ccc;font-size:13px;padding:0 3px;flex-shrink:0}
+.del-btn:hover{color:var(--red)}
+.add-btn{width:100%;padding:7px;font-size:11px;font-weight:500;border-radius:var(--r-md);border:1px dashed var(--bdr2);background:transparent;color:var(--muted);margin-top:2px}
+.add-btn:hover{background:var(--xnav);border-color:var(--lnav);color:var(--lnav)}
+.backs-panel{border-top:2px solid #5DADE2}
+.backs-hdr{background:#1A5276;padding:8px 12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+.backs-hdr-title{font-size:11px;font-weight:700;color:#AED6F1;letter-spacing:0.05em;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.backs-hdr-chevron{color:#AED6F1;font-size:11px;transition:transform 0.2s}
+.backs-body{padding:8px;background:#EBF5FB;flex-direction:column;gap:5px;display:none}
+.backs-blk{background:#fff;border:0.5px solid #AED6F1;border-radius:8px;overflow:hidden}
+.backs-blk-top{display:flex;align-items:stretch}
+.backs-blk-acc{width:4px;background:#1F618D;flex-shrink:0}
+.backs-blk-body{flex:1;padding:6px 9px}
+.backs-blk-row{display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap}
+.backs-blk-mins{font-size:10px;color:#1A5276;font-weight:600;background:#EBF5FB;border:0.5px solid #AED6F1;border-radius:4px;padding:1px 5px;width:42px;text-align:center}
+.backs-blk-mins:focus{outline:none;border-color:#1F618D}
+.backs-blk-premisa{font-size:10px;color:#666;font-style:italic;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.backs-blk-vid{background:#1A5276;border-radius:3px;padding:1px 6px;font-size:9px;font-weight:700;color:#AED6F1;text-decoration:none}
+.backs-blk-del{background:none;border:none;color:#ccc;cursor:pointer;font-size:12px;padding:0;margin-left:auto;flex-shrink:0}
+.backs-blk-del:hover{color:var(--red)}
+.backs-editor{background:#D6EAF8;border-top:0.5px solid #AED6F1;padding:6px 8px;display:flex;flex-direction:column;gap:4px}
+.backs-add-btn{width:100%;padding:6px;font-size:11px;font-weight:500;border-radius:7px;border:1px dashed #AED6F1;background:transparent;color:#5DADE2;margin-top:2px}
+.backs-add-btn:hover{background:#D6EAF8}
+.block-agua{display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:6px;border:0.5px solid #BDE0F0;background:#EBF5FB;cursor:default}
+.block-agua .agua-icon{font-size:13px;line-height:1}
+.block-agua .agua-label{font-size:11px;font-weight:600;color:#2471A3;flex:1}
+.block-agua .agua-mins{font-size:10px;color:#5DADE2;font-weight:600;background:#fff;border:0.5px solid #BDE0F0;border-radius:4px;padding:1px 6px;cursor:text;min-width:32px;text-align:center}
+.block-agua .agua-mins:focus{outline:none;border-color:#2B4EA0}
+.block-agua .agua-rm{background:none;border:none;color:#BDE0F0;cursor:pointer;font-size:13px;padding:0;line-height:1}
+.block-agua .agua-rm:hover{color:#E74C3C}
+.ct-pills{display:flex;flex-wrap:wrap;gap:3px;margin-top:3px}
+.ct-pill{display:inline-flex;align-items:center;gap:3px;background:#fff;border:0.5px solid var(--bdr2);border-radius:10px;padding:2px 7px;font-size:10px;font-weight:600;color:var(--txt)}
+.ct-pill-rm{background:none;border:none;color:#bbb;cursor:pointer;font-size:11px;padding:0;line-height:1}
+.ct-pill-rm:hover{color:var(--red)}
+.ct-sum{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.3;font-style:italic}
+.sem-info-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.sem-rival{font-size:15px;font-weight:700;color:var(--navy)}
+.sem-meta{font-size:11px;color:var(--muted)}
+.sem-badge{background:var(--navy);color:var(--gold);font-size:11px;font-weight:600;padding:3px 10px;border-radius:12px}
+
+/* ── GANTT ── */
+.gantt-wrap{overflow-x:auto}
+.gantt-table{border-collapse:collapse;min-width:100%}
+.gantt-table th,.gantt-table td{border:0.5px solid var(--bdr);padding:0;font-size:11px}
+.gantt-faceta{padding:5px 10px;font-weight:600;white-space:nowrap;min-width:160px;background:var(--white)}
+.gantt-faceta.group-hdr{font-weight:700;font-size:10px;letter-spacing:0.07em;text-transform:uppercase}
+.gantt-cell{width:22px;height:22px;text-align:center;vertical-align:middle}
+.gantt-day-hdr{width:22px;height:24px;text-align:center;font-size:9px;font-weight:700;color:var(--white);vertical-align:middle}
+.gantt-sem-hdr{text-align:center;font-size:9px;font-weight:700;color:var(--gold);background:var(--mnav);padding:3px 4px;white-space:nowrap}
+
+/* ── BIBLIOTECA ── */
+.bib-group{margin-bottom:16px}
+.bib-group-hdr{padding:8px 14px;border-radius:var(--r-md);font-size:12px;font-weight:700;color:var(--white);letter-spacing:0.04em;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.bib-table{width:100%;border-collapse:collapse}
+.bib-table th{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;padding:6px 10px;border-bottom:0.5px solid var(--bdr);text-align:left}
+.bib-table td{padding:7px 10px;border-bottom:0.5px solid var(--bdr);font-size:12px;vertical-align:top}
+.bib-table tr:last-child td{border-bottom:none}
+.bib-table tr:nth-child(even) td{background:#FAFBFF}
+.bib-name{font-weight:600;color:var(--txt)}
+.bib-premisa{color:var(--muted);font-style:italic;font-size:11px}
+.bib-link{color:var(--lnav);font-size:11px;font-weight:500;text-decoration:none}
+.bib-link:hover{text-decoration:underline}
+
+/* ── PROCESO ── */
+.proceso-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.resp-hdr{padding:10px 14px;border-radius:var(--r-md);font-size:13px;font-weight:700;color:var(--white);margin-bottom:8px}
+.resp-item{display:flex;gap:8px;padding:8px 0;border-bottom:0.5px solid var(--bdr)}
+.resp-item:last-child{border-bottom:none}
+.resp-dot{width:6px;height:6px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.resp-text{font-size:12px;color:var(--txt);line-height:1.5}
+.resp-label{font-weight:600;display:block;margin-bottom:1px}
+.proceso-step{border:0.5px solid var(--bdr);border-radius:var(--r-lg);overflow:hidden;margin-bottom:8px}
+.paso-hdr{padding:10px 14px;font-size:13px;font-weight:700;color:var(--white);display:flex;align-items:center;gap:10px}
+.paso-num{font-size:20px;font-weight:900;opacity:0.6;line-height:1}
+.paso-body{padding:10px 14px;display:flex;flex-direction:column;gap:5px}
+.paso-item{font-size:12px;color:var(--txt);display:flex;gap:8px;align-items:flex-start}
+.paso-item::before{content:"→";color:var(--muted);flex-shrink:0;margin-top:1px}
+.reuniones-table{width:100%;border-collapse:collapse;margin-top:10px}
+.reuniones-table th{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;padding:6px 10px;border-bottom:0.5px solid var(--bdr);text-align:left}
+.reuniones-table td{padding:8px 10px;border-bottom:0.5px solid var(--bdr);font-size:12px;vertical-align:top}
+.reuniones-table tr:last-child td{border-bottom:none}
+.freq-badge{display:inline-block;background:var(--lgold);color:var(--dgold);font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px}
+.regla-oro{background:var(--gold);border-radius:var(--r-md);padding:12px 16px;font-size:13px;font-weight:700;color:var(--navy);text-align:center;margin-top:14px}
+
+/* ── ROLES ── */
+.roles-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.role-col{border:0.5px solid var(--bdr);border-radius:var(--r-lg);overflow:hidden}
+.role-hdr{padding:10px 14px;font-size:13px;font-weight:700;color:var(--white)}
+.role-item{padding:7px 14px;font-size:12px;border-bottom:0.5px solid var(--bdr);display:flex;align-items:flex-start;gap:8px}
+.role-item:last-child{border-bottom:none}
+.role-item::before{content:"·";color:var(--muted);font-weight:700;flex-shrink:0}
+
+/* ── RESPONSIVE ── */
+/* ── TABLET ── */
+@media(max-width:900px){
+  .planner-layout{grid-template-columns:1fr}
+  .dashboard{order:2}
+  .days-grid{grid-template-columns:1fr;order:1}
+}
+
+/* ── MOBILE ── */
+@media(max-width:600px){
+  body{font-size:13px}
+
+  /* NAV */
+  .nav{flex-wrap:wrap;gap:0}
+  .nav-brand{padding:10px 14px;width:100%;border-right:none;border-bottom:1px solid rgba(255,255,255,0.1)}
+  .nav-brand .title{font-size:12px}
+  .nav-links{overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%;padding-bottom:2px}
+  .nav-link{padding:0 12px;height:38px;font-size:11px}
+  .nav-save-bar{width:100%;padding:6px 12px;border-top:1px solid rgba(255,255,255,0.1);border-left:none;display:flex;gap:6px;justify-content:flex-end}
+
+  /* PAGES */
+  .page{padding:12px}
+
+  /* KPIs */
+  .kpi-row{grid-template-columns:repeat(2,1fr);gap:6px}
+  .kpi-card{padding:8px 10px}
+  .kpi-val{font-size:18px}
+
+  /* SEM TABS */
+  .sem-tabs{gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap;padding-bottom:4px}
+  .sem-tab{white-space:nowrap;flex-shrink:0;font-size:11px;padding:4px 10px}
+
+  /* SEM INFO BAR */
+  .sem-info-bar{flex-direction:column;align-items:flex-start;gap:4px;padding:8px 10px}
+  .sem-rival{font-size:13px}
+  .sem-badge{font-size:10px}
+
+  /* PLANNER LAYOUT */
+  .planner-layout{grid-template-columns:1fr;gap:10px}
+
+  /* DAYS — stack vertically with collapsible headers */
+  .days-grid{grid-template-columns:1fr;gap:8px}
+  .day-col{border-radius:10px}
+  .day-hdr{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+  .day-hdr-title{font-size:13px}
+  .day-hdr-sub{font-size:10px}
+
+  /* BLOCKS */
+  .block-card{border-radius:8px}
+  .block-faceta{font-size:13px}
+  .block-grupo{font-size:9px}
+  .block-mins-row{gap:4px}
+  .block-hora-inline,.block-mins-inline{font-size:12px;padding:3px 5px}
+  .drag-handle{width:24px;font-size:15px}
+  .dot{width:13px;height:13px}
+  .del-btn{font-size:14px;padding:0 5px}
+
+  /* EDITOR — font-size 16px min to prevent Safari iOS zoom */
+  .block-editor{padding:8px 10px}
+  .ed-row select,.ed-row input{font-size:16px;padding:5px 7px}
+  .ed-label{font-size:11px}
+
+  /* AGUA */
+  .block-agua{padding:6px 10px}
+  .block-agua .agua-label{font-size:12px}
+  .block-agua .agua-mins{font-size:11px}
+
+  /* ADD BUTTONS */
+  .add-btn{padding:9px;font-size:12px}
+
+  /* COPY WA BUTTON */
+  #copy-btn-lun,#copy-btn-mar,#copy-btn-jue{padding:11px;font-size:13px}
+
+  /* DASHBOARD */
+  .dashboard{padding:12px}
+  .dash-row{grid-template-columns:80px 32px 1fr 36px 30px;gap:4px}
+  .dash-name{font-size:10px}
+  .dash-pct{font-size:11px}
+
+  /* CUMBRES */
+  #cumbres-content > div:first-child{grid-template-columns:1fr!important}
+
+  /* GANTT */
+  .gantt-wrap{font-size:10px}
+  .gantt-faceta{min-width:110px;font-size:10px;padding:4px 8px}
+
+  /* BIBLIOTECA */
+  .bib-table{font-size:11px}
+  .bib-table th,.bib-table td{padding:5px 7px}
+
+  /* SECTION HEADERS */
+  .section-hdr{padding:12px 14px}
+  .section-hdr h2{font-size:15px}
+  .section-hdr .tri{font-size:28px}
+
+  /* SAFARI iOS ZOOM FIX — all inputs/selects min 16px */
+  input,select,textarea{font-size:16px!important}
+  .block-hora-inline,.block-mins-inline{font-size:16px!important}
+  .agua-mins{font-size:16px!important}
+  .backs-blk-mins{font-size:16px!important}
+  .res-input{font-size:16px!important;width:56px}
+
+  /* RESULTADOS */
+  .res-grid{grid-template-columns:repeat(2,1fr)}
+  .res-section{padding:12px 14px}
+  .res-table{font-size:11px}
+  .res-table th,.res-table td{padding:5px 7px}
+
+  /* BACKS PANEL */
+  .backs-blk-body input{font-size:16px!important}
+  .backs-editor input{font-size:16px!important}
+
+  /* DASHBOARD ORDER — move above days on mobile */
+  .dashboard{order:-1}
+  .dash-row{grid-template-columns:80px 36px 1fr 36px 32px;gap:4px}
+}
+
+/* ── SMALL MOBILE ── */
+@media(max-width:380px){
+  .kpi-row{grid-template-columns:1fr 1fr}
+  .kpi-val{font-size:16px}
+  .block-faceta{font-size:12px}
+  .nav-link{padding:0 10px;font-size:10px}
+  .res-grid{grid-template-columns:1fr 1fr}
+  .res-input{width:48px}
+}
+
+/* ── RESULTADOS ── */
+.res-table{width:100%;border-collapse:collapse;font-size:12px}
+.res-table th{background:#0D1B4E;color:#F5C518;padding:8px 10px;font-size:10px;font-weight:700;text-align:left;letter-spacing:0.05em}
+.res-table td{padding:7px 10px;border-bottom:0.5px solid #E2E7F5;font-size:12px}
+.res-table tr:nth-child(even) td{background:#F4F6FF}
+.res-win{color:#27AE60;font-weight:700}
+.res-loss{color:#E74C3C;font-weight:700}
+.kpi-ok{color:#27AE60;font-weight:700}
+.kpi-fail{color:#E74C3C;font-weight:700}
+.res-input{width:50px;text-align:center;font-size:13px;padding:4px;border-radius:6px;border:0.5px solid #C5CCE0;background:#fff;color:#1A1A2E}
+.res-input:focus{outline:none;border-color:#2B4EA0}
+.res-section{background:#fff;border:0.5px solid #E2E7F5;border-radius:12px;padding:16px 20px;margin-top:12px}
+.res-section-title{font-size:12px;font-weight:700;color:#0D1B4E;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em}
+.res-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.res-field{display:flex;flex-direction:column;gap:3px}
+.res-field-label{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.05em}
+.res-field-target{font-size:9px;color:#aaa}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">
+    <span class="tri">▲</span>
+    <div>
+      <div class="title">Cumbre a Cumbre</div>
+      <div class="sub">Regatas Bellavista · Primera 2026</div>
+    </div>
+  </div>
+  <div class="nav-links">
+    <button class="nav-link active" onclick="goPage('cumbres')">▲ Cumbres</button>
+    <button class="nav-link" onclick="goPage('planner')">Planificador</button>
+    <button class="nav-link" onclick="goPage('dashboard')">Dashboard</button>
+    <button class="nav-link" onclick="goPage('gantt')">Frecuencia</button>
+    <button class="nav-link" onclick="goPage('biblioteca')">Biblioteca</button>
+    <button class="nav-link" onclick="goPage('resultados')">📊 Resultados</button>
+  </div>
+  <div class="nav-save-bar" style="display:flex;align-items:center;gap:6px;padding:0 12px;border-left:1px solid rgba(255,255,255,0.1)">
+    <span id="save-indicator" style="font-size:10px;color:rgba(255,255,255,0.35);white-space:nowrap">sin cambios</span>
+    <button onclick="exportData()" title="Exportar datos" style="padding:4px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.7);font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap">⬇ Exportar</button>
+    <label title="Importar datos" style="padding:4px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.7);font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap">⬆ Importar<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
+    <button id="btn-publicar" onclick="publicarSemana()" title="Publicar semana activa para jugadores" style="padding:4px 10px;border-radius:6px;border:1px solid #F5C518;background:#F5C518;color:#0D1B4E;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">📢 Publicar</button>
+  </div>
+</nav>
+
+<!-- CUMBRES -->
+<div class="page active" id="page-cumbres">
+  <div class="section-hdr">
+    <div><h2>Cumbre a Cumbre · Temporada 2026</h2><p>6 cumbres · 25 semanas · Nadie escala solo</p></div>
+    <div class="tri">▲</div>
+  </div>
+  <div id="cumbres-content"></div>
+</div>
+
+<!-- PLANNER -->
+<div class="page" id="page-planner">
+  <div class="section-hdr">
+    <div><h2>Planificador semanal</h2><p>Tocá cualquier bloque para editarlo · el dashboard se actualiza en tiempo real</p></div>
+    <div class="tri">▲</div>
+  </div>
+  <div class="kpi-row">
+    <div class="kpi-card"><div class="kpi-label">Total cancha</div><div class="kpi-val" id="kpi-total">—</div><div class="kpi-sub">min/sem sin GYM</div></div>
+    <div class="kpi-card"><div class="kpi-label">Bloques</div><div class="kpi-val" id="kpi-bloques">—</div><div class="kpi-sub">esta semana</div></div>
+    <div class="kpi-card"><div class="kpi-label">Grupo dominante</div><div class="kpi-val" id="kpi-top" style="font-size:15px;padding-top:4px">—</div><div class="kpi-sub">más minutos</div></div>
+    <div class="kpi-card"><div class="kpi-label">Partido</div><div class="kpi-val" id="kpi-rival" style="font-size:15px;padding-top:4px">—</div><div class="kpi-sub" id="kpi-fecha">—</div></div>
+  </div>
+  <div class="sem-tabs" id="sem-tabs"></div>
+  <div class="sem-info-bar">
+    <div><div class="sem-rival" id="sem-rival-txt">—</div><div class="sem-meta" id="sem-meta-txt">—</div></div>
+    <div class="sem-badge" id="sem-badge">—</div>
+  </div>
+  <div class="planner-layout">
+    <div class="dashboard">
+      <div class="dash-title">Distribución <span class="dash-total" id="dash-label"></span></div>
+      <div id="dash-rows"></div>
+    </div>
+    <div>
+      <div class="days-grid" id="days-grid"></div>
+    </div>
+  </div>
+  <div id="resultado-section"></div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="page" id="page-dashboard">
+  <div class="section-hdr">
+    <div><h2>Dashboard · distribución de minutos</h2><p>Vista acumulada de la temporada por grupo de trabajo</p></div>
+    <div class="tri">▲</div>
+  </div>
+  <div id="dash-full-content"></div>
+</div>
+
+<!-- GANTT -->
+<div class="page" id="page-gantt">
+  <div class="section-hdr">
+    <div><h2>Frecuencia de facetas</h2><p>Una fila por faceta · una columna por sesión · verde = entrenada</p></div>
+    <div class="tri">▲</div>
+  </div>
+  <div class="card" style="padding:12px">
+    <div class="gantt-wrap" id="gantt-wrap"></div>
+  </div>
+</div>
+
+<!-- BIBLIOTECA -->
+<div class="page" id="page-biblioteca">
+  <div class="section-hdr">
+    <div><h2>Biblioteca de ejercicios</h2><p>Llegar a la cancha con el video visto · Lucas revisa antes de planificar</p></div>
+    <div class="tri">▲</div>
+  </div>
+  <div id="bib-content"></div>
+</div>
+
+<!-- RESULTADOS -->
+<div class="page" id="page-resultados">
+  <div class="section-hdr">
+    <div><h2>Resultados · Temporada 2026</h2><p>KPIs de partido y tendencias acumuladas</p></div>
+    <div class="tri">▲</div>
+  </div>
+  <div id="resultados-content"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+// ── SUPABASE ─────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://trzfaqdmasdswmuenlmu.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRyemZhcWRtYXNkc3dtdWVubG11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0ODA4NTMsImV4cCI6MjA5MDA1Njg1M30.rhXSHLpSSu3TL2gJWpGhRtGqNVgSSW9Kzr2E0IJmRNw'
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+// ── DATA ────────────────────────────────────────────────────────
+const GRUPOS = {
+  'Gimnasio':     {color:'#444C6E',light:'#F0F0F4',text:'#888'},
+  'Pto. Contacto':{color:'#C0392B',light:'#FDECEC',text:'#C0392B'},
+  'Destrezas':    {color:'#2B4EA0',light:'#EBF0FF',text:'#2B4EA0'},
+  'Ataque':       {color:'#1A6B3E',light:'#D6EFE0',text:'#1A6B3E'},
+  'Defensa':      {color:'#6B2D8B',light:'#F0E8FA',text:'#6B2D8B'},
+  'Scrum / Line': {color:'#7A5200',light:'#FEF9D9',text:'#7A5200'},
+  'Pie / Salidas':{color:'#4A3010',light:'#FDF4E3',text:'#8B5E1A'},
+};
+
+const FACETAS = {
+  'Gimnasio':     ['GYM'],
+  'Pto. Contacto':['Pto. Contacto','Breakdown - 1vs1','Breakdown - Trencito','Breakdown - Urgencia vs 2 escudos','Breakdown - Loco','Breakdown - Manuel','Breakdown - Simbi 2+1','Breakdown - Postes','Breakdown - Tríos','Breakdown - Ruck + Célula','Breakdown - Pelota'],
+  'Destrezas':    ['Destrezas I — Atrapar y Pasar','Destrezas II — Ball Carry','Destreza Oro','Carrera Pases','Ola de Pases','Varillas 1 / 2','Evasión','Kick + Catch & Pass','Manos Rápidas','3 vs 2','8 vs 5'],
+  'Ataque':       ['Mov General — Vueltas','Est. y semis separados','Est. y semis juntos','10 vs 10 — reinicios','10 vs 10 — juego libre','Jaimito / Semis','Recepción de patada','Lanzamientos','Jugada 5y','Ataque 25y','Contact','Juego desestructurado XV','Jaimito + Jaimito'],
+  'Defensa':      ['Defensa cerca del ruck','Transición corto → abierto','Defensa + Scrum'],
+  'Scrum / Line': ['Line / Backs solos','Scrum + Backs','Line contra disputa','Maul solo abajo','3 vs 4'],
+  'Pie / Salidas':['Salidas','Juego c/pie','Salidas + Juego c/pie','Recepción de patada rival','Kick chase'],
+};
+
+const TARGETS = {'Pto. Contacto':8,'Destrezas':10,'Ataque':37,'Defensa':23,'Scrum / Line':14,'Pie / Salidas':8};
+const DOTS = {G:'#27AE60',Y:'#F5C518',R:'#E74C3C'};
+let _uid = 0;
+const uid = () => 'b'+(++_uid);
+const mk  = (g,m,f,d='G') => ({id:uid(),tipo:'bloque',grupo:g,mins:m,faceta:f,dot:d,open:false,horaInicio:null,contenidos:[],links:[]});
+const mkA = (m=1) => ({id:uid(),tipo:'agua',mins:m});
+const mkB = (f,m,p='',l='') => ({id:uid(),faceta:f,mins:m,premisa:p,link:l});
+
+const SEMS = [
+  // ── CUMBRE 1: KOSCIUSZKO ──
+  {sem:1,fecha:'14 Mar',rival:'Matreros',local:'V',ciclo:'Kosciuszko',backs:{mar:[],jue:[]},resultado:{ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null},lun:[],mar:[],jue:[]},
+  {sem:2,fecha:'21 Mar',rival:'Plaza',local:'V',ciclo:'Kosciuszko',backs:{mar:[],jue:[]},resultado:{ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null},lun:[],mar:[],jue:[]},
+  {sem:3,fecha:'28 Mar',rival:'Tilos',local:'L',ciclo:'Kosciuszko',backs:{mar:[],jue:[]},resultado:{ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null},lun:[],mar:[],jue:[]},
+  // ── CUMBRE 2: KILIMANJARO ──
+  {sem:4,fecha:'05 Abr',rival:'CASI',local:'V',ciclo:'Kilimanjaro',backs:{mar:[],jue:[]},resultado:{ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null},lun:[],mar:[],jue:[]},
+  {sem:5,fecha:'12 Abr',rival:'CUBA',local:'L',ciclo:'Kilimanjaro',backs:{mar:[],jue:[]},resultado:{ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null},lun:[],mar:[],jue:[]},
+  {sem:6,fecha:'19 Abr',rival:'BACRC',local:'V',ciclo:'Kilimanjaro',backs:{mar:[],jue:[]},resultado:{ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null},lun:[],mar:[],jue:[]},
+  // ── CUMBRE 3: ELBRUS ──
+  {sem:7,fecha:'03 May',rival:'BAC',local:'L',ciclo:'Elbrus',backs:{mar:[],jue:[]},resultado:{ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null},lun:[],mar:[],jue:[]},
+  {sem:8,fecha:'10 May',rival:'SIC',local:'V',ciclo:'Elbrus',backs:{mar:[],jue:[]},resultado:{ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null},lun:[],mar:[],jue:[]},
+  {sem:9,fecha:'17 May',rival:'Newman',local:'L',ciclo:'Elbrus',backs:{mar:[],jue:[]},resultado:{ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null},lun:[],mar:[],jue:[]},
+  {sem:10,fecha:'24 May',rival:'Alumni',local:'V',ciclo:'Elbrus',backs:{mar:[],jue:[]},resultado:{ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null},lun:[],mar:[],jue:[]},
+  {sem:11,fecha:'31 May',rival:'Champa',local:'L',ciclo:'Elbrus',backs:{mar:[],jue:[]},resultado:{ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null},lun:[],mar:[],jue:[]},
+  // ── CUMBRE 4: ACONCAGUA ──
+  {sem:12,fecha:'14 Jun',rival:'Hindu',local:'V',ciclo:'Aconcagua',backs:{mar:[],jue:[]},resultado:{ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null},lun:[],mar:[],jue:[]},
+  {sem:13,fecha:'21 Jun',rival:'La Plata',local:'L',ciclo:'Aconcagua',backs:{mar:[],jue:[]},resultado:{ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null},lun:[],mar:[],jue:[]},
+  {sem:14,fecha:'28 Jun',rival:'Matreros',local:'L',ciclo:'Aconcagua',backs:{mar:[],jue:[]},resultado:{ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null},lun:[],mar:[],jue:[]},
+  {sem:15,fecha:'05 Jul',rival:'Plaza',local:'L',ciclo:'Aconcagua',backs:{mar:[],jue:[]},resultado:{ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null},lun:[],mar:[],jue:[]},
+  {sem:16,fecha:'12 Jul',rival:'Tilos',local:'V',ciclo:'Aconcagua',backs:{mar:[],jue:[]},resultado:{ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null},lun:[],mar:[],jue:[]},
+  // ── CUMBRE 5: VINSON ──
+  {sem:17,fecha:'09 Ago',rival:'CUBA',local:'V',ciclo:'Vinson',backs:{mar:[],jue:[]},resultado:{ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null},lun:[],mar:[],jue:[]},
+  {sem:18,fecha:'16 Ago',rival:'BACRC',local:'L',ciclo:'Vinson',backs:{mar:[],jue:[]},resultado:{ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null},lun:[],mar:[],jue:[]},
+  {sem:19,fecha:'23 Ago',rival:'BAC',local:'V',ciclo:'Vinson',backs:{mar:[],jue:[]},resultado:{ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null},lun:[],mar:[],jue:[]},
+  {sem:20,fecha:'30 Ago',rival:'SIC',local:'L',ciclo:'Vinson',backs:{mar:[],jue:[]},resultado:{ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null},lun:[],mar:[],jue:[]},
+  {sem:21,fecha:'06 Sep',rival:'Newman',local:'V',ciclo:'Vinson',backs:{mar:[],jue:[]},resultado:{ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null},lun:[],mar:[],jue:[]},
+  // ── CUMBRE 6: EVEREST ──
+  {sem:22,fecha:'20 Sep',rival:'Alumni',local:'L',ciclo:'Everest',backs:{mar:[],jue:[]},resultado:{ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null},lun:[],mar:[],jue:[]},
+  {sem:23,fecha:'27 Sep',rival:'Champa',local:'V',ciclo:'Everest',backs:{mar:[],jue:[]},resultado:{ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null},lun:[],mar:[],jue:[]},
+  {sem:24,fecha:'04 Oct',rival:'Hindu',local:'L',ciclo:'Everest',backs:{mar:[],jue:[]},resultado:{ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null},lun:[],mar:[],jue:[]},
+  {sem:25,fecha:'11 Oct',rival:'La Plata',local:'V',ciclo:'Everest',backs:{mar:[],jue:[]},resultado:{ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null},lun:[],mar:[],jue:[]},
+];
+
+const BIBLIOTECA = [
+  {grupo:'Pto. Contacto',items:[
+    {nombre:'Breakdown - 1vs1',org:'Arrodillados, presentación',premisa:'Limpieza de zona. Postura alta.',link:''},
+    {nombre:'Breakdown - Trencito',org:'Altura y presentación',premisa:'Postura inicial + urgencia de apoyos',link:''},
+    {nombre:'Breakdown - Urgencia vs 2 escudos',org:'Enfrentado a dos escudos',premisa:'Duelo y urgencia de apoyos simultáneos',link:''},
+    {nombre:'Breakdown - Loco',org:'Urgencia, postura, duelo, presentación',premisa:'Todo integrado en situación de caos',link:''},
+    {nombre:'Breakdown - Manuel',org:'Variante del Loco',premisa:'Profundidad en zona',link:''},
+    {nombre:'Breakdown - Simbi 2+1',org:'2 atacantes + 1 apoyo',premisa:'Timing de llegada del segundo apoyo',link:''},
+    {nombre:'Breakdown - Postes',org:'Postura, aceleración, presentación',premisa:'Urgencia de apoyos + postura ruckeadores',link:''},
+    {nombre:'Breakdown - Tríos',org:'3 vs 4 defensa activa',premisa:'Limpieza bajo presión numérica',link:''},
+    {nombre:'Breakdown - Ruck + Célula',org:'Integrado con célula de apoyo',premisa:'Velocidad de célula y profundidad',link:''},
+    {nombre:'Breakdown - Pelota',org:'No tocar la pelota — limpieza de zona',premisa:'Disciplina de zona. No penar.',link:''},
+  ]},
+  {grupo:'Destrezas',items:[
+    {nombre:'Carrera Pases',org:'Catch & Pass en movimiento',premisa:'Manos arriba ANTES de recibir. Correr derecho.',link:'https://drive.google.com/file/d/1AO4_xLqeEtJHJK9N54esM7bF0vEyVSON/view'},
+    {nombre:'Ola de Pases',org:'Catch & Pass lateral',premisa:'Caderas cuadradas al pasar. No girar el cuerpo.',link:'https://drive.google.com/file/d/1tibu_6xcbdeI6Hvj7jnhK8osrHJJ3EOX/view'},
+    {nombre:'Ola de Pases 4 vs 2',org:'Superioridad — leer al defensor',premisa:'Fijar al defensor ANTES de pasar.',link:'https://drive.google.com/file/d/1JW3iohyOLIZWEqnYEd040wsP4Xv20iLo/view'},
+    {nombre:'Kick + Catch & Pass',org:'Patada + recepción + pase',premisa:'Manos blandas. Atrapar fuera del cuerpo.',link:'https://drive.google.com/file/d/1qepgd7uKJiebXqBSnPf-3QBkbrW-190V/view'},
+    {nombre:'Varillas 1',org:'Navegar varillas + recibir + pasar',premisa:'La varilla es el defensor. Si la tocás, mala línea.',link:'https://drive.google.com/file/d/19p9rADup5RYfQPGABgVdQq8L8X0MgJMk/view'},
+    {nombre:'Varillas 2',org:'Variante avanzada',premisa:'Línea de carrera igual que en partido.',link:'https://drive.google.com/file/d/1gRNHGiIZIKnQm2obHNLCuV2yaU75f7J1/view'},
+    {nombre:'Evasión',org:'1 vs 1 espacio reducido',premisa:'La evasión no es escapar — es crear desequilibrio.',link:'https://drive.google.com/file/d/14-KKQMsN_aZ_a8Lo27iSnsV9S4o_Q0Mj/view'},
+    {nombre:'Duelo y Pase',org:'Portador fija + pasa',premisa:'El pase nace del duelo — no antes, no después.',link:'https://drive.google.com/file/d/1OJqA_FfZivaNw06k3MOEkx7lJbWDNvtL/view'},
+    {nombre:'Estructura Azul',org:'Patrón específico del sistema',premisa:'Cada jugador conoce su carrera. Si alguien improvisa, el espacio desaparece.',link:'https://drive.google.com/file/d/1umNR_M1oyjjGuVenQKU8cRikfKsU0JXi/view'},
+    {nombre:'Ball Carry',org:'Portador corre al contacto',premisa:'Pelota lejos del defensor. Hombro adentro. Cadera adelante.',link:'https://drive.google.com/file/d/1YtulWCBwQ2WuNN-Kn5L0IuBIMAc_ktiD/view'},
+    {nombre:'Manos Rápidas',org:'Transferencia rápida post-contacto',premisa:'La pelota sale en la misma fracción que el contacto.',link:'https://drive.google.com/file/d/1ghnnzD5O2E9lWQU_wzOftsGkEnXdKLmb/view'},
+    {nombre:'Destreza Oro',org:'Integrado — nivel de partido',premisa:'Ritmo de partido desde el primer rep.',link:'https://drive.google.com/file/d/1gnlSnRvoj_nqX6DIYnYVpufEgZ4V8Q5H/view'},
+    {nombre:'3 vs 2',org:'Superioridad — explotar el espacio',premisa:'Leer QUÉ defensor fija antes de pasar.',link:'https://drive.google.com/file/d/1DJWOsw_ja-78SgFaAzeEgxkhecG3Xs_i/view'},
+    {nombre:'8 vs 5',org:'Superioridad importante — decisión rápida',premisa:'¿Cuándo circular y cuándo romper? En menos de 2 segundos.',link:'https://drive.google.com/file/d/1OM3KNM2wLY1ugRLu0ziCcFC9jXQ2p4Yg/view'},
+  ]},
+  {grupo:'Ataque',items:[
+    {nombre:'Mov General — Vueltas',org:'Reposicionamiento con carreras invertidas',premisa:'Primera y segunda estructura en falso. Resolver contra defensa.',link:'https://drive.google.com/file/d/1slYOplSKZYn4R5kBBTZL9eJS2IFNtl2X/view'},
+    {nombre:'Est. y semis separados',org:'Backs con reposicionamiento post choque escudo',premisa:'Carreras fuertes y profundas. Calidad de ejecución.',link:''},
+    {nombre:'Est. y semis juntos',org:'Lions + Oro integrados',premisa:'Integración de sistema completo.',link:''},
+    {nombre:'10 vs 10 — reinicios',org:'Tocar línea y volver',premisa:'Rep. y carreras. Calidad de ejecución.',link:''},
+    {nombre:'10 vs 10 — juego libre',org:'Tackleador sale',premisa:'Ver oportunidades y atacarlas.',link:''},
+    {nombre:'Jaimito / Semis',org:'Azul sin irlanda + vuelta irlanda',premisa:'Leer la defensa ANTES del llamado.',link:'https://drive.google.com/file/d/1tk7I-sS3ecEQduzesIJZ7hCvICuZjb0r/view'},
+    {nombre:'Recepción de patada',org:'Turnover → transición inmediata',premisa:'El que recibe llama la jugada. Los demás salen ANTES.',link:''},
+    {nombre:'Lanzamientos',org:'Silver · 3 · 3largo · Jugada 5y',premisa:'Cada lanzamiento tiene un código y un receptor.',link:''},
+    {nombre:'Ataque 25y / Jugada 5y',org:'Estructurado ofensivo en zona caliente',premisa:'Elegir la opción con mayor probabilidad.',link:''},
+    {nombre:'Contact',org:'Con contacto real integrado',premisa:'El contacto es parte del juego. No frenar.',link:''},
+  ]},
+  {grupo:'Defensa',items:[
+    {nombre:'Defensa cerca del ruck',org:'Grupos de 5. 2 situaciones circulando / retrocediendo',premisa:'Comunicación y posicionamiento defensivo.',link:''},
+    {nombre:'Transición corto → abierto',org:'Grupos de 5. Espacio corto y espacio abierto',premisa:'Timing de transición defensiva.',link:''},
+    {nombre:'Defensa + Scrum',org:'Integrado. Disputar en dinámica',premisa:'Comunicación entre FW y BK en defensa.',link:''},
+  ]},
+  {grupo:'Scrum / Line',items:[
+    {nombre:'Line / Backs solos',org:'Técnica individual, Tríos, Ejercicio Colo, 3vs4, Maul',premisa:'El hábito se forma en la repetición sin presión.',link:''},
+    {nombre:'Scrum + Backs',org:'Backs: carreras, semi-ataque, lanzamientos, decisión',premisa:'Integrar FW y BK en set piece.',link:''},
+    {nombre:'Semi-ataque desde 10',org:'2da línea ataque desde 10 (blanco)',premisa:'Ver Harlequins o Sale. Backs aparecen desde circulación.',link:'https://drive.google.com/file/d/16uX4RUxhO9A4gpWx_Q8fV36-pgbxxh2n/view'},
+  ]},
+  {grupo:'Pie / Salidas',items:[
+    {nombre:'Salidas + Juego c/pie',org:'Salidas desde 22. Juego con el pie integrado',premisa:'Todos en el canal correcto antes de que el 9 toque la pelota.',link:''},
+    {nombre:'Recepción de patada rival',org:'Primera y segunda estructura en falso',premisa:'El que recibe llama la jugada.',link:''},
+    {nombre:'Juego 25y',org:'Situaciones ofensivas desde zona 25m',premisa:'Elegir la opción con mayor probabilidad. Margen de error bajo.',link:''},
+    {nombre:'Kick chase',org:'Persecución de patada propia',premisa:'El pateador llama el chase. Los chasers no cruzan antes del kick.',link:''},
+  ]},
+];
+
+const GANTT_FACETAS = [
+  {g:'Pto. Contacto',name:'Pto. Contacto / Breakdown',kw:['contacto','breakdown']},
+  {g:'Destrezas',name:'Destrezas I — Atrapar/Pasar',kw:['destrezas i','carrera pases','ola de pases','varillas','evasión','kick']},
+  {g:'Destrezas',name:'Destrezas II — Ball Carry',kw:['ball carry','manos rápidas','destreza oro']},
+  {g:'Ataque',name:'Mov General — Vueltas',kw:['vueltas','mov general']},
+  {g:'Ataque',name:'Est. y semis separados',kw:['separados']},
+  {g:'Ataque',name:'Est. y semis juntos',kw:['juntos']},
+  {g:'Ataque',name:'10 vs 10 — reinicios',kw:['reinicios']},
+  {g:'Ataque',name:'10 vs 10 — juego libre',kw:['juego libre']},
+  {g:'Ataque',name:'Jaimito / Semis',kw:['jaimito','semis']},
+  {g:'Ataque',name:'Recepción de patada (ataque)',kw:['recepción de patada']},
+  {g:'Ataque',name:'Lanzamientos',kw:['lanzamientos']},
+  {g:'Ataque',name:'Jugada 5y / Ataque 25y',kw:['5y','25y']},
+  {g:'Ataque',name:'Contact',kw:['contact']},
+  {g:'Defensa',name:'Defensa cerca del ruck',kw:['cerca del ruck']},
+  {g:'Defensa',name:'Transición corto → abierto',kw:['transición']},
+  {g:'Defensa',name:'Defensa + Scrum',kw:['defensa + scrum']},
+  {g:'Scrum / Line',name:'Line / Backs solos',kw:['line / backs','line/ backs']},
+  {g:'Scrum / Line',name:'Scrum + Backs',kw:['scrum + backs']},
+  {g:'Pie / Salidas',name:'Salidas + Juego c/pie',kw:['salidas']},
+  {g:'Pie / Salidas',name:'Recepción de patada (pie)',kw:['recepción de patada rival']},
+  {g:'Pie / Salidas',name:'Juego 25y / Kick chase',kw:['kick chase']},
+];
+
+// ── STATE ──────────────────────────────────────────────────────
+let curSem = 0;
+
+// ── HELPERS ───────────────────────────────────────────────────
+const calcDist = s => {
+  const t={};
+  ['lun','mar','jue'].forEach(d=>(s[d]||[]).filter(b=>b.tipo!=='agua').forEach(b=>{t[b.grupo]=(t[b.grupo]||0)+b.mins;}));
+  return t;
+};
+
+const grpOrder = ['Pto. Contacto','Destrezas','Ataque','Defensa','Scrum / Line','Pie / Salidas'];
+
+// ── NAVIGATION ────────────────────────────────────────────────
+function goPage(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if(id==='cumbres')   renderCumbres();
+  if(id==='dashboard') renderDashFull();
+  if(id==='gantt')     renderGantt();
+  if(id==='biblioteca') renderBiblioteca();
+  if(id==='resultados') renderResultados();
+}
+
+
+// ── CUMBRES CONFIG ────────────────────────────────────────────
+const CUMBRES = [
+  {num:1, nombre:'Kosciuszko', sub:'La Promesa',    alt:'2.228m', color:'#0D1B4E', sems:[1,2,3],
+   foco:'Instalar hábitos. Punto de contacto. El estándar mínimo en cada repetición.',
+   frase:'"Empezamos."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados']},
+  {num:2, nombre:'Kilimanjaro', sub:'La Identidad', alt:'5.895m', color:'#1A3470', sems:[4,5,6],
+   foco:'Identidad bajo presión. Defensa instalada. ¿Quiénes somos cuando la exigencia sube?',
+   frase:'"Sabemos quiénes somos."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados']},
+  {num:3, nombre:'Elbrus',      sub:'El Pack',       alt:'5.642m', color:'#2B4EA0', sems:[7,8,9,10,11],
+   foco:'Liderazgo interno visible. 5 partidos seguidos. Nadie escala solo.',
+   frase:'"Nadie escala solo."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados']},
+  {num:4, nombre:'Aconcagua',   sub:'La Nuestra',    alt:'6.961m', color:'#0D1B4E', sems:[12,13,14,15,16],
+   foco:'Clímax. La montaña de casa. No le tenemos miedo — la conocemos.',
+   frase:'"Esta siempre fue nuestra."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados']},
+  {num:5, nombre:'Vinson',      sub:'El Carácter',   alt:'4.892m', color:'#1A3470', sems:[17,18,19,20,21],
+   foco:'Segunda vuelta. Nadie te ve escalarla. La escalás porque sos ese tipo de equipo.',
+   frase:'"Lo hicimos aunque nadie nos miraba."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados']},
+  {num:6, nombre:'Everest',     sub:'La Razón',      alt:'8.849m', color:'#2B4EA0', sems:[22,23,24,25],
+   foco:'No hay más montañas. Todo lo construido desde Kosciuszko se juega acá.',
+   frase:'"Llegamos juntos."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados']},
+];
+
+function getSemsByCiclo(cicloName) {
+  return SEMS.filter(s => s.ciclo === cicloName);
+}
+
+function goToSem(semNum) {
+  const idx = SEMS.findIndex(s => s.sem === semNum);
+  if(idx >= 0) { curSem = idx; }
+  goPageDirect('planner');
+  renderTabs(); renderAll();
+}
+
+function goPageDirect(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  const btn = Array.from(document.querySelectorAll('.nav-link')).find(b=>b.onclick&&b.onclick.toString().includes("'"+id+"'"));
+  if(btn) btn.classList.add('active');
+}
+
+function renderCumbres() {
+  const STATUS_COLORS = {'Kosciuszko':'#27AE60','Kilimanjaro':'#F5C518','Elbrus':'#aaa','Aconcagua':'#aaa','Vinson':'#aaa','Everest':'#aaa'};
+  const STATUS_LABEL  = {'Kosciuszko':'En curso','Kilimanjaro':'Próxima','Elbrus':'Pendiente','Aconcagua':'Pendiente','Vinson':'Pendiente','Everest':'Cima'};
+
+  document.getElementById('cumbres-content').innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px">
+      ${CUMBRES.map(c=>{
+        const sems = getSemsByCiclo(c.nombre);
+        const status = STATUS_LABEL[c.nombre] || 'Pendiente';
+        const statusColor = STATUS_COLORS[c.nombre] || '#aaa';
+        const partidos = sems.map(s=>s.rival).join(' · ');
+        return `<div style="background:#fff;border:0.5px solid #E2E7F5;border-radius:12px;overflow:hidden">
+          <div style="background:${c.color};padding:14px 16px;position:relative;overflow:hidden">
+            <div style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:52px;color:#fff;opacity:0.1;line-height:1;pointer-events:none">▲</div>
+            <div style="font-size:10px;font-weight:700;color:rgba(245,197,24,0.7);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px">▲ ${c.num} · ${c.alt}</div>
+            <div style="font-size:18px;font-weight:800;color:#F5C518;line-height:1;margin-bottom:4px">${c.nombre.toUpperCase()}</div>
+            <input
+              value="${c.sub}"
+              placeholder="Subtítulo del ciclo..."
+              onclick="event.stopPropagation()"
+              onchange="updateCumbre(${c.num},'sub',this.value)"
+              title="Editá el subtítulo"
+              style="width:100%;font-size:12px;color:rgba(255,255,255,0.85);background:rgba(255,255,255,0.12);border:none;border-bottom:1px dashed rgba(255,255,255,0.3);padding:2px 0;outline:none;font-family:inherit;cursor:text"
+              onfocus="this.style.background='rgba(255,255,255,0.18)'"
+              onblur="this.style.background='rgba(255,255,255,0.12)'">
+          </div>
+          <div style="padding:12px 14px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <span style="font-size:10px;font-weight:700;color:${statusColor};background:${statusColor}22;padding:2px 8px;border-radius:10px">${status}</span>
+              <span style="font-size:11px;color:#888">${sems.length} semanas · ${sems.length*3} sesiones</span>
+            </div>
+
+            <div style="margin-bottom:6px">
+              <div style="font-size:9px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:3px">FOCO DEL CICLO</div>
+              <textarea
+                placeholder="Describí el foco táctico y cultural de este ciclo..."
+                rows="2"
+                onclick="event.stopPropagation()"
+                onchange="updateCumbre(${c.num},'foco',this.value)"
+                title="Editá el foco del ciclo"
+                style="width:100%;font-size:11px;color:#333;background:#F8F9FD;border:0.5px solid #E2E7F5;border-radius:6px;padding:5px 7px;resize:vertical;outline:none;font-family:inherit;line-height:1.5;cursor:text"
+                onfocus="this.style.borderColor='#2B4EA0';this.style.background='#fff'"
+                onblur="this.style.borderColor='#E2E7F5';this.style.background='#F8F9FD'"
+              >${c.foco}</textarea>
+            </div>
+
+            <div style="margin-bottom:8px">
+              <div style="font-size:9px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:3px">FRASE DEL CICLO</div>
+              <input
+                value="${c.frase||''}"
+                placeholder='"La frase que representa este ciclo..."'
+                onclick="event.stopPropagation()"
+                onchange="updateCumbre(${c.num},'frase',this.value)"
+                title="Editá la frase del ciclo"
+                style="width:100%;font-size:12px;font-style:italic;color:#0D1B4E;font-weight:600;background:#FEF9D9;border:0.5px solid #F5C518;border-radius:6px;padding:5px 8px;outline:none;font-family:inherit;cursor:text"
+                onfocus="this.style.background='#FFFBEC'"
+                onblur="this.style.background='#FEF9D9'">
+            </div>
+
+            <div style="margin-bottom:10px">
+              <div style="font-size:9px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px">KPIs DEL CICLO</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+                ${c.kpis.map((kpi,ki)=>`
+                  <input
+                    value="${kpi}"
+                    placeholder="KPI ${ki+1}..."
+                    onclick="event.stopPropagation()"
+                    onchange="updateCumbreKpi(${c.num},${ki},this.value)"
+                    style="font-size:10px;font-weight:600;color:#0D1B4E;background:#EBF0FF;border:0.5px solid #C5CCE0;border-radius:5px;padding:3px 7px;outline:none;font-family:inherit;cursor:text"
+                    onfocus="this.style.background='#fff';this.style.borderColor='#2B4EA0'"
+                    onblur="this.style.background='#EBF0FF';this.style.borderColor='#C5CCE0'">
+                `).join('')}
+              </div>
+            </div>
+
+            <div style="font-size:10px;color:#aaa;margin-bottom:8px">${partidos}</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              ${sems.map(s=>`<button onclick="goToSem(${s.sem})"
+                style="font-size:10px;font-weight:600;padding:3px 8px;border-radius:5px;border:1px solid ${c.color};background:transparent;color:${c.color};cursor:pointer">
+                Sem ${s.sem}
+              </button>`).join('')}
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div style="background:#fff;border:0.5px solid #E2E7F5;border-radius:12px;overflow:hidden">
+      <div style="background:#0D1B4E;padding:12px 16px;display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:13px;font-weight:700;color:#F5C518">Mapa de la temporada completa</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.4)">25 semanas · 75 sesiones de entrenamiento</div>
+      </div>
+      <div style="overflow-x:auto;padding:12px">
+        <div style="display:flex;gap:3px;min-width:600px">
+          ${SEMS.map(s=>{
+            const c = CUMBRES.find(c=>c.nombre===s.ciclo)||CUMBRES[0];
+            const isCur = s.sem === SEMS[curSem].sem;
+            return `<div onclick="goToSem(${s.sem})" title="Sem ${s.sem} · ${s.rival}"
+              style="flex:1;min-width:28px;border-radius:5px;cursor:pointer;border:${isCur?'2px solid #F5C518':'1.5px solid transparent'};transition:all 0.15s"
+              onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+              <div style="background:${c.color};border-radius:3px;padding:6px 2px;text-align:center">
+                <div style="font-size:9px;font-weight:700;color:#F5C518">${s.sem}</div>
+                <div style="font-size:8px;color:rgba(255,255,255,0.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.rival.slice(0,4)}</div>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+          ${CUMBRES.map(c=>`<div style="display:flex;align-items:center;gap:4px">
+            <div style="width:10px;height:10px;border-radius:2px;background:${c.color}"></div>
+            <span style="font-size:10px;color:#888">${c.nombre}</span>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+}
+
+
+// ── PLANNER ───────────────────────────────────────────────────
+function renderTabs() {
+  document.getElementById('sem-tabs').innerHTML = SEMS.map((s,i)=>
+    `<button class="sem-tab${i===curSem?' active':''}" onclick="swSem(${i})">Sem ${s.sem} · ${s.rival}</button>`
+  ).join('');
+}
+
+function swSem(i){curSem=i;renderTabs();renderAll();}
+
+function renderKPIs(){
+  const s=SEMS[curSem], d=calcDist(s);
+  const total=Object.entries(d).filter(([k])=>k!=='Gimnasio').reduce((a,[,v])=>a+v,0);
+  const bloques=['lun','mar','jue'].reduce((a,day)=>a+(s[day]||[]).filter(b=>b.grupo!=='Gimnasio').length,0);
+  const top=Object.entries(d).filter(([k])=>k!=='Gimnasio').sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('kpi-total').textContent=total+' min';
+  document.getElementById('kpi-bloques').textContent=bloques;
+  document.getElementById('kpi-top').textContent=top?top[0]:'—';
+  document.getElementById('kpi-rival').textContent=s.rival;
+  document.getElementById('kpi-fecha').textContent=s.fecha+(s.local==='L'?' · Local':' · Visitante');
+  document.getElementById('sem-rival-txt').textContent=`Semana ${s.sem} · ${s.rival}`;
+  document.getElementById('sem-meta-txt').textContent=`${s.fecha} · ${s.local==='L'?'Local':'Visitante'}`;
+  document.getElementById('sem-badge').textContent='▲ '+s.ciclo;
+}
+
+function renderDash(containerId, dist){
+  const total=Object.entries(dist).filter(([k])=>k!=='Gimnasio').reduce((a,[,v])=>a+v,0);
+  if(containerId==='dash-label') {
+    document.getElementById('dash-label').textContent=total+' min cancha';
+  }
+  const rows = grpOrder.map(g=>{
+    const mins=dist[g]||0, pct=total>0?Math.round(mins/total*100):0;
+    const tgt=TARGETS[g]||0, diff=pct-tgt;
+    const pc=Math.abs(diff)<=3?'#27AE60':diff<-3?'#E74C3C':'#B8860B';
+    const gc=GRUPOS[g];
+    return `<div class="dash-row">
+      <div class="dash-name"><div class="dash-swatch" style="background:${gc.color}"></div>${g}</div>
+      <div class="dash-mins">${mins}′</div>
+      <div class="dash-bar-bg"><div class="dash-bar-fill" style="width:${Math.min(100,pct)}%;background:${gc.color}"></div></div>
+      <div class="dash-pct" style="color:${pc}">${pct}%</div>
+      <div class="dash-tgt">~${tgt}%</div>
+    </div>`;
+  });
+  const gym=dist['Gimnasio']||0;
+  rows.push(`<hr class="dash-sep"><div class="dash-row">
+    <div class="dash-name"><div class="dash-swatch" style="background:#444C6E"></div>Gimnasio</div>
+    <div class="dash-mins">${gym}′</div>
+    <div class="dash-bar-bg"><div class="dash-bar-fill" style="width:50%;background:#444C6E"></div></div>
+    <div class="dash-pct" style="color:#aaa">—</div>
+    <div class="dash-tgt">base</div>
+  </div>`);
+  return rows.join('');
+}
+
+function renderDashWidget(){
+  const s=SEMS[curSem], d=calcDist(s);
+  const total=Object.entries(d).filter(([k])=>k!=='Gimnasio').reduce((a,[,v])=>a+v,0);
+  document.getElementById('dash-label').textContent=total+' min cancha';
+  document.getElementById('dash-rows').innerHTML=renderDash('inline',d)+renderDashCiclo(s.ciclo);
+}
+
+function renderDashCiclo(cicloNombre){
+  const cicloSems = SEMS.filter(function(s){return s.ciclo===cicloNombre;});
+  if(cicloSems.length<=1) return '';
+  var acc={};
+  cicloSems.forEach(function(s){
+    var d=calcDist(s);
+    Object.keys(d).forEach(function(k){acc[k]=(acc[k]||0)+d[k];});
+  });
+  var totalAcc=Object.keys(acc).filter(function(k){return k!=='Gimnasio';}).reduce(function(a,k){return a+acc[k];},0);
+  if(!totalAcc) return '';
+  var GC={
+    'Pto. Contacto':{color:'#C0392B'},
+    'Destrezas':    {color:'#2B4EA0'},
+    'Ataque':       {color:'#1A6B3E'},
+    'Defensa':      {color:'#6B2D8B'},
+    'Scrum / Line': {color:'#7A5200'},
+    'Pie / Salidas':{color:'#4A3010'},
+  };
+  var TGT={'Pto. Contacto':8,'Destrezas':10,'Ataque':37,'Defensa':23,'Scrum / Line':14,'Pie / Salidas':8};
+  var rows=Object.keys(GC).map(function(g){
+    var mins=acc[g]||0;
+    var pct=totalAcc>0?Math.round(mins/totalAcc*100):0;
+    var tgt=TGT[g]||0;
+    var diff=pct-tgt;
+    var pc=Math.abs(diff)<=3?'#27AE60':diff<-3?'#E74C3C':'#B8860B';
+    var color=GC[g].color;
+    return '<div class="dash-row">'
+      +'<div class="dash-name"><div class="dash-swatch" style="background:'+color+'"></div>'+g+'</div>'
+      +'<div class="dash-mins">'+mins+"'</div>"
+      +'<div class="dash-bar-bg"><div class="dash-bar-fill" style="width:'+Math.min(100,pct)+'%;background:'+color+'"></div></div>'
+      +'<div class="dash-pct" style="color:'+pc+'">'+pct+'%</div>'
+      +'<div class="dash-tgt">~'+tgt+'%</div>'
+      +'</div>';
+  }).join('');
+  return '<div style="margin-top:10px;padding-top:8px;border-top:1px dashed #E2E7F5">'
+    +'<div style="font-size:11px;font-weight:600;color:#0D1B4E;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center">'
+    +'<span>Acumulado \u00b7 '+cicloNombre+'</span>'
+    +'<span style="font-size:10px;color:#888;font-weight:400">'+cicloSems.length+' sem \u00b7 '+totalAcc+' min</span>'
+    +'</div>'+rows+'</div>';
+}
+
+function minsToHora(totalMins) {
+  const base = 20 * 60; // 20:00
+  const abs = base + totalMins;
+  const h = Math.floor(abs / 60) % 24;
+  const m = abs % 60;
+  return `${h.toString().padStart(2,'0')}.${m.toString().padStart(2,'0')}`;
+}
+
+function horaToMins(hora) {
+  // "21.05" -> minutes from 20:00 = 65
+  if(!hora) return null;
+  const parts = hora.replace(':','.').split('.');
+  const h = parseInt(parts[0]) || 0;
+  const m = parseInt(parts[1]) || 0;
+  return (h * 60 + m) - (20 * 60);
+}
+
+function calcHoras(blocks) {
+  // Returns display hora for each block
+  // If a block has manual horaInicio, use it; otherwise cascade from previous
+  let cumMins = 0;
+  return blocks.map((bl, i) => {
+    if(bl.tipo!=='agua' && bl.horaInicio) {
+      const parsed = horaToMins(bl.horaInicio);
+      if(parsed !== null) cumMins = parsed;
+    }
+    const display = minsToHora(cumMins);
+    cumMins += bl.mins; // agua blocks count their own mins
+    return display;
+  });
+}
+
+function cascadeHoras(dia) {
+  // After mins change, clear manual overrides on blocks AFTER the changed one
+  // so they recalculate. Called after chMins.
+  // Actually: we keep manual overrides intact, cascade only fills nulls.
+  // So just re-render — calcHoras handles it.
+  renderDays();
+}
+
+function chHora(dia, id, val) {
+  const b = SEMS[curSem][dia].find(b=>b.id===id);
+  if(!b) return;
+  const clean = val.trim();
+  // Validate format roughly: should be HH.MM or HH:MM
+  if(!clean || clean === '') {
+    b.horaInicio = null; // reset to auto
+  } else {
+    b.horaInicio = clean.replace(':', '.');
+  }
+  renderDays();
+}
+
+
+function buildWAText(dia,blocks,sem){
+  // Solo manda bloques que tienen al menos un link
+  const vidEmoji=String.fromCodePoint(0x1F3A5);
+  const DAY_LABELS={lun:'Lunes',mar:'Martes',jue:'Jueves'};
+
+  const blocksConLinks=blocks.filter(bl=>{
+    if(bl.tipo==='agua') return false;
+    const links=(bl.links&&bl.links.length?bl.links:[bl.link]).filter(Boolean);
+    return links.length>0;
+  });
+
+  if(!blocksConLinks.length) return null; // sin links
+
+  const lines=[
+    `*${DAY_LABELS[dia]} ${sem.fecha} · ${sem.rival} (${sem.local})*`,
+    ``,
+  ];
+
+  blocksConLinks.forEach(bl=>{
+    lines.push(`*${bl.faceta}*`);
+    const links=(bl.links&&bl.links.length?bl.links:[bl.link]).filter(Boolean);
+    links.forEach(lnk=>lines.push(`${vidEmoji} ${lnk}`));
+    lines.push(``);
+  });
+
+  lines.push(`_Ser Mejores, Siempre_`);
+  return lines.join('\n');
+}
+
+function copyWA(dia){
+  const s=SEMS[curSem];
+  const text=buildWAText(dia,s[dia]||[],s);
+  const btn=document.getElementById('copy-btn-'+dia);
+  if(!text){
+    if(btn){btn.textContent='Sin videos cargados';btn.style.background='#888';btn.style.color='#fff';btn.style.borderColor='#888';}
+    setTimeout(()=>{if(btn){btn.textContent=getWABtnLabel(dia);btn.style.background='';btn.style.color='';btn.style.borderColor='';}},2500);
+    return;
+  }
+  const ok=()=>{
+    if(btn){btn.textContent='✓ Copiado';btn.style.background='#27AE60';btn.style.borderColor='#27AE60';btn.style.color='#fff';}
+    setTimeout(()=>{if(btn){btn.textContent=getWABtnLabel(dia);btn.style.background='';btn.style.borderColor='';btn.style.color='';}},2500);
+  };
+  if(navigator.clipboard){navigator.clipboard.writeText(text).then(ok).catch(()=>{fallbackCopy(text);ok();});}
+  else{fallbackCopy(text);ok();}
+}
+
+function getWABtnLabel(dia){
+  const s=SEMS[curSem];
+  const blocks=(s[dia]||[]).filter(bl=>{
+    if(bl.tipo==='agua') return false;
+    return (bl.links&&bl.links.length?bl.links:[bl.link]).filter(Boolean).length>0;
+  });
+  return blocks.length>0?`📋 Copiar links (${blocks.length} bloque${blocks.length>1?'s':''})`:'📋 Sin videos cargados';
+}
+
+function fallbackCopy(text){
+  const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+  document.body.appendChild(ta);ta.focus();ta.select();
+  try{document.execCommand('copy');}catch(e){}
+  document.body.removeChild(ta);
+}
+
+function renderDays(){
+  const s=SEMS[curSem];
+  const DAYS=[{k:'lun',t:'LUNES'},{k:'mar',t:'MARTES'},{k:'jue',t:'JUEVES'}];
+  const subs={lun:'Gimnasio + Activación',mar:'Campo completo',jue:'Captura + Set Pieces'};
+  document.getElementById('days-grid').innerHTML=DAYS.map(({k,t})=>{
+    const sub=subs[k];
+    const horas=calcHoras(s[k]||[]);
+    const blocks=(s[k]||[]).map((bl,bi)=>{
+      // ── AGUA BLOCK ──────────────────────────────
+      if(bl.tipo==='agua'){
+        const horas=calcHoras(s[k]||[]);
+        return `<div class="block-agua" draggable="true"
+            ondragstart="dragStart(event,'${k}',${bi})"
+            ondragover="dragOver(event)"
+            ondragenter="dragEnter(event)"
+            ondragleave="dragLeave(event)"
+            ondrop="dragDrop(event,'${k}',${bi})"
+            ondragend="dragEnd(event)">
+          <div class="drag-handle" style="color:#BDE0F0">⠿</div>
+          <span class="agua-icon">💧</span>
+          <span class="agua-label">${horas[bi]} · Agua</span>
+          <input class="agua-mins" type="number" value="${bl.mins}" min="1" max="30"
+            title="Minutos de agua"
+            onclick="event.stopPropagation()"
+            onchange="chMins('${k}','${bl.id}',this.value)"
+            onkeydown="event.stopPropagation()"> min
+          <button class="agua-rm" onclick="delBlock('${k}','${bl.id}')" title="Quitar agua">✕</button>
+        </div>`;
+      }
+      const gc=GRUPOS[bl.grupo]||GRUPOS['Ataque'];
+      const dot=DOTS[bl.dot]||DOTS.G;
+      const facOpts=(FACETAS[bl.grupo]||[]).map(f=>`<option value="${f}"${f===bl.faceta?' selected':''  }>${f}</option>`).join('');
+      const grOpts=Object.keys(GRUPOS).map(g=>`<option value="${g}"${g===bl.grupo?' selected':''  }>${g}</option>`).join('');
+      const safeLink=(bl.link||''  ).replace(/"/g,'&quot;');
+      const safePremisa=(bl.premisa||''  ).replace(/"/g,'&quot;');
+      const editor=bl.open?`<div class="block-editor">
+        <div class="ed-row">
+          <span class="ed-label">Grupo</span>
+          <select onchange="chGrupo('${k}','${bl.id}',this.value)">${grOpts}</select>
+          <button class="del-btn" onclick="delBlock('${k}','${bl.id}')">✕</button>
+        </div>
+        <div class="ed-row">
+          <span class="ed-label">Faceta</span>
+          <select onchange="chFaceta('${k}','${bl.id}',this.value)">${facOpts}</select>
+        </div>
+        <div class="ed-row">
+          <span class="ed-label">Min</span>
+          <input type="number" value="${bl.mins}" min="1" max="120" step="1" onchange="chMins('${k}','${bl.id}',this.value)">
+          <span class="ed-label" style="margin-left:8px">Estado</span>
+          <select onchange="chDot('${k}','${bl.id}',this.value)" style="width:82px">
+            <option value="G"${bl.dot==='G'?' selected':''  }>● OK</option>
+            <option value="Y"${bl.dot==='Y'?' selected':''  }>● Ajustar</option>
+            <option value="R"${bl.dot==='R'?' selected':''  }>● Intenso</option>
+          </select>
+        </div>
+        <div class="ed-row" style="flex-direction:column;align-items:stretch;gap:3px">
+          <span class="ed-label" style="min-width:auto;margin-bottom:1px">Premisa de coaching</span>
+          <input type="text" value="${safePremisa}"
+            placeholder="Premisa opcional para enviar al grupo..."
+            onchange="chPremisa('${k}','${bl.id}',this.value)"
+            style="width:100%;font-size:11px;padding:4px 7px;border-radius:5px;border:0.5px solid #C5CCE0;background:#fff;color:#1A1A2E">
+        </div>
+        <div class="ed-row" style="flex-direction:column;align-items:stretch;gap:4px">
+          <span class="ed-label" style="min-width:auto;margin-bottom:1px">Contenidos del bloque</span>
+          <div class="ct-pills" id="ct-pills-${bl.id}">
+            ${(bl.contenidos||[]).map((ct,ci)=>`
+              <span class="ct-pill">
+                ${ct}
+                <button class="ct-pill-rm" onclick="event.stopPropagation();rmContenido('${k}','${bl.id}',${ci})" title="quitar">✕</button>
+              </span>`).join('')}
+          </div>
+          <div style="display:flex;gap:4px">
+            <input type="text" id="ct-input-${bl.id}"
+              placeholder="Ej: Juego 25y, Reposicionamiento..."
+              style="flex:1;font-size:11px;padding:3px 7px;border-radius:5px;border:0.5px dashed #C5CCE0;background:#fff;color:#1A1A2E;outline:none"
+              onfocus="this.style.borderStyle='solid';this.style.borderColor='#2B4EA0'"
+              onblur="this.style.borderStyle='dashed';this.style.borderColor='#C5CCE0'"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();addContenido('${k}','${bl.id}')}">
+            <button onclick="event.stopPropagation();addContenido('${k}','${bl.id}')"
+              style="font-size:11px;padding:3px 10px;border-radius:5px;border:0.5px solid #2B4EA0;background:#EBF0FF;color:#2B4EA0;font-weight:700;cursor:pointer;white-space:nowrap">+ Agregar</button>
+          </div>
+        </div>
+        <div class="ed-row" style="flex-direction:column;align-items:stretch;gap:4px">
+          <span class="ed-label" style="min-width:auto;margin-bottom:1px">Links de video (Drive)</span>
+          ${(bl.links||[]).map((lnk,li)=>`
+            <div style="display:flex;gap:4px;align-items:center">
+              <input type="text" value="${lnk.replace(/"/g,'&quot;')}"
+                placeholder="Link ${li+1}..."
+                onchange="chLinkAt('${k}','${bl.id}',${li},this.value)"
+                style="flex:1;font-size:11px;padding:3px 7px;border-radius:5px;border:0.5px solid ${lnk?'#27AE60':'#C5CCE0'};background:#fff;color:#1A1A2E">
+              ${lnk?`<a href="${lnk.replace(/"/g,'&quot;')}" target="_blank" style="font-size:11px;color:#2B4EA0;font-weight:600;white-space:nowrap;text-decoration:none">▶</a>`:''}
+              <button onclick="event.stopPropagation();rmLink('${k}','${bl.id}',${li})"
+                style="background:none;border:none;color:#ccc;cursor:pointer;font-size:13px;padding:0 2px">✕</button>
+            </div>`).join('')}
+          <button onclick="event.stopPropagation();addLink('${k}','${bl.id}')"
+            style="font-size:11px;padding:3px 10px;border-radius:5px;border:0.5px dashed #C5CCE0;background:#fff;color:#888;cursor:pointer;text-align:left;width:fit-content">
+            🎥 + agregar link
+          </button>
+        </div>
+      </div>`:''  ;
+      return `<div class="block-item" draggable="true"
+          ondragstart="dragStart(event,'${k}',${bi})"
+          ondragover="dragOver(event)"
+          ondragenter="dragEnter(event)"
+          ondragleave="dragLeave(event)"
+          ondrop="dragDrop(event,'${k}',${bi})"
+          ondragend="dragEnd(event)">
+        <div class="block-card">
+          <div class="block-top">
+            <div class="drag-handle" title="Arrastrá para reordenar" style="touch-action:none">⠿</div>
+            <div class="block-accent" style="background:${gc.color}"></div>
+            <div class="block-body" style="background:${gc.light}" onclick="toggleBlock('${k}','${bl.id}')">
+              <div class="block-grupo" style="color:${gc.text}">${bl.grupo}</div>
+              <div class="block-faceta">${bl.faceta}</div>
+              ${(bl.contenidos&&bl.contenidos.length)?`<div class="ct-sum">${bl.contenidos.join(' + ')}</div>`:''}
+              <div class="block-mins-row">
+                <input class="block-hora-inline${bl.horaInicio?'':' auto-hora'}"
+                  type="text" value="${horas[bi]}"
+                  title="${bl.horaInicio?'Hora manual — borrá para volver al automático':'Hora calculada automáticamente'}"
+                  placeholder="00.00"
+                  onclick="event.stopPropagation()"
+                  onchange="chHora('${k}','${bl.id}',this.value)"
+                  onkeydown="event.stopPropagation()"
+                  style="width:42px;font-size:11px;font-weight:700;color:${bl.horaInicio?'#0D1B4E':'#888'};background:${bl.horaInicio?'#FEF9D9':'#F4F6FF'};border:0.5px solid ${bl.horaInicio?'#F5C518':'var(--bdr2)'};border-radius:4px;padding:2px 4px;text-align:center;cursor:text">
+                <span style="color:#ddd;font-size:10px">·</span>
+                <input class="block-mins-inline" type="number" value="${bl.mins}" min="1" max="120"
+                  title="Minutos"
+                  onclick="event.stopPropagation()"
+                  onchange="chMins('${k}','${bl.id}',this.value)"
+                  onkeydown="event.stopPropagation()">
+                <span style="font-size:10px;color:#aaa">min</span>
+                ${(bl.links&&bl.links.length)?`<span title="${bl.links.length} video${bl.links.length>1?'s':''} cargado${bl.links.length>1?'s':''}" style="font-size:11px">🎥${bl.links.length>1?` ×${bl.links.length}`:''}</span>`:''}
+              </div>
+              ${bl.premisa?`<div style="font-size:10px;color:#888;font-style:italic;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${bl.premisa}">${bl.premisa.length>55?bl.premisa.slice(0,55)+'…':bl.premisa}</div>`:''}
+            </div>
+            <div class="block-dot-wrap" style="background:${gc.light}">
+              <div class="dot" style="background:${dot}" title="Cambiar estado"
+                onclick="event.stopPropagation();cycleDot('${k}','${bl.id}')"></div>
+              <button class="del-btn" onclick="event.stopPropagation();delBlock('${k}','${bl.id}')" title="Eliminar">✕</button>
+            </div>
+          </div>${editor}
+        </div>
+      </div>`;
+    }).join('');
+    const backsDia = ['mar','jue'].includes(k) ? ((s.backs&&s.backs[k])||[]) : null;
+    return `<div class="day-col">
+      <div class="day-hdr"><div class="day-hdr-title">${t} <span style="font-weight:400;opacity:0.7;font-size:11px">· ${s.fecha}</span></div><div class="day-hdr-sub">${s.rival} (${s.local}) · ${sub}</div></div>
+      <div class="blocks-list">
+        ${blocks}
+        <div style="display:flex;gap:5px;margin-top:2px">
+          <button class="add-btn" style="flex:1" onclick="addBlock('${k}')">+ bloque</button>
+          <button class="add-btn" style="flex:0 0 auto;color:#2471A3;border-color:#BDE0F0" onclick="addAgua('${k}')">💧 agua</button>
+        </div>
+      </div>
+      ${backsDia!==null?renderBacksPanel('${k}',backsDia):''}
+      <div style="padding:8px 8px 10px">
+        <button id="copy-btn-${k}" onclick="copyWA('${k}')"
+          style="width:100%;padding:9px;font-size:12px;font-weight:700;border-radius:8px;border:1.5px solid #0D1B4E;background:#0D1B4E;color:#F5C518;cursor:pointer;letter-spacing:0.03em;transition:all 0.2s">
+          ${getWABtnLabel('${k}')}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}function renderAll(){renderKPIs();renderDashWidget();renderDays();renderResultadoSection();}
+
+function toggleBlock(dia,id){const b=SEMS[curSem][dia].find(b=>b.id===id);if(b){b.open=!b.open;renderDays();}}
+function chGrupo(dia,id,val){const b=SEMS[curSem][dia].find(b=>b.id===id);if(b){b.grupo=val;b.faceta=(FACETAS[val]||[''])[0];renderAll();}}
+function chFaceta(dia,id,val){
+  const b=SEMS[curSem][dia].find(b=>b.id===id);
+  if(!b)return;
+  if(val==='__otra__'){
+    const custom=prompt('¿Cuál faceta?','');
+    if(custom&&custom.trim()){b.faceta=custom.trim();renderDays();}
+    return;
+  }
+  if(val==='')return;
+  b.faceta=val;renderDays();
+}
+function chMins(dia,id,val){const b=SEMS[curSem][dia].find(b=>b.id===id);if(b){b.mins=parseInt(val)||0;renderKPIs();renderDashWidget();}}
+function chDot(dia,id,val){const b=SEMS[curSem][dia].find(b=>b.id===id);if(b){b.dot=val;renderDays();}}
+function chLink(dia,id,val){const b=SEMS[curSem][dia].find(b=>b.id===id);if(b){b.link=val.trim();renderDays();}}
+function chLinkAt(dia,id,li,val){
+  const b=SEMS[curSem][dia].find(b=>b.id===id);
+  if(!b)return;
+  if(!b.links)b.links=[];
+  b.links[li]=val.trim();
+  // keep backward compat: first link also sets b.link
+  b.link=b.links[0]||'';
+  renderDays();
+}
+function addLink(dia,id){
+  const b=SEMS[curSem][dia].find(b=>b.id===id);
+  if(!b)return;
+  if(!b.links)b.links=[];
+  b.links.push('');
+  renderDays();
+}
+function rmLink(dia,id,li){
+  const b=SEMS[curSem][dia].find(b=>b.id===id);
+  if(!b||!b.links)return;
+  b.links.splice(li,1);
+  b.link=b.links[0]||'';
+  renderDays();
+}
+function addContenido(dia,id){
+  const b=SEMS[curSem][dia].find(b=>b.id===id);
+  if(!b)return;
+  const inp=document.getElementById('ct-input-'+id);
+  if(!inp)return;
+  const val=inp.value.trim();
+  if(!val)return;
+  if(!b.contenidos)b.contenidos=[];
+  b.contenidos.push(val);
+  inp.value='';
+  renderDays();
+  // re-focus input after render
+  setTimeout(()=>{const el=document.getElementById('ct-input-'+id);if(el)el.focus();},50);
+}
+function rmContenido(dia,id,ci){
+  const b=SEMS[curSem][dia].find(b=>b.id===id);
+  if(!b||!b.contenidos)return;
+  b.contenidos.splice(ci,1);
+  renderDays();
+}
+function chPremisa(dia,id,val){const b=SEMS[curSem][dia].find(b=>b.id===id);if(b){b.premisa=val;renderDays();}}
+function delBlock(dia,id){SEMS[curSem][dia]=SEMS[curSem][dia].filter(b=>b.id!==id);renderAll();}
+function addBlock(dia){SEMS[curSem][dia].push(mk('Ataque',15,'Est. y semis separados'));renderAll();}
+function addAgua(dia){SEMS[curSem][dia].push(mkA(1));renderAll();}
+
+// ── BACKS ─────────────────────────────────────────────────────────
+function ensureBacks(dia){
+  const s=SEMS[curSem];
+  if(!s.backs) s.backs={mar:[],jue:[]};
+  if(!s.backs[dia]) s.backs[dia]=[];
+  return s.backs[dia];
+}
+
+function addBacksBlk(dia){
+  ensureBacks(dia).push(mkB('','15','',''));
+  renderDays();
+}
+
+function chBacksFaceta(dia,id,val){
+  const bl=ensureBacks(dia).find(b=>b.id===id);
+  if(bl){bl.faceta=val;renderDays();}
+}
+
+function chBacksMins(dia,id,val){
+  const bl=ensureBacks(dia).find(b=>b.id===id);
+  if(bl) bl.mins=parseInt(val)||0;
+}
+
+function chBacksPremisa(dia,id,val){
+  const bl=ensureBacks(dia).find(b=>b.id===id);
+  if(bl) bl.premisa=val;
+}
+
+function chBacksLink(dia,id,val){
+  const bl=ensureBacks(dia).find(b=>b.id===id);
+  if(bl){bl.link=val.trim();renderDays();}
+}
+
+function delBacksBlk(dia,id){
+  const s=SEMS[curSem];
+  if(s.backs&&s.backs[dia]) s.backs[dia]=s.backs[dia].filter(b=>b.id!==id);
+  renderDays();
+}
+
+function toggleBacksPanel(dia){
+  const body=document.getElementById('backs-body-'+dia);
+  const chevron=document.getElementById('backs-chevron-'+dia);
+  if(!body) return;
+  const open=body.style.display!=='none'&&body.style.display!=='';
+  body.style.display=open?'none':'flex';
+  if(chevron) chevron.style.transform=open?'':'rotate(180deg)';
+}
+
+function renderBacksPanel(dia,backsDia){
+  if(!['mar','jue'].includes(dia)) return '';
+  var blks=(backsDia||[]).map(function(bl){
+    var safeLink=(bl.link||'').replace(/"/g,'&quot;');
+    var safePremisa=(bl.premisa||'').replace(/"/g,'&quot;');
+    var safeFaceta=(bl.faceta||'').replace(/"/g,'&quot;');
+    var shortPremisa=bl.premisa&&bl.premisa.length>50?bl.premisa.slice(0,50)+'…':bl.premisa||'';
+    var linkBorder=bl.link?'#27AE60':'#AED6F1';
+    var vidBtn=bl.link?'<a class="backs-blk-vid" href="'+safeLink+'" target="_blank">\u25b6 video</a>':'';
+    var premisaDiv=bl.premisa?'<div class="backs-blk-premisa" title="'+safePremisa+'">'+shortPremisa+'</div>':'';
+    return '<div class="backs-blk">'
+      +'<div class="backs-blk-top">'
+      +'<div class="backs-blk-acc"></div>'
+      +'<div class="backs-blk-body">'
+      +'<input type="text" value="'+safeFaceta+'" placeholder="Faceta / ejercicio..."'
+      +' onchange="chBacksFaceta(\''+dia+'\',\''+bl.id+'\',this.value)"'
+      +' style="width:100%;font-size:12px;font-weight:700;color:#1A5276;background:transparent;border:none;outline:none;padding:0;font-family:inherit">'
+      +'<div class="backs-blk-row">'
+      +'<input class="backs-blk-mins" type="number" value="'+bl.mins+'" min="1" max="120"'
+      +' onchange="chBacksMins(\''+dia+'\',\''+bl.id+'\',this.value)"'
+      +' onclick="event.stopPropagation()"> min '
+      +vidBtn
+      +'<button class="backs-blk-del" onclick="delBacksBlk(\''+dia+'\',\''+bl.id+'\')">✕</button>'
+      +'</div>'
+      +premisaDiv
+      +'</div></div>'
+      +'<div class="backs-editor">'
+      +'<div style="display:flex;flex-direction:column;gap:3px">'
+      +'<span style="font-size:9px;color:#5DADE2;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Premisa</span>'
+      +'<input type="text" value="'+safePremisa+'" placeholder="Premisa de coaching..."'
+      +' onchange="chBacksPremisa(\''+dia+'\',\''+bl.id+'\',this.value)"'
+      +' style="font-size:11px;padding:3px 6px;border-radius:4px;border:0.5px solid #AED6F1;background:#fff;color:#333;width:100%">'
+      +'</div>'
+      +'<div style="display:flex;flex-direction:column;gap:3px">'
+      +'<span style="font-size:9px;color:#5DADE2;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Link Drive</span>'
+      +'<input type="text" value="'+safeLink+'" placeholder="Pegá el link de Drive..."'
+      +' onchange="chBacksLink(\''+dia+'\',\''+bl.id+'\',this.value)"'
+      +' style="font-size:11px;padding:3px 6px;border-radius:4px;border:0.5px solid '+linkBorder+';background:#fff;color:#333;width:100%">'
+      +'</div></div></div>';
+  }).join('');
+
+  var count=(backsDia||[]).length;
+  var countLabel=count>0?'\u00b7 '+count+' ejercicio'+(count>1?'s':''):'\u00b7 sin planificar';
+
+  return '<div class="backs-panel">'
+    +'<div class="backs-hdr" onclick="toggleBacksPanel(\''+dia+'\')">'
+    +'<div class="backs-hdr-title">'
+    +'<span style="font-size:13px">\ud83d\udd35</span> Backs '+countLabel
+    +'</div>'
+    +'<span id="backs-chevron-'+dia+'" class="backs-hdr-chevron">\u25bc</span>'
+    +'</div>'
+    +'<div id="backs-body-'+dia+'" class="backs-body" style="display:none">'
+    +blks
+    +'<button class="backs-add-btn" onclick="addBacksBlk(\''+dia+'\')">+ agregar ejercicio de backs</button>'
+    +'</div>'
+    +'</div>';
+}
+
+
+// ── DASHBOARD FULL ────────────────────────────────────────────
+function renderDashFull(){
+  const allDist={};
+  SEMS.forEach(s=>{
+    const d=calcDist(s);
+    Object.entries(d).forEach(([k,v])=>allDist[k]=(allDist[k]||0)+v);
+  });
+  const totalCancha=Object.entries(allDist).filter(([k])=>k!=='Gimnasio').reduce((a,[,v])=>a+v,0);
+
+  const semRows=SEMS.map(s=>{
+    const d=calcDist(s);
+    const total=Object.entries(d).filter(([k])=>k!=='Gimnasio').reduce((a,[,v])=>a+v,0);
+    const cols=grpOrder.map(g=>{
+      const mins=d[g]||0,pct=total>0?Math.round(mins/total*100):0;
+      const tgt=TARGETS[g]||0,diff=pct-tgt;
+      const pc=Math.abs(diff)<=3?'#27AE60':diff<-3?'#E74C3C':'#B8860B';
+      const gc=GRUPOS[g];
+      return `<td style="padding:6px 10px;border-bottom:0.5px solid #E2E7F5;text-align:center">
+        <div style="font-size:12px;font-weight:700;color:${pc}">${pct}%</div>
+        <div style="font-size:10px;color:#aaa">${mins}′</div>
+        <div style="height:4px;border-radius:2px;background:#EDF0F8;margin-top:3px"><div style="width:${Math.min(100,pct)}%;height:100%;border-radius:2px;background:${gc.color}"></div></div>
+      </td>`;
+    }).join('');
+    return `<tr>
+      <td style="padding:6px 10px;border-bottom:0.5px solid #E2E7F5;font-weight:600;font-size:12px;white-space:nowrap">Sem ${s.sem} · ${s.rival}</td>
+      <td style="padding:6px 10px;border-bottom:0.5px solid #E2E7F5;font-size:11px;color:#888">${s.fecha}</td>
+      ${cols}
+    </tr>`;
+  }).join('');
+
+  const thCols=grpOrder.map(g=>{
+    const gc=GRUPOS[g];
+    return `<th style="padding:8px 10px;font-size:10px;font-weight:700;color:#fff;text-align:center;background:${gc.color};letter-spacing:0.04em">${g}</th>`;
+  }).join('');
+
+  document.getElementById('dash-full-content').innerHTML=`
+    <div class="card" style="margin-bottom:12px">
+      <div style="font-size:14px;font-weight:600;color:#0D1B4E;margin-bottom:12px">Distribución por semana — % del tiempo de cancha</div>
+      <div style="font-size:11px;color:#888;margin-bottom:12px">Verde = en target · Rojo = debajo · Amarillo = sobre target</div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;min-width:600px">
+          <thead><tr>
+            <th style="padding:8px 10px;font-size:10px;font-weight:700;color:#fff;text-align:left;background:#0D1B4E">Semana</th>
+            <th style="padding:8px 10px;font-size:10px;font-weight:700;color:#fff;background:#0D1B4E">Fecha</th>
+            ${thCols}
+          </tr></thead>
+          <tbody>${semRows}</tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-size:14px;font-weight:600;color:#0D1B4E;margin-bottom:12px">Target por grupo · referencia del ciclo</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+        ${grpOrder.map(g=>{
+          const gc=GRUPOS[g],tgt=TARGETS[g]||0;
+          return `<div style="background:${gc.light};border-radius:8px;padding:10px 14px;border-left:4px solid ${gc.color}">
+            <div style="font-size:11px;font-weight:700;color:${gc.color}">${g}</div>
+            <div style="font-size:24px;font-weight:700;color:#0D1B4E;margin-top:2px">~${tgt}%</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+// ── GANTT ─────────────────────────────────────────────────────
+function renderGantt(){
+  const DAYS=[{k:'lun',l:'L'},{k:'mar',l:'M'},{k:'jue',l:'J'}];
+  const allSessions=[];
+  SEMS.forEach(s=>DAYS.forEach(d=>allSessions.push({sem:s.sem,rival:s.rival,day:d.l,blocks:s[d.k]||[]})));
+
+  const trained=(blocks,kws)=>kws.some(kw=>blocks.some(b=>
+    b.faceta.toLowerCase().includes(kw)||b.grupo.toLowerCase().includes(kw)
+  ));
+
+  let prevSem=null;
+  const dayHdrs=allSessions.map(sess=>{
+    const isnew=sess.sem!==prevSem;
+    prevSem=sess.sem;
+    return {sess,isnew};
+  });
+
+  const semHdrRow='<tr><td class="gantt-faceta" style="background:#0D1B4E;color:#F5C518;font-size:10px;font-weight:700;letter-spacing:0.06em;padding:5px 10px">FACETA</td>'+
+    dayHdrs.map(({sess,isnew})=>
+      isnew?`<th class="gantt-sem-hdr" colspan="1" style="font-size:8px">S${sess.sem}</th>`
+           :`<th style="background:#1A3470;width:22px"></th>`
+    ).join('')+'</tr>';
+
+  const dayHdrRow='<tr><td class="gantt-faceta" style="background:#2C3E50"></td>'+
+    dayHdrs.map(({sess})=>{
+      const bg=sess.day==='L'?'#1A6B3E':sess.day==='M'?'#1A3470':'#7A5200';
+      return `<th class="gantt-day-hdr" style="background:${bg}">${sess.day}</th>`;
+    }).join('')+'</tr>';
+
+  let prevG=null;
+  const facetaRows=GANTT_FACETAS.map(f=>{
+    const isNewG=f.g!==prevG;
+    prevG=f.g;
+    const gc=GRUPOS[f.g];
+    const cells=allSessions.map(sess=>{
+      const t=trained(sess.blocks,f.kw);
+      return `<td class="gantt-cell" style="background:${t?gc.color+'22':'#fff'}">
+        ${t?`<div style="width:10px;height:10px;border-radius:50%;background:${gc.color};margin:6px auto"></div>`:''}
+      </td>`;
+    }).join('');
+    const rowBg=isNewG?gc.light:'#fff';
+    return `<tr>
+      <td class="gantt-faceta${isNewG?' group-hdr':''}" style="background:${rowBg};color:${isNewG?gc.color:''};border-left:3px solid ${gc.color}">
+        ${f.name}
+      </td>${cells}
+    </tr>`;
+  }).join('');
+
+  document.getElementById('gantt-wrap').innerHTML=`
+    <table class="gantt-table">
+      <thead>${semHdrRow}${dayHdrRow}</thead>
+      <tbody>${facetaRows}</tbody>
+    </table>`;
+}
+
+// ── BIBLIOTECA — links editables con storage persistente ───────
+
+// ── BIBLIOTECA — links editables + agregar ejercicios ──────────
+
+async function bibLoad(){
+  try{const raw=localStorage.getItem('bib-links');return raw?JSON.parse(raw):{};}
+  catch(e){return {};}
+}
+
+async function bibSave(links){
+  try{localStorage.setItem('bib-links',JSON.stringify(links));}catch(e){}
+}
+
+async function bibLoadCustom(){
+  try{const raw=localStorage.getItem('bib-custom');return raw?JSON.parse(raw):{};}
+  catch(e){return {};}
+}
+
+async function bibSaveCustom(custom){
+  try{localStorage.setItem('bib-custom',JSON.stringify(custom));}catch(e){}
+}
+
+function bibKey(grupo,nombre){return (grupo+':'+nombre).replace(/\s+/g,'_');}
+
+async function bibSetLink(grupo,nombre,val){
+  const links=await bibLoad();
+  const k=bibKey(grupo,nombre);
+  if(val.trim())links[k]=val.trim();else delete links[k];
+  await bibSave(links);
+  renderBiblioteca();
+}
+
+function bibToggleInput(k){
+  const el=document.getElementById('bib-input-'+k);
+  if(!el)return;
+  const vis=el.style.display!=='none';
+  el.style.display=vis?'none':'block';
+  if(!vis){const inp=document.getElementById('bib-val-'+k);if(inp){inp.focus();inp.select();}}
+}
+
+async function bibSaveInput(grupo,nombre,k){
+  const inp=document.getElementById('bib-val-'+k);
+  if(!inp)return;
+  await bibSetLink(grupo,nombre,inp.value);
+}
+
+async function bibClearLink(grupo,nombre,k){
+  await bibSetLink(grupo,nombre,'');
+}
+
+// ── CUSTOM EXERCISES ───────────────────────────────────────────
+
+function bibToggleAddForm(grupo){
+  const id='bib-add-form-'+grupo.replace(/[^a-z]/gi,'_');
+  const el=document.getElementById(id);
+  if(!el)return;
+  const vis=el.style.display!=='none';
+  el.style.display=vis?'none':'block';
+  if(!vis){const inp=el.querySelector('.bib-add-name');if(inp){inp.focus();}}
+}
+
+async function bibAddExercise(grupo){
+  const id='bib-add-form-'+grupo.replace(/[^a-z]/gi,'_');
+  const form=document.getElementById(id);
+  if(!form)return;
+  const nombre=form.querySelector('.bib-add-name').value.trim();
+  const org=form.querySelector('.bib-add-org').value.trim();
+  const premisa=form.querySelector('.bib-add-premisa').value.trim();
+  const link=form.querySelector('.bib-add-link').value.trim();
+  if(!nombre)return;
+  const custom=await bibLoadCustom();
+  if(!custom[grupo])custom[grupo]=[];
+  custom[grupo].push({nombre,org,premisa,link,id:Date.now().toString(36)});
+  await bibSaveCustom(custom);
+  // clear form
+  form.querySelectorAll('input').forEach(i=>i.value='');
+  form.style.display='none';
+  renderBiblioteca();
+}
+
+async function bibDeleteCustom(grupo,itemId){
+  const custom=await bibLoadCustom();
+  if(!custom[grupo])return;
+  custom[grupo]=custom[grupo].filter(e=>e.id!==itemId);
+  await bibSaveCustom(custom);
+  renderBiblioteca();
+}
+
+async function bibEditCustomLink(grupo,itemId,val){
+  const custom=await bibLoadCustom();
+  if(!custom[grupo])return;
+  const item=custom[grupo].find(e=>e.id===itemId);
+  if(item)item.link=val.trim();
+  await bibSaveCustom(custom);
+}
+
+// ── RENDER BIBLIOTECA ──────────────────────────────────────────
+
+async function renderBiblioteca(){
+  const links=await bibLoad();
+  const custom=await bibLoadCustom();
+
+  // Count totals
+  let totalEj=BIBLIOTECA.reduce((a,s)=>a+s.items.length,0);
+  let totalCustom=Object.values(custom).reduce((a,v)=>a+v.length,0);
+  let totalAll=totalEj+totalCustom;
+  let withLinks=0;
+  BIBLIOTECA.forEach(sec=>sec.items.forEach(item=>{
+    if(links[bibKey(sec.grupo,item.nombre)]||item.link)withLinks++;
+  }));
+  Object.entries(custom).forEach(([g,items])=>items.forEach(item=>{
+    if(item.link)withLinks++;
+  }));
+
+  const pct=totalAll>0?Math.round(withLinks/totalAll*100):0;
+
+  document.getElementById('bib-content').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding:10px 14px;background:#fff;border:0.5px solid #E2E7F5;border-radius:10px">
+      <div style="font-size:13px;color:#1A1A2E">
+        <span style="font-weight:600;color:#0D1B4E">${withLinks}</span>
+        <span style="color:#888"> de ${totalAll} ejercicios tienen video · </span>
+        <span style="font-weight:600;color:#27AE60">${totalCustom}</span>
+        <span style="color:#888"> ejercicios agregados por el equipo</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div style="height:6px;width:100px;background:#EDF0F8;border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:#27AE60;border-radius:3px;transition:width 0.3s"></div>
+        </div>
+        <span style="font-size:12px;color:#27AE60;font-weight:600">${pct}%</span>
+      </div>
+    </div>
+    ${BIBLIOTECA.map(sec=>{
+      const gc=GRUPOS[sec.grupo];
+      const customItems=custom[sec.grupo]||[];
+      const allItems=[...sec.items.map(i=>({...i,_custom:false})),...customItems.map(i=>({...i,_custom:true}))];
+
+      const rows=allItems.map((item,i)=>{
+        const bg=i%2?'#FAFBFF':'#fff';
+        if(item._custom){
+          // Custom item row
+          const safeLink=(item.link||'').replace(/"/g,'&quot;');
+          return `<tr>
+            <td style="background:${bg}">
+              <span class="bib-name">${item.nombre}</span>
+              <span style="font-size:9px;background:#EBF0FF;color:#2B4EA0;padding:1px 5px;border-radius:8px;margin-left:5px;font-weight:600">NUEVO</span>
+            </td>
+            <td style="background:${bg};font-size:12px;color:#444">${item.org||'—'}</td>
+            <td style="background:${bg}"><span class="bib-premisa">${item.premisa||'—'}</span></td>
+            <td style="background:${bg};padding:6px 10px;min-width:180px">
+              <div style="display:flex;align-items:center;gap:6px">
+                ${item.link
+                  ?`<a href="${safeLink}" target="_blank" class="bib-link" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">▶ ver video</a>`
+                  :`<input type="text" placeholder="Pegá link de Drive..." value="${safeLink}"
+                      onchange="bibEditCustomLink('${sec.grupo}','${item.id}',this.value);renderBiblioteca()"
+                      style="flex:1;font-size:11px;padding:3px 6px;border-radius:5px;border:0.5px solid #C5CCE0;background:#fff;color:#1A1A2E">`
+                }
+                <button onclick="bibDeleteCustom('${sec.grupo}','${item.id}')"
+                  style="font-size:10px;padding:2px 6px;border-radius:4px;border:0.5px solid #E74C3C;background:#fff;color:#E74C3C;cursor:pointer;flex-shrink:0" title="eliminar">✕</button>
+              </div>
+            </td>
+          </tr>`;
+        }
+        // Default item row
+        const k=bibKey(sec.grupo,item.nombre);
+        const savedLink=links[k]||item.link||'';
+        const hasLink=!!savedLink;
+        return `<tr>
+          <td style="background:${bg}"><span class="bib-name">${item.nombre}</span></td>
+          <td style="background:${bg};font-size:12px;color:#444">${item.org}</td>
+          <td style="background:${bg}"><span class="bib-premisa">${item.premisa}</span></td>
+          <td style="background:${bg};padding:6px 10px;min-width:190px">
+            <div style="display:flex;align-items:center;gap:6px">
+              ${hasLink
+                ?`<a href="${savedLink}" target="_blank" class="bib-link" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">▶ ver video</a>`
+                :`<span style="flex:1;font-size:11px;color:#ccc">sin link</span>`
+              }
+              <button onclick="bibToggleInput('${k}')"
+                style="font-size:10px;padding:2px 7px;border-radius:5px;border:0.5px solid #C5CCE0;background:${hasLink?'#EBF0FF':'#FFF9E6'};color:${hasLink?'#2B4EA0':'#7A5200'};cursor:pointer;white-space:nowrap;flex-shrink:0">
+                ${hasLink?'editar':'+ link'}
+              </button>
+            </div>
+            <div id="bib-input-${k}" style="display:none;margin-top:5px">
+              <div style="display:flex;gap:4px">
+                <input id="bib-val-${k}" type="text" value="${savedLink}"
+                  placeholder="Pegá el link de Google Drive acá..."
+                  style="flex:1;font-size:11px;padding:4px 7px;border-radius:5px;border:0.5px solid #C5CCE0;background:#fff;color:#1A1A2E"
+                  onkeydown="if(event.key==='Enter')bibSaveInput('${sec.grupo}','${item.nombre}','${k}')">
+                <button onclick="bibSaveInput('${sec.grupo}','${item.nombre}','${k}')"
+                  style="font-size:11px;padding:4px 10px;border-radius:5px;border:none;background:#0D1B4E;color:#F5C518;font-weight:600;cursor:pointer;white-space:nowrap">Guardar</button>
+                ${hasLink?`<button onclick="bibClearLink('${sec.grupo}','${item.nombre}','${k}')"
+                  style="font-size:11px;padding:4px 8px;border-radius:5px;border:0.5px solid #E74C3C;background:#fff;color:#E74C3C;cursor:pointer">✕</button>`:''}
+              </div>
+              <div style="font-size:10px;color:#888;margin-top:3px">Drive → Compartir → Copiar link</div>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+
+      // Add form (hidden by default)
+      const formId='bib-add-form-'+sec.grupo.replace(/[^a-z]/gi,'_');
+      const addForm=`<tr id="${formId}" style="display:none;background:#F0F7FF">
+        <td style="padding:8px 10px">
+          <input class="bib-add-name" type="text" placeholder="Nombre del ejercicio *"
+            style="width:100%;font-size:12px;padding:5px 8px;border-radius:6px;border:1px solid #2B4EA0;background:#fff;color:#1A1A2E;font-weight:600">
+        </td>
+        <td style="padding:8px 10px">
+          <input class="bib-add-org" type="text" placeholder="Organización / variante"
+            style="width:100%;font-size:12px;padding:5px 8px;border-radius:6px;border:0.5px solid #C5CCE0;background:#fff;color:#1A1A2E">
+        </td>
+        <td style="padding:8px 10px">
+          <input class="bib-add-premisa" type="text" placeholder="Premisa de coaching"
+            style="width:100%;font-size:12px;padding:5px 8px;border-radius:6px;border:0.5px solid #C5CCE0;background:#fff;color:#1A1A2E"
+            onkeydown="if(event.key==='Enter')bibAddExercise('${sec.grupo}')">
+        </td>
+        <td style="padding:8px 10px">
+          <div style="display:flex;gap:6px;align-items:center">
+            <input class="bib-add-link" type="text" placeholder="Link Drive (opcional)"
+              style="flex:1;font-size:11px;padding:5px 7px;border-radius:6px;border:0.5px solid #C5CCE0;background:#fff;color:#1A1A2E">
+            <button onclick="bibAddExercise('${sec.grupo}')"
+              style="padding:5px 12px;border-radius:6px;border:none;background:#0D1B4E;color:#F5C518;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">+ Agregar</button>
+            <button onclick="bibToggleAddForm('${sec.grupo}')"
+              style="padding:5px 8px;border-radius:6px;border:0.5px solid #ccc;background:#fff;color:#aaa;font-size:12px;cursor:pointer">✕</button>
+          </div>
+        </td>
+      </tr>`;
+
+      const withLinksGrp=allItems.filter(item=>{
+        if(item._custom)return!!item.link;
+        return !!(links[bibKey(sec.grupo,item.nombre)]||item.link);
+      }).length;
+
+      return `<div class="bib-group">
+        <div class="bib-group-hdr" style="background:${gc.color};display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:8px;height:8px;border-radius:2px;background:rgba(255,255,255,0.4)"></div>
+            ${sec.grupo}
+            <span style="font-size:11px;font-weight:400;opacity:0.7">${allItems.length} ejercicios</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:11px;opacity:0.7">${withLinksGrp} videos</span>
+            <button onclick="bibToggleAddForm('${sec.grupo}')"
+              style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;border:1.5px solid rgba(255,255,255,0.6);background:rgba(255,255,255,0.15);color:#fff;cursor:pointer;letter-spacing:0.03em">
+              + Agregar ejercicio
+            </button>
+          </div>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <table class="bib-table">
+            <thead><tr><th>Ejercicio</th><th>Organización / variante</th><th>Premisa de coaching</th><th>Link de video (Drive)</th></tr></thead>
+            <tbody>${rows}${addForm}</tbody>
+          </table>
+        </div>
+      </div>`;
+    }).join('')}`;
+}
+// ── RESULTADO DEL PARTIDO ─────────────────────────────────────
+
+function ensureResultado(s) {
+  if (!s.resultado) s.resultado = {ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null};
+  return s.resultado;
+}
+
+function chResultado(field, val) {
+  var s = SEMS[curSem];
+  ensureResultado(s);
+  var pctFields = ['peo','line','scrum','tackles'];
+  if (val === '') {
+    s.resultado[field] = null;
+  } else if (pctFields.indexOf(field) >= 0) {
+    s.resultado[field] = Math.max(0, Math.min(100, parseInt(val) || 0));
+  } else {
+    s.resultado[field] = Math.max(0, parseInt(val) || 0);
+  }
+  renderResultadoSection();
+  scheduleSave();
+}
+
+function renderResultadoSection() {
+  var s = SEMS[curSem];
+  var r = ensureResultado(s);
+  var html = '<div class="res-section">'
+    + '<div class="res-section-title">Resultado del partido · Sem ' + s.sem + ' vs ' + s.rival + '</div>'
+    + '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">'
+    + '<div class="res-field">'
+    + '<div class="res-field-label">Nuestros pts</div>'
+    + '<input class="res-input" type="number" min="0" value="' + (r.ptsNos !== null ? r.ptsNos : '') + '" onchange="chResultado(\'ptsNos\',this.value)" onclick="event.stopPropagation()">'
+    + '</div>'
+    + '<div class="res-field">'
+    + '<div class="res-field-label">Pts rival</div>'
+    + '<input class="res-input" type="number" min="0" value="' + (r.ptsRival !== null ? r.ptsRival : '') + '" onchange="chResultado(\'ptsRival\',this.value)" onclick="event.stopPropagation()">'
+    + '</div>'
+    + '<div class="res-field">'
+    + '<div class="res-field-label">Tries a favor</div>'
+    + '<input class="res-input" type="number" min="0" value="' + (r.triesA !== null ? r.triesA : '') + '" onchange="chResultado(\'triesA\',this.value)" onclick="event.stopPropagation()">'
+    + '</div>'
+    + '<div class="res-field">'
+    + '<div class="res-field-label">Tries en contra</div>'
+    + '<input class="res-input" type="number" min="0" value="' + (r.triesC !== null ? r.triesC : '') + '" onchange="chResultado(\'triesC\',this.value)" onclick="event.stopPropagation()">'
+    + '</div>'
+    + '</div>'
+    + '<div class="res-section-title" style="margin-top:8px">KPIs observados</div>'
+    + '<div class="res-grid">'
+    + '<div class="res-field">'
+    + '<div class="res-field-label">% PEO</div>'
+    + '<input class="res-input" type="number" min="0" max="100" value="' + (r.peo !== null ? r.peo : '') + '" onchange="chResultado(\'peo\',this.value)" onclick="event.stopPropagation()">'
+    + '<div class="res-field-target">target: 90%</div>'
+    + '</div>'
+    + '<div class="res-field">'
+    + '<div class="res-field-label">% Line</div>'
+    + '<input class="res-input" type="number" min="0" max="100" value="' + (r.line !== null ? r.line : '') + '" onchange="chResultado(\'line\',this.value)" onclick="event.stopPropagation()">'
+    + '<div class="res-field-target">target: 90%</div>'
+    + '</div>'
+    + '<div class="res-field">'
+    + '<div class="res-field-label">% Scrum</div>'
+    + '<input class="res-input" type="number" min="0" max="100" value="' + (r.scrum !== null ? r.scrum : '') + '" onchange="chResultado(\'scrum\',this.value)" onclick="event.stopPropagation()">'
+    + '<div class="res-field-target">target: 40%</div>'
+    + '</div>'
+    + '<div class="res-field">'
+    + '<div class="res-field-label">% Tackles err.</div>'
+    + '<input class="res-input" type="number" min="0" max="100" value="' + (r.tackles !== null ? r.tackles : '') + '" onchange="chResultado(\'tackles\',this.value)" onclick="event.stopPropagation()">'
+    + '<div class="res-field-target">target: &lt;15%</div>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+  document.getElementById('resultado-section').innerHTML = html;
+}
+
+// ── RESULTADOS PAGE ──────────────────────────────────────────
+
+function renderResultados() {
+  var semsConDatos = SEMS.filter(function(s) {
+    var r = s.resultado;
+    return r && r.ptsNos !== null && r.ptsRival !== null;
+  });
+
+  var rows = semsConDatos.map(function(s) {
+    var r = s.resultado;
+    var ganamos = r.ptsNos > r.ptsRival;
+    var empate = r.ptsNos === r.ptsRival;
+    var resClass = ganamos ? 'res-win' : (empate ? '' : 'res-loss');
+    var resText = r.ptsNos + ' - ' + r.ptsRival;
+
+    var peoClass = r.peo !== null ? (r.peo >= 90 ? 'kpi-ok' : 'kpi-fail') : '';
+    var lineClass = r.line !== null ? (r.line >= 90 ? 'kpi-ok' : 'kpi-fail') : '';
+    var scrumClass = r.scrum !== null ? (r.scrum >= 40 ? 'kpi-ok' : 'kpi-fail') : '';
+    var tacklesClass = r.tackles !== null ? (r.tackles <= 15 ? 'kpi-ok' : 'kpi-fail') : '';
+
+    return '<tr>'
+      + '<td style="font-weight:600">Sem ' + s.sem + '</td>'
+      + '<td>' + s.fecha + '</td>'
+      + '<td style="font-weight:600">' + s.rival + '</td>'
+      + '<td>' + (s.local === 'L' ? 'L' : 'V') + '</td>'
+      + '<td class="' + resClass + '">' + resText + '</td>'
+      + '<td class="' + peoClass + '">' + (r.peo !== null ? r.peo + '%' : '—') + '</td>'
+      + '<td class="' + lineClass + '">' + (r.line !== null ? r.line + '%' : '—') + '</td>'
+      + '<td class="' + scrumClass + '">' + (r.scrum !== null ? r.scrum + '%' : '—') + '</td>'
+      + '<td class="' + tacklesClass + '">' + (r.tackles !== null ? r.tackles + '%' : '—') + '</td>'
+      + '</tr>';
+  }).join('');
+
+  // Promedios
+  var kpiFields = [
+    {key:'peo', label:'PEO', target:90, higher:true},
+    {key:'line', label:'Obtención Line', target:90, higher:true},
+    {key:'scrum', label:'Dominio Scrum', target:40, higher:true},
+    {key:'tackles', label:'Tackles errados', target:15, higher:false}
+  ];
+
+  var cards = kpiFields.map(function(f) {
+    var vals = semsConDatos.filter(function(s) { return s.resultado[f.key] !== null; })
+      .map(function(s) { return s.resultado[f.key]; });
+    var avg = vals.length > 0 ? Math.round(vals.reduce(function(a,b){return a+b;},0) / vals.length) : null;
+    var ok = avg !== null ? (f.higher ? avg >= f.target : avg <= f.target) : false;
+    var color = avg !== null ? (ok ? '#27AE60' : '#E74C3C') : '#aaa';
+    var pct = avg !== null ? Math.min(100, f.higher ? (avg / f.target * 100) : (f.target / Math.max(avg,1) * 100)) : 0;
+
+    return '<div style="background:#fff;border:0.5px solid #E2E7F5;border-radius:10px;padding:12px 14px">'
+      + '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">' + f.label + '</div>'
+      + '<div style="font-size:26px;font-weight:700;color:' + color + '">' + (avg !== null ? avg + '%' : '—') + '</div>'
+      + '<div style="font-size:10px;color:#aaa;margin-top:2px">target: ' + (f.higher ? '' : '<') + f.target + '% · ' + vals.length + ' partidos</div>'
+      + '<div style="height:6px;border-radius:3px;background:#EDF0F8;margin-top:6px;overflow:hidden">'
+      + '<div style="height:100%;border-radius:3px;background:' + color + ';width:' + pct + '%"></div>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+
+  var emptyMsg = semsConDatos.length === 0
+    ? '<div style="text-align:center;padding:40px 20px;color:#888;font-size:13px">No hay resultados cargados. Cargá los datos en el Planificador → sección "Resultado del partido".</div>'
+    : '';
+
+  document.getElementById('resultados-content').innerHTML =
+    '<div class="card" style="margin-bottom:12px">'
+    + '<div style="font-size:14px;font-weight:600;color:#0D1B4E;margin-bottom:12px">Partidos jugados</div>'
+    + emptyMsg
+    + (semsConDatos.length > 0 ? '<div style="overflow-x:auto">'
+      + '<table class="res-table">'
+      + '<thead><tr><th>Sem</th><th>Fecha</th><th>Rival</th><th>L/V</th><th>Resultado</th><th>PEO</th><th>Line</th><th>Scrum</th><th>Tackles</th></tr></thead>'
+      + '<tbody>' + rows + '</tbody>'
+      + '</table></div>' : '')
+    + '</div>'
+    + (semsConDatos.length > 0 ? '<div class="card">'
+      + '<div style="font-size:14px;font-weight:600;color:#0D1B4E;margin-bottom:12px">Promedios acumulados</div>'
+      + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">' + cards + '</div>'
+      + '</div>' : '');
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+
+// ── DRAG & DROP ──────────────────────────────────────────────
+let dragSrc = null;
+
+function dragStart(e, dia, idx) {
+  dragSrc = {dia, idx};
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', idx);
+  setTimeout(()=>{
+    const el = e.currentTarget;
+    if(el) el.classList.add('dragging');
+  }, 0);
+}
+
+function dragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+}
+
+function dragEnter(e) {
+  e.currentTarget.classList.add('drag-over');
+}
+
+function dragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+
+function dragDrop(e, dia, toIdx) {
+  e.preventDefault();
+  e.stopPropagation();
+  e.currentTarget.classList.remove('drag-over');
+  if(!dragSrc || dragSrc.dia !== dia || dragSrc.idx === toIdx) return;
+  const blocks = SEMS[curSem][dia];
+  const moved = blocks.splice(dragSrc.idx, 1)[0];
+  blocks.splice(toIdx, 0, moved);
+  dragSrc = null;
+  renderAll();
+}
+
+function dragEnd(e) {
+  document.querySelectorAll('.block-item').forEach(el=>{
+    el.classList.remove('dragging','drag-over');
+  });
+  dragSrc = null;
+}
+
+function cycleDot(dia, id) {
+  const b = SEMS[curSem][dia].find(b=>b.id===id);
+  if(!b) return;
+  const cycle = {G:'Y', Y:'R', R:'G'};
+  b.dot = cycle[b.dot] || 'G';
+  renderDays();
+}
+
+// ── STORAGE ──────────────────────────────────────────────────
+const STORAGE_KEY       = 'cumbre_a_cumbre_2026';
+const STORAGE_KEY_CUMBRES = 'cumbre_a_cumbre_meta_2026';
+
+function saveCumbres() {
+  try {
+    const meta = CUMBRES.map(c => ({
+      num: c.num,
+      sub: c.sub,
+      foco: c.foco,
+      frase: c.frase,
+      kpis: c.kpis
+    }));
+    localStorage.setItem(STORAGE_KEY_CUMBRES, JSON.stringify(meta));
+  } catch(e) {}
+}
+
+function loadCumbres() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_CUMBRES);
+    if (!raw) return;
+    const meta = JSON.parse(raw);
+    meta.forEach(saved => {
+      const c = CUMBRES.find(c => c.num === saved.num);
+      if (!c) return;
+      if (saved.sub)   c.sub   = saved.sub;
+      if (saved.foco)  c.foco  = saved.foco;
+      if (saved.frase) c.frase = saved.frase;
+      if (saved.kpis)  c.kpis  = saved.kpis;
+    });
+  } catch(e) {}
+}
+
+function updateCumbre(num, field, val) {
+  const c = CUMBRES.find(c => c.num === num);
+  if (!c) return;
+  c[field] = val;
+  saveCumbres();
+  // Update save indicator
+  const ind = document.getElementById('save-indicator');
+  if (ind) { ind.textContent = 'guardado ' + new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}); ind.style.color='rgba(245,197,24,0.8)'; }
+}
+
+function updateCumbreKpi(num, idx, val) {
+  const c = CUMBRES.find(c => c.num === num);
+  if (!c) return;
+  c.kpis[idx] = val;
+  saveCumbres();
+}
+let saveTimer = null;
+
+function saveToLocal() {
+  try {
+    const data = {
+      version: 1,
+      savedAt: new Date().toISOString(),
+      sems: SEMS.map(s => ({
+        sem:s.sem,fecha:s.fecha,rival:s.rival,local:s.local,ciclo:s.ciclo,
+        lun:s.lun,mar:s.mar,jue:s.jue,backs:s.backs,resultado:s.resultado
+      }))
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    const ind = document.getElementById('save-indicator');
+    if(ind){ ind.textContent='guardado '+new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}); ind.style.color='rgba(245,197,24,0.8)'; }
+  } catch(e){}
+}
+
+function loadFromLocal() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return false;
+    const data = JSON.parse(raw);
+    if(!data.sems) return false;
+    data.sems.forEach((saved,i) => {
+      if(SEMS[i]){
+        if(saved.lun) SEMS[i].lun=saved.lun;
+        if(saved.mar) SEMS[i].mar=saved.mar;
+        if(saved.jue) SEMS[i].jue=saved.jue;
+        if(saved.backs) SEMS[i].backs=saved.backs;
+        if(saved.resultado) SEMS[i].resultado=saved.resultado;
+      }
+    });
+    const ind = document.getElementById('save-indicator');
+    if(ind){ ind.textContent='cargado del browser'; ind.style.color='rgba(39,174,96,0.8)'; }
+    return true;
+  } catch(e){ return false; }
+}
+
+function scheduleSave() {
+  const ind = document.getElementById('save-indicator');
+  if(ind){ ind.textContent='guardando...'; ind.style.color='rgba(255,255,255,0.35)'; }
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveToLocal, 800);
+}
+
+function exportData() {
+  const data = {
+    version:1, app:'Cumbre a Cumbre · Regatas Bellavista 2026',
+    exportedAt:new Date().toISOString(),
+    sems: SEMS.map(s=>({sem:s.sem,fecha:s.fecha,rival:s.rival,local:s.local,ciclo:s.ciclo,lun:s.lun,mar:s.mar,jue:s.jue,backs:s.backs,resultado:s.resultado}))
+  };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url;
+  a.download='cumbre_a_cumbre_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click(); URL.revokeObjectURL(url);
+  const ind=document.getElementById('save-indicator');
+  if(ind){ ind.textContent='exportado ✓'; ind.style.color='rgba(245,197,24,0.9)'; setTimeout(()=>{ ind.textContent='guardado'; ind.style.color='rgba(245,197,24,0.8)'; },2000); }
+}
+
+function importData(event) {
+  const file=event.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try {
+      const data=JSON.parse(e.target.result);
+      if(!data.sems){ alert('Archivo no válido'); return; }
+      data.sems.forEach((saved,i)=>{
+        if(SEMS[i]){
+          if(saved.lun) SEMS[i].lun=saved.lun;
+          if(saved.mar) SEMS[i].mar=saved.mar;
+          if(saved.jue) SEMS[i].jue=saved.jue;
+          if(saved.backs) SEMS[i].backs=saved.backs;
+          if(saved.resultado) SEMS[i].resultado=saved.resultado;
+        }
+      });
+      saveToLocal(); renderTabs(); renderAll();
+      const ind=document.getElementById('save-indicator');
+      if(ind){ ind.textContent='importado ✓'; ind.style.color='rgba(39,174,96,0.9)'; }
+    } catch(err){ alert('Error: '+err.message); }
+  };
+  reader.readAsText(file);
+  event.target.value='';
+}
+
+// ── PUBLICAR A SUPABASE ──────────────────────────────────────
+async function publicarSemana() {
+  const btn = document.getElementById('btn-publicar')
+  btn.textContent = 'Publicando...'
+  btn.disabled = true
+  try {
+    const { error } = await supabaseClient
+      .from('semana_activa')
+      .upsert({
+        id: 1,
+        datos: SEMS[curSem],
+        updated_at: new Date().toISOString()
+      })
+    if (error) throw error
+    btn.textContent = '✓ Publicado'
+    btn.style.background = '#27AE60'
+    btn.style.borderColor = '#27AE60'
+    btn.style.color = '#fff'
+    setTimeout(() => {
+      btn.textContent = '📢 Publicar'
+      btn.style.background = '#F5C518'
+      btn.style.borderColor = '#F5C518'
+      btn.style.color = '#0D1B4E'
+      btn.disabled = false
+    }, 3000)
+  } catch(e) {
+    btn.textContent = '⚠ Error'
+    btn.style.background = '#E74C3C'
+    btn.style.borderColor = '#E74C3C'
+    btn.style.color = '#fff'
+    setTimeout(() => {
+      btn.textContent = '📢 Publicar'
+      btn.style.background = '#F5C518'
+      btn.style.borderColor = '#F5C518'
+      btn.style.color = '#0D1B4E'
+      btn.disabled = false
+    }, 3000)
+  }
+}
+
+// Intercept all mutations to trigger autosave
+const _renderAll=renderAll;
+renderAll=function(){_renderAll();scheduleSave();};
+
+// ── INIT ─────────────────────────────────────────────────────
+loadFromLocal();
+loadCumbres();
+renderCumbres();
+renderTabs();
+renderAll();
+</script>
+</body>
+</html>
