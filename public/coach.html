@@ -461,7 +461,11 @@ select,input{font-family:inherit}
   <div class="sem-tabs" id="sem-tabs"></div>
   <div class="sem-info-bar">
     <div><div class="sem-rival" id="sem-rival-txt">—</div><div class="sem-meta" id="sem-meta-txt">—</div></div>
-    <div class="sem-badge" id="sem-badge">—</div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button onclick="capturarSemana()" id="btn-captura-sem"
+        style="padding:5px 12px;font-size:11px;font-weight:700;border-radius:8px;border:1px solid #E2E7F5;background:#fff;color:#0D1B4E;cursor:pointer">📷 Compartir</button>
+      <div class="sem-badge" id="sem-badge">—</div>
+    </div>
   </div>
   <div id="published-banner-container"></div>
   <div class="planner-layout" id="planner-layout">
@@ -2413,6 +2417,40 @@ function capturarResultados() {
       ? (document.getElementById('res-ciclo-select').value || 'ciclo')
       : 'temporada';
     link.download = 'Regatas_' + vista + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    btn.textContent = '\u2713 Descargado';
+    btn.style.background = '#27AE60'; btn.style.color = '#fff'; btn.style.borderColor = '#27AE60';
+    setTimeout(function() {
+      btn.textContent = '\uD83D\uDCF7 Compartir';
+      btn.style.background = ''; btn.style.color = ''; btn.style.borderColor = '';
+      btn.disabled = false;
+    }, 2500);
+  }).catch(function() {
+    btn.textContent = '\u26A0 Error';
+    setTimeout(function() {
+      btn.textContent = '\uD83D\uDCF7 Compartir';
+      btn.disabled = false;
+    }, 2500);
+  });
+}
+
+function capturarSemana() {
+  var el = document.getElementById('planner-layout');
+  if (!el) return;
+  var btn = document.getElementById('btn-captura-sem');
+  btn.textContent = 'Generando...';
+  btn.disabled = true;
+  html2canvas(el, {
+    backgroundColor: '#F8F9FD',
+    scale: 2,
+    useCORS: true,
+    logging: false,
+    windowWidth: 1200
+  }).then(function(canvas) {
+    var link = document.createElement('a');
+    var s = SEMS[curSem];
+    link.download = 'Regatas_Sem' + s.sem + '_' + s.rival + '.png';
     link.href = canvas.toDataURL('image/png');
     link.click();
     btn.textContent = '\u2713 Descargado';
