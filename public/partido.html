@@ -225,6 +225,7 @@ html, body {
     <div class="clock-controls">
       <button class="clock-btn" id="btnTiempo" onclick="toggleTiempo()">&#9654; 1er Tiempo</button>
       <button class="clock-btn" id="btnPausa" onclick="togglePausa()" style="display:none">&#9208; Pausa</button>
+      <button class="clock-btn" id="btnReset" onclick="resetTiempo()" style="display:none;background:#888;border-color:#888;color:#fff;font-size:11px;padding:6px 10px">&#8635;</button>
     </div>
   </div>
 
@@ -425,8 +426,8 @@ function updateClockDisplay() {
 function toggleTiempo() {
   var btn = document.getElementById('btnTiempo');
   var btnPausa = document.getElementById('btnPausa');
+  var btnReset = document.getElementById('btnReset');
   if (timerHalf === 0) {
-    // Iniciar 1er tiempo
     timerHalf = 1;
     timerSeconds = 0;
     timerRunning = true;
@@ -434,9 +435,9 @@ function toggleTiempo() {
     btnPausa.style.display = 'block';
     btnPausa.innerHTML = '&#9208; Pausa';
     btnPausa.className = 'clock-btn running';
+    btnReset.style.display = 'block';
     startTimer();
   } else if (timerHalf === 1) {
-    // Iniciar 2do tiempo
     timerHalf = 2;
     timerSeconds = 40 * 60;
     timerRunning = true;
@@ -444,6 +445,7 @@ function toggleTiempo() {
     btnPausa.style.display = 'block';
     btnPausa.innerHTML = '&#9208; Pausa';
     btnPausa.className = 'clock-btn running';
+    btnReset.style.display = 'block';
     startTimer();
   }
 }
@@ -479,6 +481,21 @@ function startTimer() {
     timerSeconds++;
     updateClockDisplay();
   }, 1000);
+}
+
+function resetTiempo() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  timerHalf = 0;
+  timerSeconds = 0;
+  updateClockDisplay();
+  var btnTiempo = document.getElementById('btnTiempo');
+  var btnPausa = document.getElementById('btnPausa');
+  var btnReset = document.getElementById('btnReset');
+  btnTiempo.innerHTML = '&#9654; 1er Tiempo';
+  btnTiempo.style.display = 'block';
+  btnPausa.style.display = 'none';
+  btnReset.style.display = 'none';
 }
 
 function getMinuto() {
