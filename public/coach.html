@@ -526,7 +526,8 @@ const GRUPOS = {
   'Destrezas':    {color:'#2B4EA0',light:'#EBF0FF',text:'#2B4EA0'},
   'Ataque':       {color:'#1A6B3E',light:'#D6EFE0',text:'#1A6B3E'},
   'Defensa':      {color:'#6B2D8B',light:'#F0E8FA',text:'#6B2D8B'},
-  'Scrum / Line': {color:'#7A5200',light:'#FEF9D9',text:'#7A5200'},
+  'Line / Backs': {color:'#7A5200',light:'#FEF9D9',text:'#7A5200'},
+  'Scrum / Backs':{color:'#5C3D00',light:'#FFF5E0',text:'#5C3D00'},
   'Pie / Salidas':{color:'#4A3010',light:'#FDF4E3',text:'#8B5E1A'},
 };
 
@@ -536,11 +537,12 @@ const FACETAS = {
   'Destrezas':    ['Destrezas I — Atrapar y Pasar','Destrezas II — Ball Carry','Destreza Oro','Carrera Pases','Ola de Pases','Varillas 1 / 2','Evasión','Kick + Catch & Pass','Manos Rápidas','3 vs 2','8 vs 5'],
   'Ataque':       ['Mov General — Vueltas','Est. y semis separados','Est. y semis juntos','10 vs 10 — reinicios','10 vs 10 — juego libre','Jaimito / Semis','Recepción de patada','Lanzamientos','Jugada 5y','Ataque 25y','Contact','Juego desestructurado XV','Jaimito + Jaimito'],
   'Defensa':      ['Defensa cerca del ruck','Transición corto → abierto','Defensa + Scrum'],
-  'Scrum / Line': ['Line / Backs solos','Scrum + Backs','Line contra disputa','Maul solo abajo','3 vs 4'],
+  'Line / Backs': ['Line / Backs solos','Line contra disputa','Maul solo abajo','3 vs 4'],
+  'Scrum / Backs':['Scrum + Backs','Scrum + Defensa'],
   'Pie / Salidas':['Salidas','Juego c/pie','Salidas + Juego c/pie','Recepción de patada rival','Kick chase'],
 };
 
-const TARGETS = {'Pto. Contacto':8,'Destrezas':10,'Ataque':37,'Defensa':23,'Scrum / Line':14,'Pie / Salidas':8};
+const TARGETS = {'Pto. Contacto':8,'Destrezas':10,'Ataque':37,'Defensa':23,'Line / Backs':8,'Scrum / Backs':6,'Pie / Salidas':8};
 const DOTS = {G:'#27AE60',Y:'#F5C518',R:'#E74C3C'};
 let _uid = 0;
 const uid = () => 'b'+(++_uid);
@@ -628,10 +630,15 @@ const BIBLIOTECA = [
     {nombre:'Transición corto → abierto',org:'Grupos de 5. Espacio corto y espacio abierto',premisa:'Timing de transición defensiva.',link:''},
     {nombre:'Defensa + Scrum',org:'Integrado. Disputar en dinámica',premisa:'Comunicación entre FW y BK en defensa.',link:''},
   ]},
-  {grupo:'Scrum / Line',items:[
+  {grupo:'Line / Backs',items:[
     {nombre:'Line / Backs solos',org:'Técnica individual, Tríos, Ejercicio Colo, 3vs4, Maul',premisa:'El hábito se forma en la repetición sin presión.',link:''},
-    {nombre:'Scrum + Backs',org:'Backs: carreras, semi-ataque, lanzamientos, decisión',premisa:'Integrar FW y BK en set piece.',link:''},
+    {nombre:'Line contra disputa',org:'Line con oposición activa',premisa:'Ganar la disputa con timing.',link:''},
+    {nombre:'Maul solo abajo',org:'Maul ofensivo desde line',premisa:'Empuje coordinado, timing de despegue.',link:''},
     {nombre:'Semi-ataque desde 10',org:'2da línea ataque desde 10 (blanco)',premisa:'Ver Harlequins o Sale. Backs aparecen desde circulación.',link:'https://drive.google.com/file/d/16uX4RUxhO9A4gpWx_Q8fV36-pgbxxh2n/view'},
+  ]},
+  {grupo:'Scrum / Backs',items:[
+    {nombre:'Scrum + Backs',org:'Backs: carreras, semi-ataque, lanzamientos, decisión',premisa:'Integrar FW y BK en set piece.',link:''},
+    {nombre:'Scrum + Defensa',org:'Scrum defensivo con transición',premisa:'Defender desde scrum rival.',link:''},
   ]},
   {grupo:'Pie / Salidas',items:[
     {nombre:'Salidas + Juego c/pie',org:'Salidas desde 22. Juego con el pie integrado',premisa:'Todos en el canal correcto antes de que el 9 toque la pelota.',link:''},
@@ -658,8 +665,8 @@ const GANTT_FACETAS = [
   {g:'Defensa',name:'Defensa cerca del ruck',kw:['cerca del ruck']},
   {g:'Defensa',name:'Transición corto → abierto',kw:['transición']},
   {g:'Defensa',name:'Defensa + Scrum',kw:['defensa + scrum']},
-  {g:'Scrum / Line',name:'Line / Backs solos',kw:['line / backs','line/ backs']},
-  {g:'Scrum / Line',name:'Scrum + Backs',kw:['scrum + backs']},
+  {g:'Line / Backs',name:'Line / Backs solos',kw:['line / backs','line/ backs','line contra','maul','3 vs 4']},
+  {g:'Scrum / Backs',name:'Scrum + Backs',kw:['scrum + backs','scrum + defensa']},
   {g:'Pie / Salidas',name:'Salidas + Juego c/pie',kw:['salidas']},
   {g:'Pie / Salidas',name:'Recepción de patada (pie)',kw:['recepción de patada rival']},
   {g:'Pie / Salidas',name:'Juego 25y / Kick chase',kw:['kick chase']},
@@ -675,7 +682,7 @@ const calcDist = s => {
   return t;
 };
 
-const grpOrder = ['Pto. Contacto','Destrezas','Ataque','Defensa','Scrum / Line','Pie / Salidas'];
+const grpOrder = ['Pto. Contacto','Destrezas','Ataque','Defensa','Line / Backs','Scrum / Backs','Pie / Salidas'];
 
 // ── NAVIGATION ────────────────────────────────────────────────
 function goPage(id) {
@@ -951,10 +958,11 @@ function renderDashCiclo(cicloNombre){
     'Destrezas':    {color:'#2B4EA0'},
     'Ataque':       {color:'#1A6B3E'},
     'Defensa':      {color:'#6B2D8B'},
-    'Scrum / Line': {color:'#7A5200'},
+    'Line / Backs': {color:'#7A5200'},
+    'Scrum / Backs':{color:'#5C3D00'},
     'Pie / Salidas':{color:'#4A3010'},
   };
-  var TGT={'Pto. Contacto':8,'Destrezas':10,'Ataque':37,'Defensa':23,'Scrum / Line':14,'Pie / Salidas':8};
+  var TGT={'Pto. Contacto':8,'Destrezas':10,'Ataque':37,'Defensa':23,'Line / Backs':8,'Scrum / Backs':6,'Pie / Salidas':8};
   var rows=Object.keys(GC).map(function(g){
     var mins=acc[g]||0;
     var pct=totalAcc>0?Math.round(mins/totalAcc*100):0;
@@ -1128,25 +1136,35 @@ function renderDays(){
       const grOpts=Object.keys(GRUPOS).map(g=>`<option value="${g}"${g===bl.grupo?' selected':''  }>${g}</option>`).join('');
       const safeLink=(bl.link||''  ).replace(/"/g,'&quot;');
       const safePremisa=(bl.premisa||''  ).replace(/"/g,'&quot;');
-      // ── Backs paralelo editor section for Scrum/Line ──
+      // ── Backs paralelo editor section for Line/Backs and Scrum/Backs ──
       var bpEditorHtml = '';
-      if (bl.grupo === 'Scrum / Line' && bl.open) {
-        var bpFaceta = (bl.backsParalelo && bl.backsParalelo.faceta) || '';
+      if ((bl.grupo === 'Line / Backs' || bl.grupo === 'Scrum / Backs') && bl.open) {
+        var bpFacetas = (bl.backsParalelo && bl.backsParalelo.facetas) || [];
         var bpLink = (bl.backsParalelo && bl.backsParalelo.link) || '';
         var bpSafeLink = bpLink.replace(/"/g,'&quot;');
-        var bpSafeFaceta = bpFaceta.replace(/"/g,'&quot;');
         var bpFacetaOpts = ['Semi-ataque Harlequins','Semi-ataque blanco','Carreras + Pases','Ola de Pases','Ola de Pases 4vs2','Evasión','3 vs 2','Ball Carry','Lanzamientos','Jugada 5y','Ataque 25y','Manos Rápidas','Destreza Oro'].map(function(f){
-          return '<option value="'+f+'"'+(f===bpFaceta?' selected':'')+'>'+f+'</option>';
+          return '<option value="'+f+'">'+f+'</option>';
+        }).join('');
+        var bpPills = bpFacetas.map(function(f,fi){
+          return '<span class="ct-pill">'
+            +f
+            +'<button class="ct-pill-rm" onclick="event.stopPropagation();rmBpFaceta(\''+k+'\',\''+bl.id+'\','+fi+')" title="quitar">\u2715</button>'
+            +'</span>';
         }).join('');
         bpEditorHtml = '<div style="margin-top:6px;padding-top:6px;border-top:1px dashed #E2E7F5">'
-          +'<div style="font-size:9px;font-weight:700;color:#F5C518;background:#1A5276;padding:3px 8px;border-radius:4px;display:inline-block;margin-bottom:6px">\uD83D\uDFE1 EJERCICIO BK EN PARALELO</div>'
+          +'<div style="font-size:9px;font-weight:700;color:#F5C518;background:#1A5276;padding:3px 8px;border-radius:4px;display:inline-block;margin-bottom:6px">\uD83D\uDFE1 EJERCICIOS BK EN PARALELO</div>'
           +'<div class="ed-row" style="flex-direction:column;align-items:stretch;gap:3px">'
-          +'<span class="ed-label">Faceta BK</span>'
-          +'<select onchange="chBacksParaleloFaceta(\''+k+'\',\''+bl.id+'\',this.value)">'
-          +'<option value="">— sin ejercicio —</option>'
+          +'<span class="ed-label">Facetas BK</span>'
+          +'<div class="ct-pills">'+bpPills+'</div>'
+          +'<div style="display:flex;gap:4px">'
+          +'<select id="bp-select-'+bl.id+'" style="flex:1;font-size:16px;padding:3px 5px;border-radius:5px;border:0.5px solid #C5CCE0;background:#fff;color:#1A1A2E">'
+          +'<option value="">— elegir faceta —</option>'
           +bpFacetaOpts
           +'<option value="__otra__">Otra: \u00BFCu\u00E1l?</option>'
           +'</select>'
+          +'<button onclick="event.stopPropagation();addBpFaceta(\''+k+'\',\''+bl.id+'\')"'
+          +' style="font-size:11px;padding:3px 10px;border-radius:5px;border:0.5px solid #7A5200;background:#FEF9D9;color:#7A5200;font-weight:700;cursor:pointer;white-space:nowrap">+ Agregar</button>'
+          +'</div>'
           +'</div>'
           +'<div class="ed-row" style="flex-direction:column;align-items:stretch;gap:3px;margin-top:4px">'
           +'<span class="ed-label">Link video BK</span>'
@@ -1227,12 +1245,13 @@ function renderDays(){
 
       // ── Build body: split for Scrum/Line, normal for others ──
       var blockBodyHtml;
-      if (bl.grupo === 'Scrum / Line') {
+      if ((bl.grupo === 'Line / Backs' || bl.grupo === 'Scrum / Backs')) {
         var bpData = bl.backsParalelo;
+        var bpFacs = (bpData && bpData.facetas && bpData.facetas.length) ? bpData.facetas : [];
         var bkSide = '';
-        if (bpData && bpData.faceta) {
-          bkSide = '<div class="block-faceta" style="font-size:11px">' + bpData.faceta + '</div>';
-          if (bpData.link) {
+        if (bpFacs.length > 0) {
+          bkSide = '<div class="block-faceta" style="font-size:11px">' + bpFacs.join(' · ') + '</div>';
+          if (bpData && bpData.link) {
             bkSide += '<a class="blk-bk-vid" href="' + bpData.link.replace(/"/g,'&quot;') + '" target="_blank" onclick="event.stopPropagation()">\u25B6 video</a>';
           }
         } else {
@@ -1395,24 +1414,38 @@ function rmContenido(dia,id,ci){
 }
 function chPremisa(dia,id,val){const b=SEMS[curSem][dia].find(b=>b.id===id);if(b){b.premisa=val;renderDays();}}
 
-function chBacksParaleloFaceta(dia, id, val) {
+function addBpFaceta(dia, id) {
   var b = SEMS[curSem][dia].find(function(b){ return b.id === id; });
   if (!b) return;
+  var sel = document.getElementById('bp-select-' + id);
+  if (!sel) return;
+  var val = sel.value;
+  if (!val) return;
   if (val === '__otra__') {
     var custom = prompt('\u00BFCu\u00E1l faceta de Backs?', '');
     if (!custom || !custom.trim()) return;
     val = custom.trim();
   }
-  if (val === '') { b.backsParalelo = null; renderDays(); return; }
-  if (!b.backsParalelo) b.backsParalelo = {faceta:'',link:''};
-  b.backsParalelo.faceta = val;
+  if (!b.backsParalelo) b.backsParalelo = {facetas:[],link:''};
+  if (!b.backsParalelo.facetas) b.backsParalelo.facetas = [];
+  b.backsParalelo.facetas.push(val);
+  renderDays();
+}
+
+function rmBpFaceta(dia, id, idx) {
+  var b = SEMS[curSem][dia].find(function(b){ return b.id === id; });
+  if (!b || !b.backsParalelo || !b.backsParalelo.facetas) return;
+  b.backsParalelo.facetas.splice(idx, 1);
+  if (b.backsParalelo.facetas.length === 0 && !b.backsParalelo.link) {
+    b.backsParalelo = null;
+  }
   renderDays();
 }
 
 function chBacksParaleloLink(dia, id, val) {
   var b = SEMS[curSem][dia].find(function(b){ return b.id === id; });
   if (!b) return;
-  if (!b.backsParalelo) b.backsParalelo = {faceta:'',link:''};
+  if (!b.backsParalelo) b.backsParalelo = {facetas:[],link:''};
   b.backsParalelo.link = val.trim();
   renderDays();
 }
