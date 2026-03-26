@@ -374,8 +374,8 @@ select,input{font-family:inherit}
 /* ── SCRUM/LINE SPLIT FW/BK ── */
 .blk-split{display:grid;grid-template-columns:1fr 1px 1fr;align-items:stretch;flex:1}
 .blk-split-divider{background:#E2E7F5;margin:8px 0}
-.blk-split-fw{padding:6px 8px}
-.blk-split-bk{padding:6px 8px;background:rgba(245,197,24,0.05)}
+.blk-split-fw{padding:8px 10px}
+.blk-split-bk{padding:8px 10px;background:rgba(245,197,24,0.05);display:flex;flex-direction:column;justify-content:center;min-height:48px}
 .blk-badge-fw{display:inline-block;background:#1A5276;color:#AED6F1;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;margin-bottom:3px;letter-spacing:0.05em}
 .blk-badge-bk{display:inline-block;background:#FEF9D9;color:#5A4500;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;margin-bottom:3px;letter-spacing:0.05em}
 .blk-bk-sin{font-size:10px;color:#aaa;font-style:italic}
@@ -1226,13 +1226,18 @@ function renderDays(){
           +'<span class="ed-label">Facetas BK</span>'
           +'<div class="ct-pills">'+bpPills+'</div>'
           +'<div style="display:flex;gap:4px">'
-          +'<select id="bp-select-'+bl.id+'" style="flex:1;font-size:16px;padding:3px 5px;border-radius:5px;border:0.5px solid #C5CCE0;background:#fff;color:#1A1A2E">'
+          +'<select id="bp-select-'+bl.id+'" style="flex:1;font-size:16px;padding:3px 5px;border-radius:5px;border:0.5px solid #C5CCE0;background:#fff;color:#1A1A2E"'
+          +' onchange="toggleBpCustom(\''+bl.id+'\',this.value)">'
           +'<option value="">— elegir faceta —</option>'
           +bpFacetaOpts
-          +'<option value="__otra__">Otra: \u00BFCu\u00E1l?</option>'
+          +'<option value="__otra__">Otra...</option>'
           +'</select>'
           +'<button onclick="event.stopPropagation();addBpFaceta(\''+k+'\',\''+bl.id+'\')"'
           +' style="font-size:11px;padding:3px 10px;border-radius:5px;border:0.5px solid #7A5200;background:#FEF9D9;color:#7A5200;font-weight:700;cursor:pointer;white-space:nowrap">+ Agregar</button>'
+          +'</div>'
+          +'<input id="bp-custom-'+bl.id+'" type="text" placeholder="Escrib\u00ED la faceta..."'
+          +' style="display:none;width:100%;font-size:16px;padding:4px 7px;border-radius:5px;border:0.5px solid #7A5200;background:#FEF9D9;color:#1A1A2E;margin-top:4px"'
+          +' onclick="event.stopPropagation()" onkeydown="event.stopPropagation()">'
           +'</div>'
           +'</div>'
           +'<div class="ed-row" style="flex-direction:column;align-items:stretch;gap:3px;margin-top:4px">'
@@ -1260,9 +1265,9 @@ function renderDays(){
           <input type="number" value="${bl.mins}" min="1" max="120" step="1" onchange="chMins('${k}','${bl.id}',this.value)">
           <span class="ed-label" style="margin-left:8px">Estado</span>
           <select onchange="chDot('${k}','${bl.id}',this.value)" style="width:82px">
-            <option value="G"${bl.dot==='G'?' selected':''  }>● OK</option>
-            <option value="Y"${bl.dot==='Y'?' selected':''  }>● Ajustar</option>
-            <option value="R"${bl.dot==='R'?' selected':''  }>● Intenso</option>
+            <option value="G"${bl.dot==='G'?' selected':''  }>● Sin Contacto</option>
+            <option value="Y"${bl.dot==='Y'?' selected':''  }>● Contacto Medio</option>
+            <option value="R"${bl.dot==='R'?' selected':''  }>● Contacto Alto</option>
           </select>
         </div>
         <div class="ed-row" style="flex-direction:column;align-items:stretch;gap:3px">
@@ -1483,6 +1488,13 @@ function rmContenido(dia,id,ci){
 }
 function chPremisa(dia,id,val){const b=SEMS[curSem][dia].find(b=>b.id===id);if(b){b.premisa=val;renderDays();}}
 
+function toggleBpCustom(id, val) {
+  var customInput = document.getElementById('bp-custom-' + id);
+  if (!customInput) return;
+  customInput.style.display = val === '__otra__' ? 'block' : 'none';
+  if (val === '__otra__') customInput.focus();
+}
+
 function addBpFaceta(dia, id) {
   var b = SEMS[curSem][dia].find(function(b){ return b.id === id; });
   if (!b) return;
@@ -1491,9 +1503,9 @@ function addBpFaceta(dia, id) {
   var val = sel.value;
   if (!val) return;
   if (val === '__otra__') {
-    var custom = prompt('\u00BFCu\u00E1l faceta de Backs?', '');
-    if (!custom || !custom.trim()) return;
-    val = custom.trim();
+    var customInput = document.getElementById('bp-custom-' + id);
+    if (!customInput || !customInput.value.trim()) return;
+    val = customInput.value.trim();
   }
   if (!b.backsParalelo) b.backsParalelo = {facetas:[],link:''};
   if (!b.backsParalelo.facetas) b.backsParalelo.facetas = [];
