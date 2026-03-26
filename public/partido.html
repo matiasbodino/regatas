@@ -224,12 +224,12 @@ html, body {
 
     <div class="section-label">SET PIECES</div>
     <div class="btn-row">
-      <button class="btn btn-navy" onclick="addEvent('scrum_g', 'Scrum dominado', 0, 0); event.stopPropagation();">Scrum Dom</button>
-      <button class="btn btn-red-light" onclick="addEvent('scrum_p', 'Scrum no dominado', 0, 0); event.stopPropagation();">Scrum No Dom</button>
+      <button class="btn btn-navy" onclick="addEvent('scrum_g', 'Scrum dominado', 0, 0); event.stopPropagation();">Scrum Dominado</button>
+      <button class="btn btn-red-light" onclick="addEvent('scrum_p', 'Scrum total', 0, 0); event.stopPropagation();">Scrum Totales</button>
     </div>
     <div class="btn-row">
-      <button class="btn btn-navy" onclick="addEvent('line_g', 'Line obtenido', 0, 0); event.stopPropagation();">Line Obt</button>
-      <button class="btn btn-red-light" onclick="addEvent('line_p', 'Line no obtenido', 0, 0); event.stopPropagation();">Line No Obt</button>
+      <button class="btn btn-navy" onclick="addEvent('line_g', 'Line obtenido', 0, 0); event.stopPropagation();">Line Obtenido</button>
+      <button class="btn btn-red-light" onclick="addEvent('line_p', 'Line total', 0, 0); event.stopPropagation();">Line Totales</button>
     </div>
 
     <div class="section-label">RIVAL</div>
@@ -403,9 +403,9 @@ function addEvent(tipo, descripcion, ptsN, ptsR) {
     case 'penal_ok': ptsNos += 3; penalesOk++; break;
     case 'penal_miss': penalesMiss++; break;
     case 'drop_nos': ptsNos += 3; break;
-    case 'scrum_g': scrumG++; break;
+    case 'scrum_g': scrumG++; scrumP++; break;
     case 'scrum_p': scrumP++; break;
-    case 'line_g': lineG++; break;
+    case 'line_g': lineG++; lineP++; break;
     case 'line_p': lineP++; break;
     case 'try_rival': ptsRival += 5; triesC++; break;
     case 'conv_rival': ptsRival += 2; break;
