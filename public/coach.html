@@ -2108,20 +2108,40 @@ async function renderBiblioteca(){
 // ── RESULTADO DEL PARTIDO ─────────────────────────────────────
 
 function ensureResultado(s) {
-  if (!s.resultado) s.resultado = {ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null};
+  if (!s.resultado) s.resultado = {ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null,scrumG:null,scrumP:null,lineG:null,lineP:null,penales:null};
+  // Migrar resultado viejo: agregar campos nuevos si faltan
+  if (s.resultado.scrumG === undefined) s.resultado.scrumG = null;
+  if (s.resultado.scrumP === undefined) s.resultado.scrumP = null;
+  if (s.resultado.lineG === undefined) s.resultado.lineG = null;
+  if (s.resultado.lineP === undefined) s.resultado.lineP = null;
+  if (s.resultado.penales === undefined) s.resultado.penales = null;
   return s.resultado;
 }
 
 function chResultado(field, val) {
   var s = SEMS[curSem];
   ensureResultado(s);
-  var pctFields = ['peo','line','scrum','tackles'];
+  var pctFields = ['peo','tackles'];
   if (val === '') {
     s.resultado[field] = null;
   } else if (pctFields.indexOf(field) >= 0) {
     s.resultado[field] = Math.max(0, Math.min(100, parseInt(val) || 0));
   } else {
     s.resultado[field] = Math.max(0, parseInt(val) || 0);
+  }
+  // Auto-calcular % de line y scrum desde ganados/perdidos
+  var r = s.resultado;
+  if (r.lineG !== null && r.lineP !== null) {
+    var lineTotal = r.lineG + r.lineP;
+    r.line = lineTotal > 0 ? Math.round(r.lineG / lineTotal * 100) : 0;
+  } else {
+    r.line = null;
+  }
+  if (r.scrumG !== null && r.scrumP !== null) {
+    var scrumTotal = r.scrumG + r.scrumP;
+    r.scrum = scrumTotal > 0 ? Math.round(r.scrumG / scrumTotal * 100) : 0;
+  } else {
+    r.scrum = null;
   }
   renderResultadoSection();
   scheduleSave();
@@ -2159,14 +2179,26 @@ function renderResultadoSection() {
     + '<div class="res-field-target">target: ' + tgt.peo + '%</div>'
     + '</div>'
     + '<div class="res-field">'
-    + '<div class="res-field-label">% Line</div>'
-    + '<input class="res-input" type="number" min="0" max="100" value="' + (r.line !== null ? r.line : '') + '" onchange="chResultado(\'line\',this.value)" onclick="event.stopPropagation()">'
-    + '<div class="res-field-target">target: ' + tgt.line + '%</div>'
+    + '<div class="res-field-label">Line ganados</div>'
+    + '<input class="res-input" type="number" min="0" value="' + (r.lineG !== null ? r.lineG : '') + '" onchange="chResultado(\'lineG\',this.value)" onclick="event.stopPropagation()">'
     + '</div>'
     + '<div class="res-field">'
-    + '<div class="res-field-label">% Scrum</div>'
-    + '<input class="res-input" type="number" min="0" max="100" value="' + (r.scrum !== null ? r.scrum : '') + '" onchange="chResultado(\'scrum\',this.value)" onclick="event.stopPropagation()">'
-    + '<div class="res-field-target">target: ' + tgt.scrum + '%</div>'
+    + '<div class="res-field-label">Line perdidos</div>'
+    + '<input class="res-input" type="number" min="0" value="' + (r.lineP !== null ? r.lineP : '') + '" onchange="chResultado(\'lineP\',this.value)" onclick="event.stopPropagation()">'
+    + (r.lineG !== null && r.lineP !== null ? '<div class="res-field-target">' + Math.round(r.lineG / Math.max(r.lineG + r.lineP, 1) * 100) + '% \u00B7 tgt ' + tgt.line + '%</div>' : '')
+    + '</div>'
+    + '<div class="res-field">'
+    + '<div class="res-field-label">Scrum ganados</div>'
+    + '<input class="res-input" type="number" min="0" value="' + (r.scrumG !== null ? r.scrumG : '') + '" onchange="chResultado(\'scrumG\',this.value)" onclick="event.stopPropagation()">'
+    + '</div>'
+    + '<div class="res-field">'
+    + '<div class="res-field-label">Scrum perdidos</div>'
+    + '<input class="res-input" type="number" min="0" value="' + (r.scrumP !== null ? r.scrumP : '') + '" onchange="chResultado(\'scrumP\',this.value)" onclick="event.stopPropagation()">'
+    + (r.scrumG !== null && r.scrumP !== null ? '<div class="res-field-target">' + Math.round(r.scrumG / Math.max(r.scrumG + r.scrumP, 1) * 100) + '% \u00B7 tgt ' + tgt.scrum + '%</div>' : '')
+    + '</div>'
+    + '<div class="res-field">'
+    + '<div class="res-field-label">Penales en contra</div>'
+    + '<input class="res-input" type="number" min="0" value="' + (r.penales !== null ? r.penales : '') + '" onchange="chResultado(\'penales\',this.value)" onclick="event.stopPropagation()">'
     + '</div>'
     + '<div class="res-field">'
     + '<div class="res-field-label">% Tackles err.</div>'
@@ -2260,32 +2292,70 @@ function setResVista(modo) {
 function round1(v) { return Math.round(v * 10) / 10; }
 function fmt1(v) { return v % 1 === 0 ? v.toString() : v.toFixed(1); }
 
+function calcPromediosPonderados(semsData) {
+  var scrumGT=0,scrumPT=0,lineGT=0,linePT=0,penalesT=0;
+  var peoSum=0,peoN=0,tacklesSum=0,tacklesN=0,partidos=0;
+  semsData.forEach(function(s) {
+    var r = s.resultado;
+    if (!r) return;
+    if (r.scrumG!==null&&r.scrumP!==null) { scrumGT+=(r.scrumG||0); scrumPT+=(r.scrumP||0); }
+    if (r.lineG!==null&&r.lineP!==null) { lineGT+=(r.lineG||0); linePT+=(r.lineP||0); }
+    if (r.penales!==null) penalesT+=(r.penales||0);
+    if (r.peo!==null) { peoSum+=r.peo; peoN++; }
+    if (r.tackles!==null) { tacklesSum+=r.tackles; tacklesN++; }
+    if (r.ptsNos!==null||r.ptsRival!==null) partidos++;
+  });
+  var scrumTotal=scrumGT+scrumPT;
+  var lineTotal=lineGT+linePT;
+  return {
+    scrumPct: scrumTotal>0 ? round1(scrumGT/scrumTotal*100) : null,
+    scrumG:scrumGT, scrumP:scrumPT, scrumTotal:scrumTotal,
+    linePct: lineTotal>0 ? round1(lineGT/lineTotal*100) : null,
+    lineG:lineGT, lineP:linePT, lineTotal:lineTotal,
+    penalesTotal:penalesT,
+    penalesPorPartido: partidos>0 ? round1(penalesT/partidos) : null,
+    peoProm: peoN>0 ? round1(peoSum/peoN) : null,
+    tacklesProm: tacklesN>0 ? round1(tacklesSum/tacklesN) : null,
+    partidos:partidos
+  };
+}
+
 function buildKpiCards(semsData, targets) {
-  var kpiFields = [
-    {key:'peo', label:'PEO', higher:true},
-    {key:'line', label:'Obtención Line', higher:true},
-    {key:'scrum', label:'Dominio Scrum', higher:true},
-    {key:'tackles', label:'Tackles errados', higher:false}
-  ];
-  return kpiFields.map(function(f) {
-    var vals = semsData.filter(function(s) { return s.resultado[f.key] !== null; })
-      .map(function(s) { return s.resultado[f.key]; });
-    var avg = vals.length > 0 ? round1(vals.reduce(function(a,b){return a+b;},0) / vals.length) : null;
-    var tgt = targets ? targets[f.key] : null;
-    if (!tgt) {
-      var tgtVals = semsData.filter(function(s) { return s.resultado[f.key] !== null; })
-        .map(function(s) { return getTargetsByCiclo(s.ciclo)[f.key]; });
-      tgt = tgtVals.length > 0 ? Math.round(tgtVals.reduce(function(a,b){return a+b;},0) / tgtVals.length) : (f.higher ? 90 : 15);
+  var pond = calcPromediosPonderados(semsData);
+  var tgtFallback = targets || {};
+  if (!tgtFallback.peo) {
+    var tgtVals = semsData.filter(function(s){return s.resultado&&s.resultado.peo!==null;})
+      .map(function(s){return getTargetsByCiclo(s.ciclo);});
+    if (tgtVals.length>0) {
+      tgtFallback = {
+        peo:Math.round(tgtVals.reduce(function(a,t){return a+t.peo;},0)/tgtVals.length),
+        line:Math.round(tgtVals.reduce(function(a,t){return a+t.line;},0)/tgtVals.length),
+        scrum:Math.round(tgtVals.reduce(function(a,t){return a+t.scrum;},0)/tgtVals.length),
+        tackles:Math.round(tgtVals.reduce(function(a,t){return a+t.tackles;},0)/tgtVals.length)
+      };
+    } else {
+      tgtFallback = {peo:90,line:90,scrum:40,tackles:15};
     }
-    var ok = avg !== null ? (f.higher ? avg >= tgt : avg <= tgt) : false;
-    var color = avg !== null ? (ok ? '#27AE60' : '#E74C3C') : '#aaa';
-    var pct = avg !== null ? Math.min(100, f.higher ? (avg / tgt * 100) : (tgt / Math.max(avg,1) * 100)) : 0;
+  }
+
+  var items = [
+    {label:'PEO', avg:pond.peoProm, tgt:tgtFallback.peo, higher:true, detail:pond.partidos+' partidos'},
+    {label:'Obt. Line', avg:pond.linePct, tgt:tgtFallback.line, higher:true, detail:pond.lineG+' de '+pond.lineTotal+' lines'},
+    {label:'Dom. Scrum', avg:pond.scrumPct, tgt:tgtFallback.scrum, higher:true, detail:pond.scrumG+' de '+pond.scrumTotal+' scrums'},
+    {label:'Tackles err.', avg:pond.tacklesProm, tgt:tgtFallback.tackles, higher:false, detail:pond.partidos+' partidos'}
+  ];
+
+  return items.map(function(it) {
+    var ok = it.avg!==null ? (it.higher ? it.avg>=it.tgt : it.avg<=it.tgt) : false;
+    var color = it.avg!==null ? (ok?'#27AE60':'#E74C3C') : '#aaa';
+    var pct = it.avg!==null ? Math.min(100, it.higher ? (it.avg/it.tgt*100) : (it.tgt/Math.max(it.avg,1)*100)) : 0;
     return '<div style="background:#fff;border:0.5px solid #E2E7F5;border-radius:10px;padding:12px 14px">'
-      + '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">' + f.label + '</div>'
-      + '<div style="font-size:26px;font-weight:700;color:' + color + '">' + (avg !== null ? fmt1(avg) + '%' : '\u2014') + '</div>'
-      + '<div style="font-size:10px;color:#aaa;margin-top:2px">target: ' + (f.higher ? '' : '<') + tgt + '% \u00B7 ' + vals.length + ' partidos</div>'
-      + '<div style="height:6px;border-radius:3px;background:#EDF0F8;margin-top:6px;overflow:hidden">'
-      + '<div style="height:100%;border-radius:3px;background:' + color + ';width:' + pct + '%"></div>'
+      + '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">'+it.label+'</div>'
+      + '<div style="font-size:26px;font-weight:700;color:'+color+'">'+(it.avg!==null?fmt1(it.avg)+'%':'\u2014')+'</div>'
+      + '<div style="font-size:10px;color:#aaa;margin-top:2px">target: '+(it.higher?'':'<')+it.tgt+'%</div>'
+      + (it.avg!==null ? '<div style="font-size:9px;color:#bbb;margin-top:1px">'+it.detail+'</div>' : '')
+      + '<div style="height:6px;border-radius:3px;background:#EDF0F8;margin-top:4px;overflow:hidden">'
+      + '<div style="height:100%;border-radius:3px;background:'+color+';width:'+pct+'%"></div>'
       + '</div></div>';
   }).join('');
 }
@@ -2456,35 +2526,29 @@ function renderResultados() {
       + '<div style="font-size:14px;font-weight:600;color:#0D1B4E;margin-bottom:12px">Resumen de la temporada</div>'
       + buildWEL(allConDatos) + '</div>';
 
-    // KPIs por ciclo
+    // KPIs por ciclo — ponderados
     var ciclosConDatos = [];
     CUMBRES.forEach(function(c) {
       var semsDelCiclo = allConDatos.filter(function(s) { return s.ciclo === c.nombre; });
       if (semsDelCiclo.length === 0) return;
       var tgt = c.targets || {peo:90,line:90,scrum:40,tackles:15};
-      var totPeo=0,totLine=0,totScrum=0,totTackles=0,n=0;
-      semsDelCiclo.forEach(function(s) {
-        var r = s.resultado;
-        if(r.peo!==null)totPeo+=r.peo; if(r.line!==null)totLine+=r.line;
-        if(r.scrum!==null)totScrum+=r.scrum; if(r.tackles!==null)totTackles+=r.tackles; n++;
-      });
-      ciclosConDatos.push({nombre:c.nombre,color:c.color,n:n,tgt:tgt,
-        avgPeo:n>0?round1(totPeo/n):null, avgLine:n>0?round1(totLine/n):null,
-        avgScrum:n>0?round1(totScrum/n):null, avgTackles:n>0?round1(totTackles/n):null});
+      var p = calcPromediosPonderados(semsDelCiclo);
+      ciclosConDatos.push({nombre:c.nombre,color:c.color,n:p.partidos,tgt:tgt,p:p});
     });
     if (ciclosConDatos.length > 0) {
       var cicloRows = ciclosConDatos.map(function(ci) {
-        var peoOk=ci.avgPeo!==null?(ci.avgPeo>=ci.tgt.peo?'kpi-ok':'kpi-fail'):'';
-        var lineOk=ci.avgLine!==null?(ci.avgLine>=ci.tgt.line?'kpi-ok':'kpi-fail'):'';
-        var scrumOk=ci.avgScrum!==null?(ci.avgScrum>=ci.tgt.scrum?'kpi-ok':'kpi-fail'):'';
-        var tackOk=ci.avgTackles!==null?(ci.avgTackles<=ci.tgt.tackles?'kpi-ok':'kpi-fail'):'';
+        var p = ci.p;
+        var peoOk=p.peoProm!==null?(p.peoProm>=ci.tgt.peo?'kpi-ok':'kpi-fail'):'';
+        var lineOk=p.linePct!==null?(p.linePct>=ci.tgt.line?'kpi-ok':'kpi-fail'):'';
+        var scrumOk=p.scrumPct!==null?(p.scrumPct>=ci.tgt.scrum?'kpi-ok':'kpi-fail'):'';
+        var tackOk=p.tacklesProm!==null?(p.tacklesProm<=ci.tgt.tackles?'kpi-ok':'kpi-fail'):'';
         return '<tr>'
           + '<td style="font-weight:700;color:'+ci.color+'">\u25B2 '+ci.nombre+'</td>'
           + '<td>'+ci.n+'</td>'
-          + '<td class="'+peoOk+'">'+(ci.avgPeo!==null?fmt1(ci.avgPeo)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">tgt '+ci.tgt.peo+'%</div></td>'
-          + '<td class="'+lineOk+'">'+(ci.avgLine!==null?fmt1(ci.avgLine)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">tgt '+ci.tgt.line+'%</div></td>'
-          + '<td class="'+scrumOk+'">'+(ci.avgScrum!==null?fmt1(ci.avgScrum)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">tgt '+ci.tgt.scrum+'%</div></td>'
-          + '<td class="'+tackOk+'">'+(ci.avgTackles!==null?fmt1(ci.avgTackles)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">tgt <'+ci.tgt.tackles+'%</div></td>'
+          + '<td class="'+peoOk+'">'+(p.peoProm!==null?fmt1(p.peoProm)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">tgt '+ci.tgt.peo+'%</div></td>'
+          + '<td class="'+lineOk+'">'+(p.linePct!==null?fmt1(p.linePct)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">'+p.lineG+'/'+p.lineTotal+'</div></td>'
+          + '<td class="'+scrumOk+'">'+(p.scrumPct!==null?fmt1(p.scrumPct)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">'+p.scrumG+'/'+p.scrumTotal+'</div></td>'
+          + '<td class="'+tackOk+'">'+(p.tacklesProm!==null?fmt1(p.tacklesProm)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">tgt <'+ci.tgt.tackles+'%</div></td>'
           + '</tr>';
       }).join('');
       html += '<div class="card" style="margin-bottom:12px">'
