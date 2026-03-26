@@ -349,6 +349,16 @@ select,input{font-family:inherit}
 .res-field{display:flex;flex-direction:column;gap:3px}
 .res-field-label{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.05em}
 .res-field-target{font-size:9px;color:#aaa}
+/* ── CONFETI ── */
+@keyframes confeti-caer{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+.confeti-piece{position:fixed;width:10px;height:10px;border-radius:2px;animation:confeti-caer 2.5s ease-in forwards;pointer-events:none;z-index:9999}
+
+/* ── BANDERA WIDGET ── */
+.bandera-detalle-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:6px}
+.bandera-detalle-table th{font-size:9px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.05em;padding:4px 6px;border-bottom:0.5px solid #E2E7F5;text-align:left}
+.bandera-detalle-table td{padding:4px 6px;border-bottom:0.5px solid #E2E7F5}
+.kpi-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 2px}
+
 /* ── PUBLISHED LOCK ── */
 .published-banner{background:#27AE60;color:#fff;padding:10px 16px;border-radius:10px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .published-banner-text{font-size:13px;font-weight:600}
@@ -713,22 +723,22 @@ function goPage(id) {
 const CUMBRES = [
   {num:1, nombre:'Kosciuszko', sub:'La Promesa',    alt:'2.228m', color:'#0D1B4E', sems:[1,2,3],
    foco:'Instalar hábitos. Punto de contacto. El estándar mínimo en cada repetición.',
-   frase:'"Empezamos."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados'], targets:{peo:90,line:90,scrum:40,tackles:15}},
+   frase:'"Empezamos."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados'], targets:{peo:90,line:90,scrum:40,tackles:15}, bandera:null, umbral:75},
   {num:2, nombre:'Kilimanjaro', sub:'La Identidad', alt:'5.895m', color:'#1A3470', sems:[4,5,6],
    foco:'Identidad bajo presión. Defensa instalada. ¿Quiénes somos cuando la exigencia sube?',
-   frase:'"Sabemos quiénes somos."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados'], targets:{peo:90,line:90,scrum:40,tackles:15}},
+   frase:'"Sabemos quiénes somos."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados'], targets:{peo:90,line:90,scrum:40,tackles:15}, bandera:null, umbral:75},
   {num:3, nombre:'Elbrus',      sub:'El Pack',       alt:'5.642m', color:'#2B4EA0', sems:[7,8,9,10,11],
    foco:'Liderazgo interno visible. 5 partidos seguidos. Nadie escala solo.',
-   frase:'"Nadie escala solo."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados'], targets:{peo:90,line:90,scrum:40,tackles:15}},
+   frase:'"Nadie escala solo."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados'], targets:{peo:90,line:90,scrum:40,tackles:15}, bandera:null, umbral:75},
   {num:4, nombre:'Aconcagua',   sub:'La Nuestra',    alt:'6.961m', color:'#0D1B4E', sems:[12,13,14,15,16],
    foco:'Clímax. La montaña de casa. No le tenemos miedo — la conocemos.',
-   frase:'"Esta siempre fue nuestra."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados'], targets:{peo:90,line:90,scrum:40,tackles:15}},
+   frase:'"Esta siempre fue nuestra."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados'], targets:{peo:90,line:90,scrum:40,tackles:15}, bandera:null, umbral:75},
   {num:5, nombre:'Vinson',      sub:'El Carácter',   alt:'4.892m', color:'#1A3470', sems:[17,18,19,20,21],
    foco:'Segunda vuelta. Nadie te ve escalarla. La escalás porque sos ese tipo de equipo.',
-   frase:'"Lo hicimos aunque nadie nos miraba."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados'], targets:{peo:90,line:90,scrum:40,tackles:15}},
+   frase:'"Lo hicimos aunque nadie nos miraba."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados'], targets:{peo:90,line:90,scrum:40,tackles:15}, bandera:null, umbral:75},
   {num:6, nombre:'Everest',     sub:'La Razón',      alt:'8.849m', color:'#2B4EA0', sems:[22,23,24,25],
    foco:'No hay más montañas. Todo lo construido desde Kosciuszko se juega acá.',
-   frase:'"Llegamos juntos."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados'], targets:{peo:90,line:90,scrum:40,tackles:15}},
+   frase:'"Llegamos juntos."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados'], targets:{peo:90,line:90,scrum:40,tackles:15}, bandera:null, umbral:75},
 ];
 
 function getTargetsByCiclo(cicloName) {
@@ -858,6 +868,7 @@ function renderCumbres() {
                 Sem ${s.sem}
               </button>`).join('')}
             </div>
+            ${buildBanderaWidget(c)}
           </div>
         </div>`;
       }).join('')}
@@ -2128,6 +2139,177 @@ function renderResultados() {
       + '</div>' : '');
 }
 
+// ── GAMIFICACIÓN — BANDERAS ───────────────────────────────────
+
+var SVG_BANDERA_PLANTADA = '<svg width="30" height="36" viewBox="0 0 30 36" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="0" width="2" height="36" fill="#5A4500" rx="1"/><path d="M6 2 L26 8 L6 14 Z" fill="#0D1B4E"/><path d="M6 8 L26 14 L6 20 Z" fill="#F5C518"/></svg>';
+var SVG_BANDERA_VETADA = '<svg width="30" height="36" viewBox="0 0 30 36" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="0" width="2" height="36" fill="#aaa" rx="1"/><path d="M6 2 L26 8 L6 14 Z" fill="#ccc"/><path d="M6 8 L26 14 L6 20 Z" fill="#ddd"/></svg>';
+var SVG_BANDERA_BLOQUEADA = '<svg width="30" height="36" viewBox="0 0 30 36" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="0" width="2" height="36" fill="#C5CCE0" rx="1"/><path d="M6 2 L26 8 L6 14 Z" fill="none" stroke="#C5CCE0" stroke-width="1"/><path d="M6 8 L26 14 L6 20 Z" fill="none" stroke="#C5CCE0" stroke-width="1"/></svg>';
+var SVG_BANDERA_GRANDE = '<svg width="40" height="48" viewBox="0 0 30 36" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="0" width="2" height="36" fill="#5A4500" rx="1"/><path d="M6 2 L26 8 L6 14 Z" fill="#0D1B4E"/><path d="M6 8 L26 14 L6 20 Z" fill="#F5C518"/></svg>';
+var SVG_BANDERA_HOY = '<svg width="20" height="24" viewBox="0 0 30 36" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="0" width="2" height="36" fill="#5A4500" rx="1"/><path d="M6 2 L26 8 L6 14 Z" fill="#0D1B4E"/><path d="M6 8 L26 14 L6 20 Z" fill="#F5C518"/></svg>';
+
+function calcCumbreKPIs(cumbreNum) {
+  var c = CUMBRES.find(function(x){ return x.num === cumbreNum; });
+  if (!c) return null;
+  var tgt = c.targets || {peo:90,line:90,scrum:40,tackles:15};
+  var semsConResultado = SEMS.filter(function(s) {
+    return s.ciclo === c.nombre
+      && s.resultado
+      && s.resultado.peo !== null
+      && s.resultado.line !== null
+      && s.resultado.scrum !== null
+      && s.resultado.tackles !== null;
+  });
+  if (!semsConResultado.length) {
+    return {partidos:0,puntos:0,pool:0,pct:0,habilitada:false,detalle:[]};
+  }
+  var pool = semsConResultado.length * 4;
+  var puntos = 0;
+  var detalle = [];
+  semsConResultado.forEach(function(s) {
+    var r = s.resultado;
+    var kpis = {
+      peo: r.peo >= tgt.peo,
+      line: r.line >= tgt.line,
+      scrum: r.scrum >= tgt.scrum,
+      tackles: r.tackles <= tgt.tackles
+    };
+    var pts = (kpis.peo?1:0)+(kpis.line?1:0)+(kpis.scrum?1:0)+(kpis.tackles?1:0);
+    puntos += pts;
+    detalle.push({sem:s.sem,rival:s.rival,fecha:s.fecha,pts:pts,kpis:kpis,res:(r.ptsNos||'?')+'-'+(r.ptsRival||'?')});
+  });
+  var pct = Math.round(puntos / pool * 100);
+  var umbral = c.umbral || 75;
+  return {partidos:semsConResultado.length,puntos:puntos,pool:pool,pct:pct,habilitada:pct>=umbral,umbral:umbral,detalle:detalle};
+}
+
+function buildBanderaWidget(c) {
+  var stats = calcCumbreKPIs(c.num);
+  if (!stats) return '';
+  var barColor = stats.pct >= 75 ? '#27AE60' : stats.pct >= 50 ? '#F5C518' : '#E74C3C';
+  var html = '<div style="margin-top:10px;padding-top:10px;border-top:0.5px solid #E2E7F5">';
+  // Barra de progreso
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+    +'<span style="font-size:11px;font-weight:700;color:#0D1B4E">KPIs cumplidos</span>'
+    +'<span style="font-size:13px;font-weight:700;color:'+barColor+'">'+stats.pct+'%</span>'
+    +'</div>';
+  html += '<div style="position:relative;height:10px;background:#EDF0F8;border-radius:5px;overflow:visible;margin-bottom:4px">'
+    +'<div style="height:100%;border-radius:5px;background:'+barColor+';width:'+Math.min(stats.pct,100)+'%"></div>'
+    +'<div style="position:absolute;top:-3px;left:75%;width:2px;height:16px;background:#0D1B4E;border-radius:1px"></div>'
+    +'<div style="position:absolute;top:-18px;left:73%;font-size:9px;font-weight:700;color:#0D1B4E">75%</div>'
+    +'</div>';
+  html += '<div style="font-size:10px;color:#888;margin-bottom:8px">'
+    +stats.puntos+' de '+stats.pool+' KPIs \u00B7 '
+    +stats.partidos+' partido'+(stats.partidos!==1?'s':'')+' jugado'+(stats.partidos!==1?'s':'')
+    +'</div>';
+  // Tabla de detalle colapsable
+  if (stats.detalle.length > 0) {
+    html += '<div>'
+      +'<button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'block\':\'none\';this.textContent=this.nextElementSibling.style.display===\'none\'?\'Ver detalle \u25BC\':\'Ocultar \u25B2\'" style="font-size:10px;color:#2B4EA0;background:none;border:none;cursor:pointer;font-weight:600;padding:0;margin-bottom:4px">Ver detalle \u25BC</button>'
+      +'<div style="display:none">'
+      +'<table class="bandera-detalle-table"><thead><tr><th>Rival</th><th>Res</th><th>PEO</th><th>Line</th><th>Scrum</th><th>Tack</th></tr></thead><tbody>';
+    stats.detalle.forEach(function(d) {
+      html += '<tr>'
+        +'<td style="font-weight:600">'+d.rival+'</td>'
+        +'<td>'+d.res+'</td>'
+        +'<td><span class="kpi-dot" style="background:'+(d.kpis.peo?'#27AE60':'#E74C3C')+'"></span></td>'
+        +'<td><span class="kpi-dot" style="background:'+(d.kpis.line?'#27AE60':'#E74C3C')+'"></span></td>'
+        +'<td><span class="kpi-dot" style="background:'+(d.kpis.scrum?'#27AE60':'#E74C3C')+'"></span></td>'
+        +'<td><span class="kpi-dot" style="background:'+(d.kpis.tackles?'#27AE60':'#E74C3C')+'"></span></td>'
+        +'</tr>';
+    });
+    html += '</tbody></table></div></div>';
+  }
+  // Estado de bandera
+  if (c.bandera && c.bandera.plantada) {
+    html += '<div style="background:#0D1B4E;border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-top:8px">'
+      +SVG_BANDERA_GRANDE
+      +'<div style="flex:1">'
+      +'<div style="font-size:14px;font-weight:700;color:#F5C518">Bandera plantada \uD83C\uDFC6</div>'
+      +'<div style="font-size:11px;color:rgba(255,255,255,0.65);margin-top:2px">'+c.bandera.fecha+' \u00B7 decisi\u00F3n del grupo</div>'
+      +'</div>'
+      +'<button onclick="resetBandera('+c.num+')" style="background:rgba(255,255,255,0.15);border:none;color:rgba(255,255,255,0.6);border-radius:5px;padding:4px 8px;font-size:10px;cursor:pointer">deshacer</button>'
+      +'</div>';
+  } else if (c.bandera && !c.bandera.plantada) {
+    html += '<div style="background:#7B241C;border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-top:8px">'
+      +SVG_BANDERA_VETADA
+      +'<div style="flex:1">'
+      +'<div style="font-size:14px;font-weight:700;color:#FADBD8">Bandera vetada</div>'
+      +'<div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px">'+c.bandera.fecha+' \u00B7 el grupo decidi\u00F3 no plantar</div>'
+      +'</div>'
+      +'<button onclick="resetBandera('+c.num+')" style="background:rgba(255,255,255,0.15);border:none;color:rgba(255,255,255,0.6);border-radius:5px;padding:4px 8px;font-size:10px;cursor:pointer">deshacer</button>'
+      +'</div>';
+  } else if (stats.habilitada) {
+    html += '<div style="padding:8px 10px;background:#FEF9D9;border-radius:8px;border:1px solid #F5C518;margin-top:8px;display:flex;align-items:center;gap:8px">'
+      +SVG_BANDERA_PLANTADA
+      +'<div style="font-size:12px;font-weight:700;color:#5A4500">\u00A1Bandera habilitada! El equipo cumpli\u00F3 el est\u00E1ndar.</div>'
+      +'</div>'
+      +'<div style="display:flex;gap:6px;margin-top:6px">'
+      +'<button onclick="plantarBandera('+c.num+')" style="flex:1;padding:10px;border-radius:8px;border:none;background:#0D1B4E;color:#F5C518;font-size:13px;font-weight:700;cursor:pointer">\uD83D\uDEA9 Plantar bandera</button>'
+      +'<button onclick="vetarBandera('+c.num+')" style="padding:10px 14px;border-radius:8px;border:1.5px solid #E74C3C;background:#fff;color:#E74C3C;font-size:13px;font-weight:700;cursor:pointer">Vetar</button>'
+      +'</div>';
+  } else {
+    html += '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#F4F6FF;border-radius:8px;border:0.5px solid #C5CCE0;margin-top:8px">'
+      +SVG_BANDERA_BLOQUEADA
+      +'<div>'
+      +'<div style="font-size:11px;font-weight:600;color:#888">Bandera bloqueada</div>'
+      +'<div style="font-size:10px;color:#aaa">'+(stats.pct > 0 ? 'Necesit\u00E1s '+(75-stats.pct)+'% m\u00E1s' : 'Sin partidos jugados')+'</div>'
+      +'</div></div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function plantarBandera(num) {
+  var c = CUMBRES.find(function(x){ return x.num===num; });
+  if (!c) return;
+  var stats = calcCumbreKPIs(num);
+  if (!stats || !stats.habilitada) return;
+  var hoy = new Date();
+  var fecha = hoy.getDate()+'/'+(hoy.getMonth()+1)+'/'+hoy.getFullYear();
+  c.bandera = {plantada:true,fecha:fecha};
+  saveCumbres();
+  renderCumbres();
+  lanzarConfeti();
+}
+
+function vetarBandera(num) {
+  var c = CUMBRES.find(function(x){ return x.num===num; });
+  if (!c) return;
+  var hoy = new Date();
+  var fecha = hoy.getDate()+'/'+(hoy.getMonth()+1)+'/'+hoy.getFullYear();
+  c.bandera = {plantada:false,fecha:fecha};
+  saveCumbres();
+  renderCumbres();
+}
+
+function resetBandera(num) {
+  var c = CUMBRES.find(function(x){ return x.num===num; });
+  if (!c) return;
+  c.bandera = null;
+  saveCumbres();
+  renderCumbres();
+}
+
+function lanzarConfeti() {
+  var colores = ['#0D1B4E','#F5C518','#1A3470','#FEF9D9','#2B4EA0'];
+  for (var i = 0; i < 50; i++) {
+    (function(i) {
+      setTimeout(function() {
+        var el = document.createElement('div');
+        el.className = 'confeti-piece';
+        el.style.left = Math.random()*100+'%';
+        el.style.top = '-10px';
+        el.style.background = colores[Math.floor(Math.random()*colores.length)];
+        el.style.animationDelay = (Math.random()*0.8)+'s';
+        el.style.width = (6+Math.random()*8)+'px';
+        el.style.height = (6+Math.random()*8)+'px';
+        document.body.appendChild(el);
+        setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},3500);
+      }, i*20);
+    })(i);
+  }
+}
+
 // ── INIT ──────────────────────────────────────────────────────
 
 // ── DRAG & DROP ──────────────────────────────────────────────
@@ -2215,7 +2397,9 @@ function saveCumbres() {
       foco: c.foco,
       frase: c.frase,
       kpis: c.kpis,
-      targets: c.targets
+      targets: c.targets,
+      bandera: c.bandera,
+      umbral: c.umbral
     }));
     localStorage.setItem(STORAGE_KEY_CUMBRES, JSON.stringify(meta));
   } catch(e) {}
@@ -2234,6 +2418,8 @@ function loadCumbres() {
       if (saved.frase) c.frase = saved.frase;
       if (saved.kpis)  c.kpis  = saved.kpis;
       if (saved.targets) c.targets = saved.targets;
+      if (saved.bandera !== undefined) c.bandera = saved.bandera;
+      if (saved.umbral !== undefined) c.umbral = saved.umbral;
     });
   } catch(e) {}
 }
@@ -2379,6 +2565,11 @@ async function publicarSemana() {
     // Guardar la semana actual y marcarla como última
     existing.semanas[semData.sem] = semData;
     existing.ultimaSem = semData.sem;
+    // Incluir estado de cumbres para hoy.html
+    existing.cumbresEstado = CUMBRES.map(function(c) {
+      var stats = calcCumbreKPIs(c.num);
+      return {num:c.num,nombre:c.nombre,sub:c.sub,frase:c.frase,bandera:c.bandera,pct:stats?stats.pct:0,habilitada:stats?stats.habilitada:false,partidos:stats?stats.partidos:0};
+    });
     const { error } = await supabaseClient
       .from('semana_activa')
       .upsert({

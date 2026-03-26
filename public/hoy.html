@@ -152,7 +152,7 @@ function proximoDia(hoy) {
 
 // ── RENDER ───────────────────────────────────────────────────────
 
-function renderApp(semana, dayNum) {
+function renderApp(semana, dayNum, cumbresEstado) {
   const app = document.getElementById('app');
   const dayKey = DAY_KEYS[dayNum];
   const dayName = DAY_NAMES[dayNum];
@@ -239,12 +239,35 @@ function renderApp(semana, dayNum) {
   });
   html += '</div>';
 
-  // Foco del ciclo
+  // Foco del ciclo + estado de bandera
   if (semana.ciclo) {
-    html += `
-      <div class="foco-card">
-        <div class="foco-ciclo">▲ ${semana.ciclo}</div>
-      </div>`;
+    var cicloActual = cumbresEstado
+      ? cumbresEstado.find(function(c){ return c.nombre === semana.ciclo; })
+      : null;
+    var focoExtra = '';
+    if (cicloActual) {
+      var pctColor = cicloActual.pct >= 75 ? '#27AE60' : '#F5C518';
+      focoExtra += '<div style="margin-top:8px">'
+        + '<div style="display:flex;justify-content:space-between;margin-bottom:4px">'
+        + '<span style="font-size:10px;color:rgba(255,255,255,0.5)">KPIs del ciclo</span>'
+        + '<span style="font-size:11px;font-weight:700;color:' + pctColor + '">' + cicloActual.pct + '%</span>'
+        + '</div>'
+        + '<div style="height:6px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden">'
+        + '<div style="height:100%;border-radius:3px;background:' + pctColor + ';width:' + Math.min(cicloActual.pct, 100) + '%"></div>'
+        + '</div></div>';
+      if (cicloActual.bandera && cicloActual.bandera.plantada) {
+        focoExtra += '<div style="margin-top:8px;display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(39,174,96,0.15);border-radius:6px;border:0.5px solid #27AE60">'
+          + '<svg width="20" height="24" viewBox="0 0 30 36" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="0" width="2" height="36" fill="#5A4500" rx="1"/><path d="M6 2 L26 8 L6 14 Z" fill="#0D1B4E"/><path d="M6 8 L26 14 L6 20 Z" fill="#F5C518"/></svg>'
+          + '<span style="font-size:11px;color:#27AE60;font-weight:600">Bandera plantada \u00B7 ' + cicloActual.bandera.fecha + '</span>'
+          + '</div>';
+      } else if (cicloActual.habilitada && !cicloActual.bandera) {
+        focoExtra += '<div style="margin-top:8px;font-size:11px;color:#F5C518;font-weight:600;text-align:center">\u00A1El equipo cumpli\u00F3 el est\u00E1ndar! \uD83C\uDFC6</div>';
+      }
+    }
+    html += '<div class="foco-card">'
+      + '<div class="foco-ciclo">\u25B2 ' + semana.ciclo + '</div>'
+      + focoExtra
+      + '</div>';
   }
 
   // Footer
@@ -314,9 +337,12 @@ async function init() {
       return;
     }
 
+    // Extraer estado de cumbres si existe
+    var cumbresEstado = (raw && raw.cumbresEstado) ? raw.cumbresEstado : null;
+
     // Si es día de entrenamiento (lun=1, mar=2, jue=4)
     if (DAY_KEYS[dayNum]) {
-      renderApp(semana, dayNum);
+      renderApp(semana, dayNum, cumbresEstado);
     } else {
       // No es día de entreno → estado vacío
       app.innerHTML = renderEmpty(dayNum);
