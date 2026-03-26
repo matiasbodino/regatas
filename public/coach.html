@@ -1427,7 +1427,13 @@ function renderDays(){
         </div>
       </div>
       ${backsDia!==null?renderBacksPanel('${k}',backsDia):''}
-      <div style="padding:8px 8px 10px">
+      <div style="padding:8px 8px 4px;display:flex;gap:5px">
+        <button onclick="copiarDia('${k}')" id="copyday-btn-${k}"
+          style="flex:1;padding:7px;font-size:11px;font-weight:700;border-radius:8px;border:1px solid #E2E7F5;background:#fff;color:#0D1B4E;cursor:pointer">📋 Copiar día</button>
+        <button onclick="pegarDia('${k}')" id="pasteday-btn-${k}"
+          style="flex:1;padding:7px;font-size:11px;font-weight:700;border-radius:8px;border:1px dashed #E2E7F5;background:#fff;color:#aaa;cursor:pointer">${clipDia?'📌 Pegar día':'📌 Pegar'}</button>
+      </div>
+      <div style="padding:4px 8px 10px">
         <button id="copy-btn-${k}" onclick="copyWA('${k}')"
           style="width:100%;padding:9px;font-size:12px;font-weight:700;border-radius:8px;border:1.5px solid #0D1B4E;background:#0D1B4E;color:#F5C518;cursor:pointer;letter-spacing:0.03em;transition:all 0.2s">
           ${getWABtnLabel('${k}')}
@@ -1436,6 +1442,63 @@ function renderDays(){
     </div>`;
   }).join('');
 }function renderAll(){renderKPIs();renderDashWidget();renderDays();renderResultadoSection();renderPublishedBanner();}
+
+// ── COPIAR/PEGAR DÍA ENTERO ──────────────────────────────────
+var clipDia = null; // {bloques:[], backs:[], fromSem:N, fromDia:'mar'}
+
+function copiarDia(dia) {
+  var s = SEMS[curSem];
+  var bloques = (s[dia] || []).map(function(bl) {
+    return JSON.parse(JSON.stringify(bl));
+  });
+  var backs = [];
+  if (s.backs && s.backs[dia]) {
+    backs = JSON.parse(JSON.stringify(s.backs[dia]));
+  }
+  clipDia = {bloques: bloques, backs: backs, fromSem: s.sem, fromDia: dia};
+  var btn = document.getElementById('copyday-btn-' + dia);
+  if (btn) {
+    btn.textContent = '\u2713 Copiado';
+    btn.style.background = '#27AE60'; btn.style.color = '#fff'; btn.style.borderColor = '#27AE60';
+    setTimeout(function() {
+      btn.textContent = '\uD83D\uDCCB Copiar d\u00EDa';
+      btn.style.background = ''; btn.style.color = ''; btn.style.borderColor = '';
+    }, 2000);
+  }
+  renderDays();
+}
+
+function pegarDia(dia) {
+  if (!clipDia || !clipDia.bloques.length) return;
+  var s = SEMS[curSem];
+  // Clonar bloques con nuevos IDs
+  var nuevos = clipDia.bloques.map(function(bl) {
+    var clon = JSON.parse(JSON.stringify(bl));
+    clon.id = uid();
+    clon.open = false;
+    return clon;
+  });
+  s[dia] = nuevos;
+  // Copiar backs si aplica
+  if (clipDia.backs.length > 0 && (dia === 'mar' || dia === 'jue')) {
+    if (!s.backs) s.backs = {mar:[], jue:[]};
+    s.backs[dia] = clipDia.backs.map(function(b) {
+      var c = JSON.parse(JSON.stringify(b));
+      c.id = uid();
+      return c;
+    });
+  }
+  var btn = document.getElementById('pasteday-btn-' + dia);
+  if (btn) {
+    btn.textContent = '\u2713 Pegado';
+    btn.style.background = '#27AE60'; btn.style.color = '#fff'; btn.style.borderColor = '#27AE60';
+    setTimeout(function() {
+      btn.textContent = '\uD83D\uDCCC Pegar d\u00EDa';
+      btn.style.background = ''; btn.style.color = ''; btn.style.borderColor = '';
+    }, 2000);
+  }
+  renderAll();
+}
 
 function toggleBlock(dia,id){const b=SEMS[curSem][dia].find(b=>b.id===id);if(b){b.open=!b.open;renderDays();}}
 function chGrupo(dia,id,val){const b=SEMS[curSem][dia].find(b=>b.id===id);if(b){b.grupo=val;b.faceta=(FACETAS[val]||[''])[0];renderAll();}}
