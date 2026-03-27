@@ -118,6 +118,67 @@ var penalSubTab = 'cometidos';
 var tryPanel = null; // null or {equipo:'nos'|'rival', origen:null, fases:null, minuto:''}
 var ultimoEvento = null;
 
+// Timer
+var timerRunning = false;
+var timerSeconds = 0;
+var timerHalf = 0; // 0=not started, 1=1T, 2=2T
+var timerInterval = null;
+
+function startTimer(half) {
+  timerHalf = half;
+  if (half === 1) timerSeconds = 0;
+  else if (half === 2) timerSeconds = 40 * 60;
+  timerRunning = true;
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(function() {
+    timerSeconds++;
+    updateTimerDisplay();
+  }, 1000);
+  renderApp();
+}
+
+function pauseTimer() {
+  timerRunning = !timerRunning;
+  if (timerRunning) {
+    timerInterval = setInterval(function() {
+      timerSeconds++;
+      updateTimerDisplay();
+    }, 1000);
+  } else {
+    if (timerInterval) clearInterval(timerInterval);
+  }
+  renderApp();
+}
+
+function updateTimerDisplay() {
+  var el = document.getElementById('timer-display');
+  if (el) el.textContent = formatTimer(timerSeconds);
+}
+
+function formatTimer(secs) {
+  var m = Math.floor(secs / 60);
+  var s = secs % 60;
+  return m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+function getMatchMinute() {
+  return Math.floor(timerSeconds / 60);
+}
+
+function resetPartido() {
+  if (!confirm('\u00BFReiniciar todo el partido? Se pierden todos los datos.')) return;
+  var s = SEMS.find(function(x) { return x.sem === stats.semId; });
+  if (!s) return;
+  stats = initStats(s);
+  timerSeconds = 0;
+  timerHalf = 0;
+  timerRunning = false;
+  if (timerInterval) clearInterval(timerInterval);
+  ultimoEvento = null;
+  autoSave();
+  renderApp();
+}
+
 function vib(ms) { try { navigator.vibrate(ms || 30); } catch(e) {} }
 
 // ── LOAD SEMS FROM SUPABASE ─────────────────────────────────
@@ -246,7 +307,8 @@ function setPenalSub(t) { penalSubTab = t; renderApp(); }
 
 // ── TRIES ───────────────────────────────────────────────────
 function openTryPanel(equipo) {
-  tryPanel = {equipo: equipo, origen: null, fases: null, minuto: ''};
+  var min = timerHalf > 0 ? String(getMatchMinute()) : '';
+  tryPanel = {equipo: equipo, origen: null, fases: null, minuto: min};
   renderApp();
 }
 function setTryOrigen(v) { if (tryPanel) { tryPanel.origen = v; renderApp(); } }
@@ -363,15 +425,34 @@ function renderApp() {
     + '<div></div>'
     + '</div>'
     + '<div class="hdr-score">'
+    + '<div style="display:flex;align-items:center;gap:4px">'
     + '<button class="hdr-score-btn" onclick="adjScore(\'nos\',-1)">\u2212</button>'
     + '<div class="hdr-score-num">' + stats.ptsNos + '</div>'
+    + '<button class="hdr-score-btn" onclick="adjScore(\'nos\',1)">+</button>'
+    + '</div>'
     + '<div class="hdr-score-vs">\u2014</div>'
+    + '<div style="display:flex;align-items:center;gap:4px">'
+    + '<button class="hdr-score-btn" onclick="adjScore(\'rival\',-1)">\u2212</button>'
     + '<div class="hdr-score-num">' + stats.ptsRival + '</div>'
     + '<button class="hdr-score-btn" onclick="adjScore(\'rival\',1)">+</button>'
     + '</div>'
-    + '<div class="hdr-kpis">'
+    + '</div>'
+    // Timer row
+    + '<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin:6px 0">';
+  if (timerHalf === 0) {
+    html += '<button class="hdr-score-btn" style="width:auto;padding:4px 12px;font-size:12px" onclick="startTimer(1)">\u25B6 1er Tiempo</button>';
+  } else {
+    html += '<button class="hdr-score-btn" style="width:auto;padding:4px 10px;font-size:12px" onclick="pauseTimer()">' + (timerRunning ? '\u23F8' : '\u25B6') + '</button>'
+      + '<span id="timer-display" style="color:#F5C518;font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;min-width:50px;text-align:center">' + formatTimer(timerSeconds) + '</span>';
+    if (timerHalf === 1 && !timerRunning) {
+      html += '<button class="hdr-score-btn" style="width:auto;padding:4px 12px;font-size:12px" onclick="startTimer(2)">\u25B6 2do T</button>';
+    }
+  }
+  html += '</div>'
+    + '<div style="display:flex;align-items:center;justify-content:center;gap:12px">'
     + '<div class="hdr-kpi"><span class="hdr-kpi-label">Scrum </span><span style="color:' + scrumCol + '">' + scrumPct + '%</span></div>'
     + '<div class="hdr-kpi"><span class="hdr-kpi-label">Line </span><span style="color:' + lineCol + '">' + linePct + '%</span></div>'
+    + '<button style="background:none;border:none;color:rgba(255,255,255,0.3);font-size:10px;cursor:pointer;margin-left:8px" onclick="resetPartido()">\u21BB Reset</button>'
     + '</div>'
     + '<button class="hdr-undo" onclick="undo()" title="Undo"' + (ultimoEvento ? '' : ' style="opacity:0.3"') + '>\u21A9</button>'
     + '</div>';
