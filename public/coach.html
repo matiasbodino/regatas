@@ -2251,6 +2251,12 @@ function ensureResultado(s) {
   if (s.resultado.lineP === undefined) s.resultado.lineP = null;
   if (s.resultado.penales === undefined) s.resultado.penales = null;
   if (!s.resultado.equipo) s.resultado.equipo = {A:{titulares:[],suplentes:[]},B:{titulares:[],suplentes:[]}};
+  if (!s.resultado.equipo.A) s.resultado.equipo.A = {titulares:[],suplentes:[]};
+  if (!s.resultado.equipo.B) s.resultado.equipo.B = {titulares:[],suplentes:[]};
+  if (!s.resultado.equipo.A.titulares) s.resultado.equipo.A.titulares = [];
+  if (!s.resultado.equipo.A.suplentes) s.resultado.equipo.A.suplentes = [];
+  if (!s.resultado.equipo.B.titulares) s.resultado.equipo.B.titulares = [];
+  if (!s.resultado.equipo.B.suplentes) s.resultado.equipo.B.suplentes = [];
   return s.resultado;
 }
 
