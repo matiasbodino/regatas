@@ -165,6 +165,13 @@ function getMatchMinute() {
   return Math.floor(timerSeconds / 60);
 }
 
+function restartTimer() {
+  if (timerInterval) clearInterval(timerInterval);
+  timerRunning = false;
+  timerSeconds = timerHalf === 2 ? 40 * 60 : 0;
+  renderApp();
+}
+
 function resetPartido() {
   if (!confirm('\u00BFReiniciar todo el partido? Se pierden todos los datos.')) return;
   var s = SEMS.find(function(x) { return x.sem === stats.semId; });
@@ -443,7 +450,8 @@ function renderApp() {
     html += '<button class="hdr-score-btn" style="width:auto;padding:4px 12px;font-size:12px" onclick="startTimer(1)">\u25B6 1er Tiempo</button>';
   } else {
     html += '<button class="hdr-score-btn" style="width:auto;padding:4px 10px;font-size:12px" onclick="pauseTimer()">' + (timerRunning ? '\u23F8' : '\u25B6') + '</button>'
-      + '<span id="timer-display" style="color:#F5C518;font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;min-width:50px;text-align:center">' + formatTimer(timerSeconds) + '</span>';
+      + '<span id="timer-display" style="color:#F5C518;font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;min-width:50px;text-align:center">' + formatTimer(timerSeconds) + '</span>'
+      + '<button class="hdr-score-btn" style="width:auto;padding:4px 8px;font-size:11px;color:rgba(255,255,255,0.4)" onclick="restartTimer()">\u21BB</button>';
     if (timerHalf === 1 && !timerRunning) {
       html += '<button class="hdr-score-btn" style="width:auto;padding:4px 12px;font-size:12px" onclick="startTimer(2)">\u25B6 2do T</button>';
     }
