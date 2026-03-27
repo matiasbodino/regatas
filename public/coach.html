@@ -716,6 +716,21 @@ const GRUPOS_POSICION = {
   'Wings':        ['Wing'],
 };
 
+// Helper: check if player can play a position (checks puesto + puestos array)
+function jugTienePuesto(p, puesto) {
+  if (p.puesto === puesto) return true;
+  if (p.puestos && p.puestos.indexOf(puesto) >= 0) return true;
+  return false;
+}
+
+// Helper: display all positions of a player
+function jugPuestoDisplay(p) {
+  if (!p.puestos || p.puestos.length === 0) return p.puesto;
+  var all = [p.puesto];
+  p.puestos.forEach(function(pu) { if (all.indexOf(pu) < 0) all.push(pu); });
+  return all.join(' / ');
+}
+
 function loadPlantelCustom() {
   try {
     var custom = localStorage.getItem('plantel_custom');
@@ -3418,7 +3433,7 @@ function renderTacklesTab(el) {
       totalPas += d.pasivo || 0; totalE += d.err || 0;
       html += '<tr>'
         + '<td style="font-weight:600">' + p.apellido + '</td>'
-        + '<td>' + p.puesto + '</td>'
+        + '<td>' + jugPuestoDisplay(p) + '</td>'
         + '<td style="font-weight:700">' + (d.t || 0) + '</td>'
         + '<td>' + (d.pos || 0) + '</td>'
         + '<td>' + (d.doble || 0) + '</td>'
@@ -3461,7 +3476,7 @@ function renderGpsTab(el) {
       }
       html += '<tr>'
         + '<td style="font-weight:600">' + p.apellido + '</td>'
-        + '<td>' + p.puesto + '</td>'
+        + '<td>' + jugPuestoDisplay(p) + '</td>'
         + '<td style="font-weight:700">' + (g.vol || 0) + '</td>'
         + '<td>' + (g.hsr || 0) + '</td>'
         + '<td>' + (g.pl || 0) + '</td>'
@@ -3559,7 +3574,7 @@ function renderMapeo(jugadores, tipo, semId) {
     var opts = '<option value="">— elegir —</option>';
     PLANTEL.forEach(function(p) {
       var sel = conocido === p.id ? ' selected' : '';
-      opts += '<option value="' + p.id + '"' + sel + '>' + p.apellido + ' ' + p.nombre + ' (' + p.puesto + ')</option>';
+      opts += '<option value="' + p.id + '"' + sel + '>' + p.apellido + ' ' + p.nombre + ' (' + jugPuestoDisplay(p) + ')</option>';
     });
 
     html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:0.5px solid #E2E7F5;background:' + bgColor + ';margin:0 -16px">'
@@ -3736,9 +3751,9 @@ function renderFieldSlot(semNum, tab, slot, assigns) {
   var jugId = assigns[slot.num];
   var p = jugId ? PLANTEL.find(function(x) { return x.id === jugId; }) : null;
   var candidates = PLANTEL.filter(function(x) {
-    if (slot.puesto === 'Octavo') return x.puesto === 'Octavo' || x.puesto === '3ra l\u00EDnea';
-    if (slot.puesto === '3ra l\u00EDnea') return x.puesto === '3ra l\u00EDnea' || x.puesto === 'Octavo';
-    return x.puesto === slot.puesto;
+    if (slot.puesto === 'Octavo') return jugTienePuesto(x, 'Octavo') || jugTienePuesto(x, '3ra l\u00EDnea');
+    if (slot.puesto === '3ra l\u00EDnea') return jugTienePuesto(x, '3ra l\u00EDnea') || jugTienePuesto(x, 'Octavo');
+    return jugTienePuesto(x, slot.puesto);
   });
   // Also allow assigning anyone from other slots
   var usedIds = [];
@@ -3816,7 +3831,8 @@ function renderEquipoPanel() {
       var puestos = GRUPOS_POSICION[grp];
       if (!puestos) return;
       var jugs = PLANTEL.filter(function(p) {
-        return puestos.indexOf(p.puesto) >= 0 && eq.titulares.indexOf(p.id) < 0;
+        var match = puestos.some(function(pu) { return jugTienePuesto(p, pu); });
+        return match && eq.titulares.indexOf(p.id) < 0;
       });
       if (jugs.length === 0) return;
       html += '<div style="font-size:9px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.05em;margin:6px 0 3px">' + grp + '</div>'
@@ -3871,7 +3887,7 @@ function getJugadoresFiltrados() {
   if (jugFiltroGrupo !== 'todos') {
     var puestos = GRUPOS_POSICION[jugFiltroGrupo];
     if (puestos) {
-      list = list.filter(function(p) { return puestos.indexOf(p.puesto) >= 0; });
+      list = list.filter(function(p) { return puestos.some(function(pu) { return jugTienePuesto(p, pu); }); });
     }
   }
   list.forEach(function(p) { p._stats = getJugadorStats(p.id); });
@@ -3923,7 +3939,7 @@ function renderPlantel(el) {
     var errColor = st.pctErr === null ? '' : (st.pctErr <= 10 ? 'color:#27AE60' : (st.pctErr <= 20 ? 'color:#F5C518' : 'color:#E74C3C'));
     html += '<tr>'
       + '<td style="font-weight:600">' + p.apellido + ', ' + p.nombre + '</td>'
-      + '<td>' + p.puesto + '</td>'
+      + '<td>' + jugPuestoDisplay(p) + '</td>'
       + '<td>' + (p.m22 ? '<span class="equipo-m22">m22</span>' : '') + '</td>'
       + '<td>' + st.partidos + '</td>'
       + '<td>' + st.tackles + '</td>'
@@ -3944,10 +3960,20 @@ function abrirModalJugador(jugId) {
   var p = jugId ? PLANTEL.find(function(x) { return x.id === jugId; }) : null;
   var titulo = p ? 'Editar jugador' : 'Nuevo jugador';
   var allPuestos = ['Pilar izq','Pilar der','Hooker','2da l\u00EDnea','3ra l\u00EDnea','Octavo','Medio scrum','Apertura','Centro','Wing'];
+  var playerPuestos = p ? [p.puesto].concat(p.puestos || []) : [];
 
-  var puestoOpts = '';
+  var puestoPrincipalOpts = '';
   allPuestos.forEach(function(pu) {
-    puestoOpts += '<option value="' + pu + '"' + (p && p.puesto === pu ? ' selected' : '') + '>' + pu + '</option>';
+    puestoPrincipalOpts += '<option value="' + pu + '"' + (p && p.puesto === pu ? ' selected' : '') + '>' + pu + '</option>';
+  });
+
+  var puestosCheckboxes = '';
+  allPuestos.forEach(function(pu) {
+    var checked = playerPuestos.indexOf(pu) >= 0 ? ' checked' : '';
+    puestosCheckboxes += '<label style="display:flex;align-items:center;gap:6px;padding:4px 0;cursor:pointer">'
+      + '<input type="checkbox" class="mj-puesto-cb" value="' + pu + '"' + checked + ' style="width:18px;height:18px">'
+      + '<span style="font-size:14px;color:#1A1A2E">' + pu + '</span>'
+      + '</label>';
   });
 
   var html = '<div class="modal-overlay" id="modal-jugador">'
@@ -3959,7 +3985,11 @@ function abrirModalJugador(jugId) {
     + '<div class="modal-body">'
     + '<div class="modal-field"><label>Apellido</label><input id="mj-apellido" type="text" value="' + (p ? p.apellido : '') + '"></div>'
     + '<div class="modal-field"><label>Nombre</label><input id="mj-nombre" type="text" value="' + (p ? p.nombre : '') + '"></div>'
-    + '<div class="modal-field"><label>Puesto</label><select id="mj-puesto">' + puestoOpts + '</select></div>'
+    + '<div class="modal-field"><label>Puesto principal</label><select id="mj-puesto">' + puestoPrincipalOpts + '</select></div>'
+    + '<div class="modal-field"><label>Puestos que puede jugar</label>'
+    + '<div style="max-height:180px;overflow-y:auto;border:1px solid #E2E7F5;border-radius:8px;padding:6px 10px">'
+    + puestosCheckboxes
+    + '</div></div>'
     + '<div class="modal-field" style="flex-direction:row;align-items:center;gap:8px;display:flex">'
     + '<input id="mj-m22" type="checkbox"' + (p && p.m22 ? ' checked' : '') + ' style="width:20px;height:20px">'
     + '<label style="margin:0">Jugador menor de 22</label>'
@@ -3993,12 +4023,19 @@ function guardarJugador() {
   var m22 = document.getElementById('mj-m22').checked;
   if (!apellido || !puesto) { alert('Apellido y puesto son obligatorios'); return; }
 
+  // Collect all checked puestos
+  var puestos = [];
+  var cbs = document.querySelectorAll('.mj-puesto-cb');
+  cbs.forEach(function(cb) { if (cb.checked) puestos.push(cb.value); });
+  // Remove principal puesto from secondary list
+  puestos = puestos.filter(function(pu) { return pu !== puesto; });
+
   if (modalJugId) {
     var p = PLANTEL.find(function(x) { return x.id === modalJugId; });
-    if (p) { p.apellido = apellido; p.nombre = nombre; p.puesto = puesto; p.m22 = m22; }
+    if (p) { p.apellido = apellido; p.nombre = nombre; p.puesto = puesto; p.puestos = puestos; p.m22 = m22; }
   } else {
     var newId = Math.max.apply(null, PLANTEL.map(function(p) { return p.id; })) + 1;
-    PLANTEL.push({id: newId, apellido: apellido, nombre: nombre, puesto: puesto, m22: m22});
+    PLANTEL.push({id: newId, apellido: apellido, nombre: nombre, puesto: puesto, puestos: puestos, m22: m22});
   }
   localStorage.setItem('plantel_custom', JSON.stringify(PLANTEL));
   cerrarModalJugador();
@@ -4062,7 +4099,7 @@ function copiarEquipoWA(semNum, tab) {
     txt += '\n*SUPLENTES*\n';
     eq.suplentes.forEach(function(id, i) {
       var p = PLANTEL.find(function(x) { return x.id === id; });
-      if (p) txt += (16 + i) + '. ' + p.apellido + ' ' + p.nombre + ' (' + p.puesto + ')\n';
+      if (p) txt += (16 + i) + '. ' + p.apellido + ' ' + p.nombre + ' (' + jugPuestoDisplay(p) + ')\n';
     });
   }
 
