@@ -2,703 +2,614 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0D1B4E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="icon" href="/escudo.png">
-<title>Partido en Vivo - Regatas</title>
+<title>Partido en Vivo — Regatas</title>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body {
-  height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: #f0f0f0;
-  color: #222;
-  overflow: hidden;
-}
-.header {
-  background: #0D1B4E;
-  padding: 12px 16px;
-  text-align: center;
-}
-.header-title {
-  color: #F5C518;
-  font-weight: 700;
-  font-size: 18px;
-}
-.header-sub {
-  color: rgba(255,255,255,0.5);
-  font-size: 13px;
-  margin-top: 2px;
-}
-.scoreboard {
-  background: #fff;
-  text-align: center;
-  padding: 10px 16px 8px;
-  border-bottom: 1px solid #e0e0e0;
-}
-.score-big {
-  font-size: 44px;
-  font-weight: 800;
-  color: #0D1B4E;
-  letter-spacing: 2px;
-}
-.clock-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  margin-top: 2px;
-}
-.clock-display {
-  font-size: 28px;
-  font-weight: 700;
-  color: #0D1B4E;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 1px;
-}
-.clock-controls {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 6px;
-  padding-bottom: 4px;
-}
-.clock-btn {
-  padding: 6px 16px;
-  font-size: 13px;
-  font-weight: 700;
-  border-radius: 8px;
-  border: 1.5px solid #0D1B4E;
-  background: #0D1B4E;
-  color: #F5C518;
-  cursor: pointer;
-  min-height: 36px;
-}
-.clock-btn.running {
-  background: #E74C3C;
-  border-color: #E74C3C;
-  color: #fff;
-}
-.events-area {
-  flex: 1;
-  overflow-y: auto;
-  padding: 8px 10px;
-  -webkit-overflow-scrolling: touch;
-}
-.section-label {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: #888;
-  margin: 6px 0 4px;
-}
-.btn-row {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 6px;
-}
-.btn {
-  flex: 1;
-  min-height: 48px;
-  border: none;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 13px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 4px 6px;
-  line-height: 1.2;
-}
-.btn-green { background: #27AE60; color: #fff; }
-.btn-gray { background: #e0e0e0; color: #555; }
-.btn-navy { background: #0D1B4E; color: #F5C518; }
-.btn-red-light { background: #FDECEC; color: #c0392b; }
-.btn-red { background: #E74C3C; color: #fff; }
-.crono-section {
-  background: #fff;
-  border-top: 1px solid #e0e0e0;
-  max-height: 140px;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
-.crono-title {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: #888;
-  padding: 6px 12px 2px;
-  position: sticky;
-  top: 0;
-  background: #fff;
-}
-.crono-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 5px 12px;
-  font-size: 13px;
-  border-bottom: 1px solid #f0f0f0;
-}
-.crono-text { flex: 1; }
-.crono-del {
-  width: 28px;
-  height: 28px;
-  border: none;
-  background: #FDECEC;
-  color: #E74C3C;
-  border-radius: 50%;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  flex-shrink: 0;
-  margin-left: 8px;
-}
-.crono-empty {
-  padding: 12px;
-  text-align: center;
-  color: #bbb;
-  font-size: 13px;
-}
-.bottom-bar {
-  background: #fff;
-  padding: 8px 12px;
-  padding-bottom: max(8px, env(safe-area-inset-bottom));
-  border-top: 1px solid #e0e0e0;
-}
-.btn-save {
-  width: 100%;
-  min-height: 48px;
-  background: #F5C518;
-  color: #0D1B4E;
-  border: none;
-  border-radius: 12px;
-  font-weight: 800;
-  font-size: 16px;
-  cursor: pointer;
-}
-.btn-save.saved {
-  background: #27AE60;
-  color: #fff;
-}
-.app-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  height: 100dvh;
-}
-.sem-selector {
-  padding: 16px;
-  text-align: center;
-}
-.sem-selector select {
-  font-size: 16px;
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: 2px solid #F5C518;
-}
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#0D1B4E;display:flex;justify-content:center;gap:0;border-top:2px solid #F5C518;z-index:100}
-.bottom-nav a{flex:1;text-align:center;padding:12px 0 10px;text-decoration:none;font-size:11px;font-weight:700;letter-spacing:0.05em;color:rgba(255,255,255,0.5)}
-.bottom-nav a.active{color:#F5C518}
-.bottom-nav a span{display:block;font-size:18px;margin-bottom:2px}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#EDF0F8;color:#1A1A2E;overflow:hidden}
+
+.app{display:flex;flex-direction:column;height:100dvh}
+
+/* Header */
+.hdr{background:#0D1B4E;padding:10px 14px;flex-shrink:0}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.hdr-title{color:#F5C518;font-size:13px;font-weight:700}
+.hdr-back{background:none;border:none;color:rgba(255,255,255,0.5);font-size:14px;cursor:pointer}
+.hdr-score{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:6px}
+.hdr-score-num{color:#fff;font-size:32px;font-weight:800;min-width:40px;text-align:center}
+.hdr-score-vs{color:rgba(255,255,255,0.4);font-size:14px}
+.hdr-score-btn{background:rgba(255,255,255,0.15);border:none;color:#fff;width:28px;height:28px;border-radius:6px;font-size:16px;font-weight:700;cursor:pointer}
+.hdr-kpis{display:flex;justify-content:center;gap:16px}
+.hdr-kpi{font-size:11px;font-weight:600}
+.hdr-kpi-label{color:rgba(255,255,255,0.4)}
+.hdr-undo{position:absolute;top:10px;right:14px;background:rgba(255,255,255,0.15);border:none;color:#F5C518;width:36px;height:36px;border-radius:8px;font-size:16px;cursor:pointer}
+
+/* Tabs */
+.tabs{display:flex;background:#1A3470;flex-shrink:0;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tkr-tab{padding:10px 16px;font-size:12px;font-weight:700;border:none;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;background:transparent;color:rgba(255,255,255,0.5);flex-shrink:0}
+.tkr-tab.active{color:#F5C518;border-bottom-color:#F5C518}
+
+/* Body */
+.body{flex:1;overflow-y:auto;padding:12px;-webkit-overflow-scrolling:touch}
+
+/* Footer */
+.ftr{flex-shrink:0;padding:10px 14px;background:#fff;border-top:1px solid #E2E7F5}
+.ftr-btn{width:100%;padding:14px;background:#0D1B4E;color:#F5C518;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;min-height:56px}
+
+/* Buttons */
+.tkr-btn{min-height:56px;border-radius:10px;border:none;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;position:relative;user-select:none;transition:transform 0.1s;width:100%}
+.tkr-btn:active{transform:scale(0.96)}
+.tkr-btn-win{background:#27AE60;color:#fff}
+.tkr-btn-loss{background:#E74C3C;color:#fff}
+.tkr-btn-warn{background:#E67E22;color:#fff}
+.tkr-btn-info{background:#2B4EA0;color:#fff}
+.tkr-btn-gold{background:#F5C518;color:#0D1B4E}
+.tkr-btn-neutral{background:#F4F6FF;color:#1A1A2E;border:0.5px solid #E2E7F5}
+.tkr-btn-sm{min-height:52px;font-size:13px}
+.tkr-counter{position:absolute;top:6px;right:8px;background:#0D1B4E;color:#F5C518;font-size:11px;font-weight:800;padding:1px 5px;border-radius:8px;min-width:18px;text-align:center}
+.tkr-section-hdr{padding:8px 14px;font-size:11px;font-weight:700;color:#fff;letter-spacing:0.08em;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between;border-radius:8px;margin-bottom:8px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+
+/* Tries */
+.try-card{background:#fff;border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;border:0.5px solid #E2E7F5}
+.try-badge{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.try-detail{flex:1;font-size:12px;color:#444}
+.try-min{font-size:11px;color:#888;font-weight:600}
+.try-conv{display:flex;gap:4px}
+.try-conv button{padding:4px 8px;font-size:11px;font-weight:700;border-radius:6px;border:1px solid #E2E7F5;background:#fff;cursor:pointer}
+.try-conv .sel{background:#0D1B4E;color:#F5C518;border-color:#0D1B4E}
+.try-del{background:none;border:none;color:#ccc;cursor:pointer;font-size:14px}
+
+/* Selector */
+.selector{position:fixed;top:0;left:0;right:0;bottom:0;background:#0D1B4E;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.selector-title{color:#F5C518;font-size:18px;font-weight:700;margin-bottom:20px}
+.selector-list{width:100%;max-width:400px;max-height:60vh;overflow-y:auto}
+.selector-item{width:100%;padding:14px;background:rgba(255,255,255,0.1);border:none;color:#fff;font-size:14px;font-weight:600;border-radius:8px;margin-bottom:6px;cursor:pointer;text-align:left}
+.selector-item:active{background:rgba(255,255,255,0.2)}
+
+/* Sub-tabs penales */
+.sub-tabs{display:flex;gap:4px;margin-bottom:10px}
+.sub-tab{flex:1;padding:8px;font-size:12px;font-weight:700;border:none;border-radius:8px;cursor:pointer;text-align:center}
+.sub-tab-active{background:#0D1B4E;color:#F5C518}
+.sub-tab-inactive{background:#F4F6FF;color:#888}
+
+/* Post partido */
+.post-section{background:#fff;border-radius:10px;padding:14px;margin-top:12px;border:0.5px solid #E2E7F5}
+.post-label{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px}
+.post-input{width:100%;font-size:16px;padding:8px 10px;border-radius:8px;border:1.5px solid #C5CCE0;background:#fff;color:#1A1A2E}
+
+/* Try panel */
+.try-panel{background:#fff;border-radius:10px;padding:12px;margin-bottom:12px;border:0.5px solid #E2E7F5}
+.try-chips{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0}
+.try-chip{padding:6px 10px;font-size:12px;font-weight:600;border-radius:20px;border:1px solid #E2E7F5;background:#F4F6FF;color:#888;cursor:pointer}
+.try-chip.sel{background:#0D1B4E;color:#F5C518;border-color:#0D1B4E}
+.try-fases{display:flex;gap:6px;margin:8px 0}
+.try-fase{width:44px;height:44px;border-radius:8px;border:1px solid #E2E7F5;background:#F4F6FF;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.try-fase.sel{background:#0D1B4E;color:#F5C518;border-color:#0D1B4E}
 </style>
 </head>
 <body>
-<div class="app-container">
-  <div class="header">
-    <div class="header-title" id="headerTitle">REGATAS</div>
-    <div class="header-sub" id="headerSub">Cargando...</div>
-  </div>
 
-  <div class="scoreboard">
-    <div class="score-big" id="scoreDisplay">0 - 0</div>
-    <div class="clock-row">
-      <span class="clock-display" id="clockDisplay">00:00</span>
-    </div>
-    <div class="clock-controls">
-      <button class="clock-btn" id="btnTiempo" onclick="toggleTiempo()">&#9654; 1er Tiempo</button>
-      <button class="clock-btn" id="btnPausa" onclick="togglePausa()" style="display:none">&#9208; Pausa</button>
-      <button class="clock-btn" id="btnReset" onclick="resetTiempo()" style="display:none;background:#888;border-color:#888;color:#fff;font-size:11px;padding:6px 10px">&#8635;</button>
-    </div>
-  </div>
-
-  <div class="events-area" id="eventsArea">
-    <div class="section-label">REGATAS</div>
-    <div class="btn-row">
-      <button class="btn btn-green" onclick="addEvent('try_nos', '+Try', 5, 0); event.stopPropagation();">+Try 5pts</button>
-      <button class="btn btn-green" onclick="addEvent('conv_ok', 'Conv OK', 2, 0); event.stopPropagation();">Conv &#10003; 2pts</button>
-      <button class="btn btn-gray" onclick="addEvent('conv_miss', 'Conv X', 0, 0); event.stopPropagation();">Conv &#10007;</button>
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-green" onclick="addEvent('penal_ok', 'Penal OK', 3, 0); event.stopPropagation();">+Penal &#10003; 3pts</button>
-      <button class="btn btn-gray" onclick="addEvent('penal_miss', 'Penal X', 0, 0); event.stopPropagation();">+Penal &#10007;</button>
-      <button class="btn btn-green" onclick="addEvent('drop_nos', 'Drop', 3, 0); event.stopPropagation();">+Drop 3pts</button>
-    </div>
-
-    <div class="section-label">SET PIECES</div>
-    <div class="btn-row">
-      <button class="btn btn-navy" onclick="addEvent('scrum_g', 'Scrum dominado', 0, 0); event.stopPropagation();">Scrum Dominado</button>
-      <button class="btn btn-red-light" onclick="addEvent('scrum_p', 'Scrum total', 0, 0); event.stopPropagation();">Scrum Totales</button>
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-navy" onclick="addEvent('line_g', 'Line obtenido', 0, 0); event.stopPropagation();">Line Obtenido</button>
-      <button class="btn btn-red-light" onclick="addEvent('line_p', 'Line total', 0, 0); event.stopPropagation();">Line Totales</button>
-    </div>
-
-    <div class="section-label">RIVAL</div>
-    <div class="btn-row">
-      <button class="btn btn-red" onclick="addEvent('try_rival', 'Try Rival', 0, 5); event.stopPropagation();">+Try rival 5pts</button>
-      <button class="btn btn-red" onclick="addEvent('conv_rival', 'Conv Rival', 0, 2); event.stopPropagation();">+Conv rival 2pts</button>
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-red" onclick="addEvent('penal_rival', 'Penal Rival', 0, 3); event.stopPropagation();">+Penal rival 3pts</button>
-      <button class="btn btn-red" onclick="addEvent('drop_rival', 'Drop Rival', 0, 3); event.stopPropagation();">+Drop rival 3pts</button>
-    </div>
-  </div>
-
-  <div class="crono-section" id="cronoSection">
-    <div class="crono-title">Cronologia</div>
-    <div id="cronoList">
-      <div class="crono-empty">Sin eventos</div>
-    </div>
-  </div>
-
-  <div class="bottom-bar">
-    <button class="btn-save" id="btnSave" onclick="guardarResultado(); event.stopPropagation();">&#128190; Guardar resultado</button>
+<div class="app" id="app">
+  <!-- Selector de partido -->
+  <div class="selector" id="selector">
+    <div style="font-size:28px;margin-bottom:10px">▲</div>
+    <div class="selector-title">Elegí el partido</div>
+    <div class="selector-list" id="selector-list"></div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
 var SUPABASE_URL = 'https://trzfaqdmasdswmuenlmu.supabase.co';
-var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRyemZhcWRtYXNkc3dtdWVubG11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0ODA4NTMsImV4cCI6MjA5MDA1Njg1M30.rhXSHLpSSu3TL2gJWpGhRtGqNVgSSW9Kzr2E0IJmRNw';
-var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRyemZhcWRtYXNkc3dtdWVubG11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0ODA4NTMsImV4cCI6MjA5MDA1Njg1M30.rhXSHLpSSu3TL2gJWpGhRtGqNVgSSW9Kzr2E0IJmRNw';
+var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-var meses = { 'Ene': 0, 'Feb': 1, 'Mar': 2, 'Abr': 3, 'May': 4, 'Jun': 5, 'Jul': 6, 'Ago': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dic': 11 };
+var SEMS = [];
+var stats = null;
+var activeTab = 'obtencion';
+var penalSubTab = 'cometidos';
+var tryPanel = null; // null or {equipo:'nos'|'rival', origen:null, fases:null, minuto:''}
+var ultimoEvento = null;
 
-var eventos = [];
-var eventIdCounter = 0;
-var ptsNos = 0;
-var ptsRival = 0;
-var triesA = 0;
-var triesC = 0;
-var scrumG = 0;
-var scrumP = 0;
-var lineG = 0;
-var lineP = 0;
-var penalesOk = 0;
-var penalesMiss = 0;
-var semana = null;
-var semNum = null;
-var datosGlobal = null;
+function vib(ms) { try { navigator.vibrate(ms || 30); } catch(e) {} }
 
-function parseFecha(fechaStr) {
-  if (!fechaStr) return null;
-  var parts = fechaStr.trim().split(' ');
-  if (parts.length < 2) return null;
-  var dia = parseInt(parts[0], 10);
-  var mesStr = parts[1];
-  var mesNum = meses[mesStr];
-  if (mesNum === undefined) return null;
-  var now = new Date();
-  var year = now.getFullYear();
-  var d = new Date(year, mesNum, dia);
-  return d;
-}
-
-function getUrlParam(name) {
-  var params = new URLSearchParams(window.location.search);
-  return params.get(name);
-}
-
-function init() {
-  sb.from('semana_activa').select('datos').eq('id', 1).single().then(function(res) {
-    if (res.error || !res.data) {
-      document.getElementById('headerSub').textContent = 'Error cargando datos';
-      return;
-    }
-    var datos = res.data.datos;
-    datosGlobal = datos;
-    var semanas = datos.semanas;
-    var semParam = getUrlParam('sem');
-
-    if (semParam && semanas[semParam]) {
-      semNum = semParam;
-      semana = semanas[semParam];
-      setupMatch();
-      return;
-    }
-
-    var hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-    var bestKey = null;
-    var bestDiff = Infinity;
-    var keys = Object.keys(semanas);
-
-    for (var i = 0; i < keys.length; i++) {
-      var k = keys[i];
-      var s = semanas[k];
-      var fd = parseFecha(s.fecha);
-      if (!fd) continue;
-      var diff = fd.getTime() - hoy.getTime();
-      var absDiff = Math.abs(diff);
-      if (diff >= 0) {
-        if (absDiff < bestDiff) {
-          bestDiff = absDiff;
-          bestKey = k;
-        }
-      }
-    }
-
-    if (!bestKey) {
-      for (var j = 0; j < keys.length; j++) {
-        var k2 = keys[j];
-        var s2 = semanas[k2];
-        var fd2 = parseFecha(s2.fecha);
-        if (!fd2) continue;
-        var diff2 = Math.abs(fd2.getTime() - hoy.getTime());
-        if (diff2 < bestDiff) {
-          bestDiff = diff2;
-          bestKey = k2;
-        }
-      }
-    }
-
-    if (bestKey) {
-      semNum = bestKey;
-      semana = semanas[bestKey];
-      setupMatch();
-    } else {
-      document.getElementById('headerSub').textContent = 'No hay partidos publicados';
-    }
-  });
-}
-
-function setupMatch() {
-  var rival = semana.rival || 'Rival';
-  var fecha = semana.fecha || '';
-  var localTxt = semana.local ? 'Local' : 'Visitante';
-  document.getElementById('headerTitle').textContent = '\u25B2 REGATAS vs ' + rival.toUpperCase();
-  document.getElementById('headerSub').textContent = fecha + ' \u00B7 ' + localTxt;
-
-  if (semana.resultado) {
-    var r = semana.resultado;
-    ptsNos = r.ptsNos || 0;
-    ptsRival = r.ptsRival || 0;
-    triesA = r.triesA || 0;
-    triesC = r.triesC || 0;
-    scrumG = r.scrumG || 0;
-    scrumP = r.scrumP || 0;
-    lineG = r.lineG || 0;
-    lineP = r.lineP || 0;
-    penalesMiss = r.penales || 0;
-  }
-  updateScore();
-}
-
-function updateScore() {
-  document.getElementById('scoreDisplay').textContent = ptsNos + ' - ' + ptsRival;
-}
-
-// ── TIMER ─────────────────────────────────────────────────────
-var timerInterval = null;
-var timerSeconds = 0;
-var timerRunning = false;
-var timerHalf = 0; // 0=no iniciado, 1=1T, 2=2T
-
-function formatClock(secs) {
-  var m = Math.floor(secs / 60);
-  var s = secs % 60;
-  return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
-}
-
-function updateClockDisplay() {
-  document.getElementById('clockDisplay').textContent = formatClock(timerSeconds);
-}
-
-function toggleTiempo() {
-  var btn = document.getElementById('btnTiempo');
-  var btnPausa = document.getElementById('btnPausa');
-  var btnReset = document.getElementById('btnReset');
-  if (timerHalf === 0) {
-    timerHalf = 1;
-    timerSeconds = 0;
-    timerRunning = true;
-    btn.style.display = 'none';
-    btnPausa.style.display = 'block';
-    btnPausa.innerHTML = '&#9208; Pausa';
-    btnPausa.className = 'clock-btn running';
-    btnReset.style.display = 'block';
-    startTimer();
-  } else if (timerHalf === 1) {
-    timerHalf = 2;
-    timerSeconds = 40 * 60;
-    timerRunning = true;
-    btn.style.display = 'none';
-    btnPausa.style.display = 'block';
-    btnPausa.innerHTML = '&#9208; Pausa';
-    btnPausa.className = 'clock-btn running';
-    btnReset.style.display = 'block';
-    startTimer();
+// ── LOAD SEMS FROM SUPABASE ─────────────────────────────────
+async function loadSems() {
+  var result = await sb.from('semana_activa').select('datos').eq('id', 1).single();
+  var datos = result.data && result.data.datos;
+  if (!datos) return;
+  if (datos.semanas) {
+    Object.keys(datos.semanas).forEach(function(k) { SEMS.push(datos.semanas[k]); });
+    SEMS.sort(function(a, b) { return a.sem - b.sem; });
+  } else if (datos.sem) {
+    SEMS.push(datos);
   }
 }
 
-function togglePausa() {
-  var btnPausa = document.getElementById('btnPausa');
-  var btnTiempo = document.getElementById('btnTiempo');
-  if (timerRunning) {
-    // Pausar
-    timerRunning = false;
-    clearInterval(timerInterval);
-    btnPausa.innerHTML = '&#9654; Reanudar';
-    btnPausa.className = 'clock-btn';
-    // Si es 1T pausado, mostrar botón de 2T
-    if (timerHalf === 1) {
-      btnTiempo.innerHTML = '&#9654; 2do Tiempo';
-      btnTiempo.style.display = 'block';
-    }
-  } else {
-    // Reanudar
-    timerRunning = true;
-    btnPausa.innerHTML = '&#9208; Pausa';
-    btnPausa.className = 'clock-btn running';
-    btnTiempo.style.display = 'none';
-    startTimer();
-  }
-}
-
-function startTimer() {
-  clearInterval(timerInterval);
-  timerInterval = setInterval(function() {
-    if (!timerRunning) return;
-    timerSeconds++;
-    updateClockDisplay();
-  }, 1000);
-}
-
-function resetTiempo() {
-  clearInterval(timerInterval);
-  timerRunning = false;
-  timerHalf = 0;
-  timerSeconds = 0;
-  updateClockDisplay();
-  var btnTiempo = document.getElementById('btnTiempo');
-  var btnPausa = document.getElementById('btnPausa');
-  var btnReset = document.getElementById('btnReset');
-  btnTiempo.innerHTML = '&#9654; 1er Tiempo';
-  btnTiempo.style.display = 'block';
-  btnPausa.style.display = 'none';
-  btnReset.style.display = 'none';
-}
-
-function getMinuto() {
-  return Math.floor(timerSeconds / 60).toString();
-}
-
-function addEvent(tipo, descripcion, ptsN, ptsR) {
-  if (navigator.vibrate) navigator.vibrate(50);
-
-  switch (tipo) {
-    case 'try_nos': ptsNos += 5; triesA++; break;
-    case 'conv_ok': ptsNos += 2; break;
-    case 'conv_miss': break;
-    case 'penal_ok': ptsNos += 3; penalesOk++; break;
-    case 'penal_miss': penalesMiss++; break;
-    case 'drop_nos': ptsNos += 3; break;
-    case 'scrum_g': scrumG++; scrumP++; break;
-    case 'scrum_p': scrumP++; break;
-    case 'line_g': lineG++; lineP++; break;
-    case 'line_p': lineP++; break;
-    case 'try_rival': ptsRival += 5; triesC++; break;
-    case 'conv_rival': ptsRival += 2; break;
-    case 'penal_rival': ptsRival += 3; break;
-    case 'drop_rival': ptsRival += 3; break;
-  }
-
-  var ev = {
-    id: ++eventIdCounter,
-    minuto: getMinuto(),
-    tipo: tipo,
-    descripcion: descripcion,
-    ptsNos: ptsNos,
-    ptsRival: ptsRival
+function initStats(s) {
+  return {
+    semId: s.sem, rival: s.rival, fecha: s.fecha, local: s.local === 'L',
+    ptsNos: 0, ptsRival: 0,
+    scrum: {ganados:0, perdidos:0, robados:0, torcidas:0, penalFK:0},
+    line: {ganados:0, perdidos:0, robados:0, torcidas:0, penalFK:0},
+    salidas: {recBien:0, recMal:0, ganAlta:0, malPat:0},
+    perdidas: {knockOn:0, retener:0, kickAfuera:0, kickNoRecup:0, tirarsEnRuck:0, paseForward:0, ingresoLateral:0, tackleCont:0, manoEnRuck:0, saleCampo:0, derrumbeMaill:0, maul:0, scrum:0, malPase:0, ruck:0, line:0, pescada:0, offside:0},
+    penalesCometidos: {offside:0, inconducta:0, tacklePeligroso:0, kickAfuera:0, kickAdentro:0, tackleadorNoSale:0, cargaSinPelota:0, cortina:0, diezYardas:0},
+    penalesFavor: {palosAfuera:0, palosAdentro:0, jugadoRapido:0, jugadoNormal:0, freekickRapido:0, freekickNormal:0, scrum:0},
+    tries: [],
+    peo: null, tackles: null
   };
-  eventos.push(ev);
-  updateScore();
-  renderCrono();
 }
 
-function removeEvent(evId) {
-  if (navigator.vibrate) navigator.vibrate(50);
-  var idx = -1;
-  for (var i = 0; i < eventos.length; i++) {
-    if (eventos[i].id === evId) { idx = i; break; }
-  }
-  if (idx === -1) return;
-  eventos.splice(idx, 1);
-  recalculate();
-  updateScore();
-  renderCrono();
-}
-
-function recalculate() {
-  ptsNos = 0;
-  ptsRival = 0;
-  triesA = 0;
-  triesC = 0;
-  scrumG = 0;
-  scrumP = 0;
-  lineG = 0;
-  lineP = 0;
-  penalesOk = 0;
-  penalesMiss = 0;
-
-  if (semana && semana.resultado) {
-    ptsNos = semana.resultado.ptsNos || 0;
-    ptsRival = semana.resultado.ptsRival || 0;
-    triesA = semana.resultado.triesA || 0;
-    triesC = semana.resultado.triesC || 0;
-    scrumG = semana.resultado.scrumG || 0;
-    scrumP = semana.resultado.scrumP || 0;
-    lineG = semana.resultado.lineG || 0;
-    lineP = semana.resultado.lineP || 0;
-    penalesMiss = semana.resultado.penales || 0;
-  }
-
-  for (var i = 0; i < eventos.length; i++) {
-    var t = eventos[i].tipo;
-    switch (t) {
-      case 'try_nos': ptsNos += 5; triesA++; break;
-      case 'conv_ok': ptsNos += 2; break;
-      case 'penal_ok': ptsNos += 3; penalesOk++; break;
-      case 'penal_miss': penalesMiss++; break;
-      case 'drop_nos': ptsNos += 3; break;
-      case 'scrum_g': scrumG++; break;
-      case 'scrum_p': scrumP++; break;
-      case 'line_g': lineG++; break;
-      case 'line_p': lineP++; break;
-      case 'try_rival': ptsRival += 5; triesC++; break;
-      case 'conv_rival': ptsRival += 2; break;
-      case 'penal_rival': ptsRival += 3; break;
-      case 'drop_rival': ptsRival += 3; break;
-    }
-    eventos[i].ptsNos = ptsNos;
-    eventos[i].ptsRival = ptsRival;
-  }
-}
-
-function renderCrono() {
-  var container = document.getElementById('cronoList');
-  if (eventos.length === 0) {
-    container.innerHTML = '<div class="crono-empty">Sin eventos</div>';
+// ── SELECTOR ────────────────────────────────────────────────
+async function showSelector() {
+  await loadSems();
+  var list = document.getElementById('selector-list');
+  if (SEMS.length === 0) {
+    list.innerHTML = '<div style="color:rgba(255,255,255,0.5);text-align:center">Sin semanas publicadas</div>';
     return;
   }
   var html = '';
-  for (var i = eventos.length - 1; i >= 0; i--) {
-    var ev = eventos[i];
-    html += '<div class="crono-item">';
-    var noScore = (ev.tipo === 'scrum_g' || ev.tipo === 'scrum_p' || ev.tipo === 'line_g' || ev.tipo === 'line_p' || ev.tipo === 'conv_miss' || ev.tipo === 'penal_miss');
-    var scoreText = noScore ? '' : ' (' + ev.ptsNos + '-' + ev.ptsRival + ')';
-    html += '<span class="crono-text">' + ev.minuto + "' " + ev.descripcion + scoreText + '</span>';
-    html += '<button class="crono-del" onclick="removeEvent(' + ev.id + '); event.stopPropagation();">\u00D7</button>';
+  SEMS.forEach(function(s) {
+    html += '<button class="selector-item" onclick="selectPartido(' + s.sem + ')">'
+      + 'Sem ' + s.sem + ' \u00B7 ' + s.fecha + ' \u00B7 vs ' + s.rival
+      + ' \u00B7 ' + (s.local === 'L' ? 'Local' : 'Visitante')
+      + '</button>';
+  });
+  list.innerHTML = html;
+}
+
+function selectPartido(semNum) {
+  var s = SEMS.find(function(x) { return x.sem === semNum; });
+  if (!s) return;
+
+  // Check localStorage for saved data
+  var saved = localStorage.getItem('tracker_partido_' + semNum);
+  if (saved) {
+    try {
+      var parsed = JSON.parse(saved);
+      if (parsed && parsed.semId) {
+        if (confirm('\u00BFContinuar el partido vs ' + s.rival + '?')) {
+          stats = parsed;
+          startApp();
+          return;
+        }
+      }
+    } catch(e) {}
+  }
+
+  stats = initStats(s);
+  startApp();
+}
+
+function startApp() {
+  document.getElementById('selector').style.display = 'none';
+  renderApp();
+}
+
+// ── AUTO SAVE ───────────────────────────────────────────────
+function autoSave() {
+  if (!stats) return;
+  localStorage.setItem('tracker_partido_' + stats.semId, JSON.stringify(stats));
+}
+
+// ── EVENTS ──────────────────────────────────────────────────
+function inc(path) {
+  var parts = path.split('.');
+  var obj = stats;
+  for (var i = 0; i < parts.length - 1; i++) obj = obj[parts[i]];
+  obj[parts[parts.length - 1]]++;
+  ultimoEvento = {campo: path, delta: 1};
+  vib(30);
+  autoSave();
+  renderApp();
+}
+
+function dec(path) {
+  var parts = path.split('.');
+  var obj = stats;
+  for (var i = 0; i < parts.length - 1; i++) obj = obj[parts[i]];
+  if (obj[parts[parts.length - 1]] > 0) obj[parts[parts.length - 1]]--;
+  autoSave();
+  renderApp();
+}
+
+function undo() {
+  if (!ultimoEvento) return;
+  var parts = ultimoEvento.campo.split('.');
+  var obj = stats;
+  for (var i = 0; i < parts.length - 1; i++) obj = obj[parts[i]];
+  obj[parts[parts.length - 1]] = Math.max(0, obj[parts[parts.length - 1]] - ultimoEvento.delta);
+  ultimoEvento = null;
+  vib(30);
+  autoSave();
+  renderApp();
+}
+
+function adjScore(side, delta) {
+  if (side === 'nos') stats.ptsNos = Math.max(0, stats.ptsNos + delta);
+  else stats.ptsRival = Math.max(0, stats.ptsRival + delta);
+  autoSave();
+  renderApp();
+}
+
+// ── TABS ────────────────────────────────────────────────────
+function setTab(t) { activeTab = t; renderApp(); }
+function setPenalSub(t) { penalSubTab = t; renderApp(); }
+
+// ── TRIES ───────────────────────────────────────────────────
+function openTryPanel(equipo) {
+  tryPanel = {equipo: equipo, origen: null, fases: null, minuto: ''};
+  renderApp();
+}
+function setTryOrigen(v) { if (tryPanel) { tryPanel.origen = v; renderApp(); } }
+function setTryFases(v) { if (tryPanel) { tryPanel.fases = v; renderApp(); } }
+function setTryMinuto(v) { if (tryPanel) tryPanel.minuto = v; }
+function cancelTry() { tryPanel = null; renderApp(); }
+
+function saveTry() {
+  if (!tryPanel) return;
+  var t = {
+    equipo: tryPanel.equipo,
+    origen: tryPanel.origen || '',
+    fases: tryPanel.fases || 1,
+    minuto: parseInt(tryPanel.minuto) || 0,
+    convertido: null
+  };
+  stats.tries.push(t);
+  if (t.equipo === 'nos') stats.ptsNos += 5;
+  else stats.ptsRival += 5;
+  ultimoEvento = {campo: 'try', delta: 1, tryIdx: stats.tries.length - 1};
+  tryPanel = null;
+  vib(30);
+  autoSave();
+  renderApp();
+}
+
+function setConversion(idx, val) {
+  var t = stats.tries[idx];
+  if (!t) return;
+  t.convertido = val;
+  if (val === true) {
+    if (t.equipo === 'nos') stats.ptsNos += 2;
+    else stats.ptsRival += 2;
+  }
+  autoSave();
+  renderApp();
+}
+
+function delTry(idx) {
+  var t = stats.tries[idx];
+  if (!t) return;
+  var pts = 5 + (t.convertido === true ? 2 : 0);
+  if (t.equipo === 'nos') stats.ptsNos = Math.max(0, stats.ptsNos - pts);
+  else stats.ptsRival = Math.max(0, stats.ptsRival - pts);
+  stats.tries.splice(idx, 1);
+  autoSave();
+  renderApp();
+}
+
+// ── SAVE TO SUPABASE ────────────────────────────────────────
+async function guardarPartido() {
+  var btn = document.getElementById('btn-guardar');
+  if (!btn) return;
+  btn.textContent = 'Guardando...';
+
+  // Also save to localStorage of coach (resultado)
+  try {
+    var allSems = JSON.parse(localStorage.getItem('cumbre_sems') || '[]');
+    var semIdx = allSems.findIndex(function(s) { return s.sem === stats.semId; });
+    if (semIdx >= 0) {
+      if (!allSems[semIdx].resultado) allSems[semIdx].resultado = {};
+      var r = allSems[semIdx].resultado;
+      r.ptsNos = stats.ptsNos;
+      r.ptsRival = stats.ptsRival;
+      r.triesA = stats.tries.filter(function(t) { return t.equipo === 'nos'; }).length;
+      r.triesC = stats.tries.filter(function(t) { return t.equipo === 'rival'; }).length;
+      if (stats.peo !== null) r.peo = stats.peo;
+      if (stats.tackles !== null) r.tackles = stats.tackles;
+      var sg = stats.scrum.ganados;
+      var st = sg + stats.scrum.perdidos;
+      r.scrumG = sg; r.scrumP = st;
+      var lg = stats.line.ganados;
+      var lt = lg + stats.line.perdidos;
+      r.lineG = lg; r.lineP = lt;
+      localStorage.setItem('cumbre_sems', JSON.stringify(allSems));
+    }
+  } catch(e) {}
+
+  // Save full stats to Supabase
+  try {
+    await sb.from('semana_activa').upsert({
+      id: 1,
+      datos: JSON.parse(localStorage.getItem('cumbre_publicado') || '{}'),
+      updated_at: new Date().toISOString()
+    });
+  } catch(e) {}
+
+  btn.textContent = '\u2713 Guardado';
+  btn.style.background = '#27AE60';
+  vib([50, 30, 50]);
+  setTimeout(function() {
+    btn.textContent = '\uD83D\uDCBE GUARDAR PARTIDO';
+    btn.style.background = '#0D1B4E';
+  }, 3000);
+}
+
+// ── RENDER ──────────────────────────────────────────────────
+function renderApp() {
+  var app = document.getElementById('app');
+  var scrumPct = (stats.scrum.ganados + stats.scrum.perdidos) > 0
+    ? Math.round(stats.scrum.ganados / (stats.scrum.ganados + stats.scrum.perdidos) * 100) : 0;
+  var linePct = (stats.line.ganados + stats.line.perdidos) > 0
+    ? Math.round(stats.line.ganados / (stats.line.ganados + stats.line.perdidos) * 100) : 0;
+  var scrumCol = scrumPct >= 40 ? '#27AE60' : '#E74C3C';
+  var lineCol = linePct >= 90 ? '#27AE60' : '#E74C3C';
+
+  var html = '';
+
+  // Header
+  html += '<div class="hdr" style="position:relative">'
+    + '<div class="hdr-top">'
+    + '<button class="hdr-back" onclick="location.href=\'/coach\'">← Coach</button>'
+    + '<div class="hdr-title">\u25B2 REGATAS vs ' + stats.rival.toUpperCase() + ' \u00B7 ' + stats.fecha + '</div>'
+    + '<div></div>'
+    + '</div>'
+    + '<div class="hdr-score">'
+    + '<button class="hdr-score-btn" onclick="adjScore(\'nos\',-1)">\u2212</button>'
+    + '<div class="hdr-score-num">' + stats.ptsNos + '</div>'
+    + '<div class="hdr-score-vs">\u2014</div>'
+    + '<div class="hdr-score-num">' + stats.ptsRival + '</div>'
+    + '<button class="hdr-score-btn" onclick="adjScore(\'rival\',1)">+</button>'
+    + '</div>'
+    + '<div class="hdr-kpis">'
+    + '<div class="hdr-kpi"><span class="hdr-kpi-label">Scrum </span><span style="color:' + scrumCol + '">' + scrumPct + '%</span></div>'
+    + '<div class="hdr-kpi"><span class="hdr-kpi-label">Line </span><span style="color:' + lineCol + '">' + linePct + '%</span></div>'
+    + '</div>'
+    + '<button class="hdr-undo" onclick="undo()" title="Undo"' + (ultimoEvento ? '' : ' style="opacity:0.3"') + '>\u21A9</button>'
+    + '</div>';
+
+  // Tabs
+  var tabs = [
+    {id:'obtencion', label:'Obtenci\u00F3n'},
+    {id:'perdidas', label:'P\u00E9rdidas'},
+    {id:'penales', label:'Penales'},
+    {id:'tries', label:'Tries'}
+  ];
+  html += '<div class="tabs">';
+  tabs.forEach(function(t) {
+    html += '<button class="tkr-tab' + (activeTab === t.id ? ' active' : '') + '" onclick="setTab(\'' + t.id + '\')">' + t.label + '</button>';
+  });
+  html += '</div>';
+
+  // Body
+  html += '<div class="body">';
+  if (activeTab === 'obtencion') html += renderObtencion();
+  else if (activeTab === 'perdidas') html += renderPerdidas();
+  else if (activeTab === 'penales') html += renderPenales();
+  else if (activeTab === 'tries') html += renderTries();
+
+  // Post-partido (always at bottom)
+  html += '<div class="post-section">'
+    + '<div style="font-size:11px;font-weight:700;color:#0D1B4E;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.06em">Completar despu\u00E9s del partido</div>'
+    + '<div style="display:flex;gap:8px;margin-bottom:8px">'
+    + '<div style="flex:1"><div class="post-label">% PEO</div>'
+    + '<input class="post-input" type="number" min="0" max="100" value="' + (stats.peo !== null ? stats.peo : '') + '" onchange="stats.peo=parseInt(this.value)||null;autoSave()" placeholder="—"></div>'
+    + '<div style="flex:1"><div class="post-label">% Tackles err.</div>'
+    + '<input class="post-input" type="number" min="0" max="100" value="' + (stats.tackles !== null ? stats.tackles : '') + '" onchange="stats.tackles=parseInt(this.value)||null;autoSave()" placeholder="—"></div>'
+    + '</div></div>';
+
+  html += '</div>';
+
+  // Footer
+  html += '<div class="ftr">'
+    + '<button class="ftr-btn" id="btn-guardar" onclick="guardarPartido()">\uD83D\uDCBE GUARDAR PARTIDO</button>'
+    + '</div>';
+
+  app.innerHTML = html;
+}
+
+function renderObtencion() {
+  var s = stats.scrum;
+  var scrumTotal = s.ganados + s.perdidos;
+  var scrumPct = scrumTotal > 0 ? Math.round(s.ganados / scrumTotal * 100) : 0;
+  var l = stats.line;
+  var lineTotal = l.ganados + l.perdidos;
+  var linePct = lineTotal > 0 ? Math.round(l.ganados / lineTotal * 100) : 0;
+  var sal = stats.salidas;
+
+  var html = '';
+  // Scrum
+  html += '<div class="tkr-section-hdr" style="background:#1A3470">SCRUM<span>' + s.ganados + 'G \u00B7 ' + s.perdidos + 'P \u00B7 ' + scrumPct + '%</span></div>'
+    + '<div class="grid2">'
+    + makeBtn('scrum.ganados', '\u2713 GANADO', 'tkr-btn-win', s.ganados)
+    + makeBtn('scrum.perdidos', '\u2717 PERDIDO', 'tkr-btn-loss', s.perdidos)
+    + '</div>'
+    + '<div class="grid3">'
+    + makeBtn('scrum.robados', '\uD83C\uDFC6 ROBADO', 'tkr-btn-info', s.robados)
+    + makeBtn('scrum.torcidas', '\u21A9 TORCIDA', 'tkr-btn-gold', s.torcidas)
+    + makeBtn('scrum.penalFK', '\u26A0 PENAL/FK', 'tkr-btn-warn', s.penalFK)
+    + '</div>';
+
+  // Line
+  html += '<div class="tkr-section-hdr" style="background:#2B4EA0">LINE-OUT<span>' + l.ganados + 'G \u00B7 ' + l.perdidos + 'P \u00B7 ' + linePct + '%</span></div>'
+    + '<div class="grid2">'
+    + makeBtn('line.ganados', '\u2713 GANADO', 'tkr-btn-win', l.ganados)
+    + makeBtn('line.perdidos', '\u2717 PERDIDO', 'tkr-btn-loss', l.perdidos)
+    + '</div>'
+    + '<div class="grid3">'
+    + makeBtn('line.robados', '\uD83C\uDFC6 ROBADO', 'tkr-btn-info', l.robados)
+    + makeBtn('line.torcidas', '\u21A9 TORCIDA', 'tkr-btn-gold', l.torcidas)
+    + makeBtn('line.penalFK', '\u26A0 PENAL/FK', 'tkr-btn-warn', l.penalFK)
+    + '</div>';
+
+  // Salidas
+  html += '<div class="tkr-section-hdr" style="background:#444C6E">SALIDAS DE 22</div>'
+    + '<div class="grid2">'
+    + makeBtn('salidas.recBien', '\u2713 REC. BIEN', 'tkr-btn-win', sal.recBien)
+    + makeBtn('salidas.recMal', '\u2717 REC. MAL', 'tkr-btn-loss', sal.recMal)
+    + makeBtn('salidas.ganAlta', '\u2191 GANAMOS ALTA', 'tkr-btn-info', sal.ganAlta)
+    + makeBtn('salidas.malPat', '\u2717 MAL PATADA', 'tkr-btn-warn', sal.malPat)
+    + '</div>';
+
+  return html;
+}
+
+function renderPerdidas() {
+  var p = stats.perdidas;
+  var total = Object.keys(p).reduce(function(a, k) { return a + p[k]; }, 0);
+  var items = [
+    ['knockOn','Knock-on'], ['retener','Retener'], ['kickAfuera','Kick afuera'], ['kickNoRecup','Kick no recup.'],
+    ['tirarsEnRuck','Tirarse en ruck'], ['paseForward','Pase forward'], ['ingresoLateral','Ingreso lateral'], ['tackleCont','Tackle/cont.'],
+    ['manoEnRuck','Manos en ruck'], ['saleCampo','Sale del campo'], ['derrumbeMaill','Derrumbe maul'], ['maul','Maul'],
+    ['scrum','Scrum'], ['malPase','Mal pase'], ['ruck','Ruck'], ['line','Line-out'],
+    ['pescada','Pescada'], ['offside','Offside']
+  ];
+
+  var html = '<div class="tkr-section-hdr" style="background:#C0392B">P\u00C9RDIDAS<span>Total: ' + total + '</span></div>'
+    + '<div class="grid2">';
+  items.forEach(function(item) {
+    html += makeBtn('perdidas.' + item[0], item[1], 'tkr-btn-sm tkr-btn-neutral', p[item[0]]);
+  });
+  html += '</div>';
+  return html;
+}
+
+function renderPenales() {
+  var html = '<div class="sub-tabs">'
+    + '<button class="sub-tab ' + (penalSubTab === 'cometidos' ? 'sub-tab-active' : 'sub-tab-inactive') + '" onclick="setPenalSub(\'cometidos\')">Cometidos</button>'
+    + '<button class="sub-tab ' + (penalSubTab === 'favor' ? 'sub-tab-active' : 'sub-tab-inactive') + '" onclick="setPenalSub(\'favor\')">A favor</button>'
+    + '</div>';
+
+  if (penalSubTab === 'cometidos') {
+    var c = stats.penalesCometidos;
+    var total = Object.keys(c).reduce(function(a, k) { return a + c[k]; }, 0);
+    var items = [
+      ['offside','Offside'], ['inconducta','Inconducta'], ['tacklePeligroso','Tackle peligroso'],
+      ['kickAfuera','Kick afuera'], ['kickAdentro','Kick adentro'], ['tackleadorNoSale','Tackleador no sale'],
+      ['cargaSinPelota','Carga sin pelota'], ['cortina','Cortina'], ['diezYardas','10 yardas']
+    ];
+    html += '<div class="tkr-section-hdr" style="background:#C0392B">PENALES COMETIDOS<span>Total: ' + total + '</span></div>'
+      + '<div class="grid2">';
+    items.forEach(function(item) {
+      html += makeBtn('penalesCometidos.' + item[0], item[1], 'tkr-btn-sm tkr-btn-neutral', c[item[0]]);
+    });
+    html += '</div>';
+  } else {
+    var f = stats.penalesFavor;
+    var total = Object.keys(f).reduce(function(a, k) { return a + f[k]; }, 0);
+    var items = [
+      ['palosAfuera','Palos afuera'], ['palosAdentro','Palos adentro'],
+      ['jugadoRapido','Jugado r\u00E1pido'], ['jugadoNormal','Jugado normal'],
+      ['freekickRapido','FK r\u00E1pido'], ['freekickNormal','FK normal'],
+      ['scrum','Scrum']
+    ];
+    html += '<div class="tkr-section-hdr" style="background:#27AE60">PENALES A FAVOR<span>Total: ' + total + '</span></div>'
+      + '<div class="grid2">';
+    items.forEach(function(item) {
+      html += makeBtn('penalesFavor.' + item[0], item[1], 'tkr-btn-sm tkr-btn-neutral', f[item[0]]);
+    });
     html += '</div>';
   }
-  container.innerHTML = html;
+  return html;
 }
 
-function guardarResultado() {
-  if (!semNum) {
-    alert('No hay semana seleccionada');
-    return;
-  }
-  var btn = document.getElementById('btnSave');
-  btn.textContent = 'Guardando...';
-  btn.disabled = true;
+function renderTries() {
+  var nosT = stats.tries.filter(function(t) { return t.equipo === 'nos'; }).length;
+  var rivT = stats.tries.filter(function(t) { return t.equipo === 'rival'; }).length;
 
-  sb.from('semana_activa').select('datos').eq('id', 1).single().then(function(res) {
-    if (res.error || !res.data) {
-      btn.textContent = 'Error al leer datos';
-      btn.disabled = false;
-      return;
-    }
-    var datos = res.data.datos;
-    if (!datos.semanas[semNum]) {
-      btn.textContent = 'Semana no encontrada';
-      btn.disabled = false;
-      return;
-    }
+  var html = '<div class="tkr-section-hdr" style="background:#0D1B4E">TRIES<span>NOS ' + nosT + ' \u2014 RIV ' + rivT + '</span></div>';
 
-    // totales = obtenidos/dominados + perdidos
-    var totalLine = lineG + lineP;
-    var totalScrum = scrumG + scrumP;
-    var linePct = totalLine > 0 ? Math.round((lineG / totalLine) * 100) : 0;
-    var scrumPct = totalScrum > 0 ? Math.round((scrumG / totalScrum) * 100) : 0;
+  // Add try buttons
+  html += '<div class="grid2" style="margin-bottom:12px">'
+    + '<button class="tkr-btn tkr-btn-win" style="min-height:60px" onclick="openTryPanel(\'nos\')">+ TRY NUESTRO</button>'
+    + '<button class="tkr-btn tkr-btn-loss" style="min-height:60px" onclick="openTryPanel(\'rival\')">+ TRY RIVAL</button>'
+    + '</div>';
 
-    // Preservar KPIs que no se trackean en partido (peo, tackles)
-    var prev = datos.semanas[semNum].resultado || {};
-    var resultado = {
-      ptsNos: ptsNos,
-      ptsRival: ptsRival,
-      triesA: triesA,
-      triesC: triesC,
-      scrumG: scrumG,
-      scrumP: totalScrum,
-      lineG: lineG,
-      lineP: totalLine,
-      penales: penalesMiss,
-      line: linePct,
-      scrum: scrumPct,
-      peo: prev.peo !== undefined ? prev.peo : null,
-      tackles: prev.tackles !== undefined ? prev.tackles : null
-    };
-
-    datos.semanas[semNum].resultado = resultado;
-
-    sb.from('semana_activa').update({ datos: datos }).eq('id', 1).then(function(upRes) {
-      if (upRes.error) {
-        btn.textContent = 'Error al guardar';
-        btn.disabled = false;
-        return;
-      }
-
-      // También guardar en localStorage para que coach lo vea inmediato
-      guardarEnLocal(resultado);
-
-      btn.textContent = '\u2713 Guardado';
-      btn.classList.add('saved');
-      setTimeout(function() {
-        window.location.href = '/coach';
-      }, 2000);
+  // Try panel
+  if (tryPanel) {
+    var origenes = ['Penal','Line-out','Scrum','Salida','Pick&Go','Maul','Pelota rec.','FWD','BCK'];
+    html += '<div class="try-panel">'
+      + '<div style="font-size:12px;font-weight:700;color:#0D1B4E;margin-bottom:6px">Try ' + (tryPanel.equipo === 'nos' ? 'nuestro' : 'rival') + '</div>'
+      + '<div style="font-size:11px;color:#888;margin-bottom:4px">Origen</div>'
+      + '<div class="try-chips">';
+    origenes.forEach(function(o) {
+      html += '<button class="try-chip' + (tryPanel.origen === o ? ' sel' : '') + '" onclick="setTryOrigen(\'' + o + '\')">' + o + '</button>';
     });
+    html += '</div>'
+      + '<div style="font-size:11px;color:#888;margin-bottom:4px">Fases</div>'
+      + '<div class="try-fases">';
+    [1, 2, 3, '3+'].forEach(function(f) {
+      html += '<button class="try-fase' + (tryPanel.fases === f ? ' sel' : '') + '" onclick="setTryFases(' + (f === '3+' ? "'3+'" : f) + ')">' + f + '</button>';
+    });
+    html += '</div>'
+      + '<div style="font-size:11px;color:#888;margin-bottom:4px">Minuto</div>'
+      + '<input type="number" class="post-input" style="margin-bottom:8px;font-size:24px;text-align:center" placeholder="00" value="' + (tryPanel.minuto || '') + '" onchange="setTryMinuto(this.value)">'
+      + '<div style="display:flex;gap:8px">'
+      + '<button class="tkr-btn tkr-btn-neutral" style="flex:1" onclick="cancelTry()">Cancelar</button>'
+      + '<button class="tkr-btn" style="flex:2;background:#0D1B4E;color:#F5C518" onclick="saveTry()">\u2713 GUARDAR TRY</button>'
+      + '</div></div>';
+  }
+
+  // List of tries
+  stats.tries.forEach(function(t, idx) {
+    var isNos = t.equipo === 'nos';
+    html += '<div class="try-card">'
+      + '<div class="try-badge" style="background:' + (isNos ? '#27AE60' : '#E74C3C') + '"></div>'
+      + '<div class="try-detail">'
+      + (t.origen || '') + (t.fases ? ' \u00B7 ' + t.fases + ' fases' : '')
+      + '</div>'
+      + '<div class="try-min">' + (t.minuto || '?') + '\'</div>';
+    if (isNos) {
+      html += '<div class="try-conv">'
+        + '<button class="' + (t.convertido === true ? 'sel' : '') + '" onclick="setConversion(' + idx + ',true)">\u2713</button>'
+        + '<button class="' + (t.convertido === false ? 'sel' : '') + '" onclick="setConversion(' + idx + ',false)">\u2717</button>'
+        + '</div>';
+    }
+    html += '<button class="try-del" onclick="delTry(' + idx + ')">\u2715</button>'
+      + '</div>';
   });
+
+  return html;
 }
 
-function guardarEnLocal(resultado) {
-  try {
-    var raw = localStorage.getItem('cumbre_a_cumbre_2026');
-    if (!raw) return;
-    var data = JSON.parse(raw);
-    if (!data.sems) return;
-    // Encontrar la semana por número (semNum es 1-based)
-    var idx = data.sems.findIndex(function(s) { return s.sem === semNum; });
-    if (idx === -1) return;
-    data.sems[idx].resultado = resultado;
-    localStorage.setItem('cumbre_a_cumbre_2026', JSON.stringify(data));
-  } catch(e) {}
+function makeBtn(path, label, cls, count) {
+  return '<button class="tkr-btn ' + cls + '" onclick="inc(\'' + path + '\')">'
+    + label
+    + (count > 0 ? '<span class="tkr-counter">' + count + '</span>' : '')
+    + '</button>';
 }
 
-init();
+// ── INIT ────────────────────────────────────────────────────
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var sem = parseInt(params.get('sem'));
+  if (sem) {
+    loadSems().then(function() {
+      var s = SEMS.find(function(x) { return x.sem === sem; });
+      if (s) {
+        var saved = localStorage.getItem('tracker_partido_' + sem);
+        if (saved) {
+          try { stats = JSON.parse(saved); } catch(e) { stats = initStats(s); }
+        } else {
+          stats = initStats(s);
+        }
+        startApp();
+      } else {
+        showSelector();
+      }
+    });
+  } else {
+    showSelector();
+  }
+})();
 </script>
-<nav class="bottom-nav">
-  <a href="/hoy"><span>📋</span>HOY</a>
-  <a href="/partido" class="active"><span>🏉</span>PARTIDO</a>
-</nav>
 </body>
 </html>
