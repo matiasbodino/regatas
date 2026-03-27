@@ -437,6 +437,7 @@ select,input{font-family:inherit}
     <button class="nav-link" onclick="goPage('gantt')">Frecuencia</button>
     <button class="nav-link" onclick="goPage('biblioteca')">Biblioteca</button>
     <button class="nav-link" onclick="goPage('resultados')">📊 Resultados</button>
+    <button class="nav-link" onclick="goPage('jugadores')">👥 Jugadores</button>
   </div>
   <div class="nav-save-bar" style="display:flex;align-items:center;gap:6px;padding:0 12px;border-left:1px solid rgba(255,255,255,0.1)">
     <span id="save-indicator" style="font-size:10px;color:rgba(255,255,255,0.35);white-space:nowrap">sin cambios</span>
@@ -548,8 +549,31 @@ select,input{font-family:inherit}
   <div id="resultados-content"></div>
 </div>
 
+<div class="page" id="page-jugadores">
+  <div class="section-hdr">
+    <div><h2>👥 Jugadores</h2><p>Plantel, tackles y GPS</p></div>
+    <div class="tri">▲</div>
+  </div>
+  <div style="display:flex;border-radius:8px;overflow:hidden;border:1px solid #E2E7F5;margin-bottom:12px">
+    <button onclick="setJugTab('plantel')" id="jug-btn-plantel"
+      style="flex:1;padding:8px;font-size:11px;font-weight:700;border:none;cursor:pointer;background:#0D1B4E;color:#F5C518">
+      Plantel
+    </button>
+    <button onclick="setJugTab('tackles')" id="jug-btn-tackles"
+      style="flex:1;padding:8px;font-size:11px;font-weight:700;border:none;cursor:pointer;background:#fff;color:#888">
+      Tackles
+    </button>
+    <button onclick="setJugTab('gps')" id="jug-btn-gps"
+      style="flex:1;padding:8px;font-size:11px;font-weight:700;border:none;cursor:pointer;background:#fff;color:#888">
+      GPS
+    </button>
+  </div>
+  <div id="jugadores-content"></div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 // ── PIN LOCK ─────────────────────────────────────────────────────
 var PIN_CODE = 'Gonza2026';
@@ -608,6 +632,72 @@ const uid = () => 'b'+(++_uid);
 const mk  = (g,m,f,d='G') => ({id:uid(),tipo:'bloque',grupo:g,mins:m,faceta:f,dot:d,open:false,horaInicio:null,contenidos:[],links:[],backsParalelo:null});
 const mkA = (m=1) => ({id:uid(),tipo:'agua',mins:m});
 const mkB = (f,m,p='',l='') => ({id:uid(),faceta:f,mins:m,premisa:p,link:l});
+
+const PLANTEL = [
+  {id:1,  apellido:'Barbaccia',       nombre:'Tomás',       puesto:'Pilar izq',   m22:false},
+  {id:2,  apellido:'Camerlinckx',     nombre:'Enrique',     puesto:'Wing',        m22:false},
+  {id:3,  apellido:'Camerlinckx',     nombre:'Felipe',      puesto:'Octavo',      m22:false},
+  {id:4,  apellido:'Camerlinckx',     nombre:'Justo',       puesto:'Apertura',    m22:true},
+  {id:5,  apellido:'Camerlinckx',     nombre:'Mateo',       puesto:'Centro',      m22:false},
+  {id:6,  apellido:'de la Torre',     nombre:'José',        puesto:'Apertura',    m22:false},
+  {id:7,  apellido:'de los Reyes',    nombre:'Manuel',      puesto:'Hooker',      m22:false},
+  {id:8,  apellido:'Ferro',           nombre:'Marcos',      puesto:'3ra línea',   m22:false},
+  {id:9,  apellido:'Galli',           nombre:'Felipe',      puesto:'Pilar der',   m22:false},
+  {id:10, apellido:'García Campos',   nombre:'Agustín',     puesto:'Octavo',      m22:true},
+  {id:11, apellido:'Garcia Colinas',  nombre:'Pedro',       puesto:'Hooker',      m22:false},
+  {id:12, apellido:'Gobet',           nombre:'Juan Manuel', puesto:'Pilar der',   m22:false},
+  {id:13, apellido:'Gobet',           nombre:'Lucas',       puesto:'3ra línea',   m22:false},
+  {id:14, apellido:'Joseph',          nombre:'Marcos',      puesto:'Medio scrum', m22:false},
+  {id:15, apellido:'Klappenbach',     nombre:'Tobias',      puesto:'Centro',      m22:false},
+  {id:16, apellido:'Landivar',        nombre:'Beltran',     puesto:'Pilar izq',   m22:false},
+  {id:17, apellido:'Lopez Mañan',     nombre:'Bautista',    puesto:'2da línea',   m22:false},
+  {id:18, apellido:'Moadeb',          nombre:'Ramiro',      puesto:'Centro',      m22:false},
+  {id:19, apellido:'Pascuet',         nombre:'Matias',      puesto:'3ra línea',   m22:true},
+  {id:20, apellido:'Pisani',          nombre:'Francisco',   puesto:'Centro',      m22:false},
+  {id:21, apellido:'Ploder',          nombre:'Francisco',   puesto:'2da línea',   m22:false},
+  {id:22, apellido:'Reznick',         nombre:'Tomas',       puesto:'Wing',        m22:false},
+  {id:23, apellido:'Rugolo',          nombre:'Felipe',      puesto:'Wing',        m22:false},
+  {id:24, apellido:'Ruiz',            nombre:'Santiago',    puesto:'3ra línea',   m22:false},
+  {id:25, apellido:'Sanguinetti',     nombre:'Tomas',       puesto:'2da línea',   m22:false},
+  {id:26, apellido:'Sanguinetti',     nombre:'Valentin',    puesto:'2da línea',   m22:true},
+  {id:27, apellido:'Santa Ana',       nombre:'Tomas',       puesto:'3ra línea',   m22:false},
+  {id:28, apellido:'Terra',           nombre:'Felipe',      puesto:'Wing',        m22:false},
+  {id:29, apellido:'Tommasini',       nombre:'Felipe',      puesto:'Apertura',    m22:true},
+  {id:30, apellido:'Vega',            nombre:'Pedro',       puesto:'3ra línea',   m22:false},
+  {id:31, apellido:'Aguilar',         nombre:'Julián',      puesto:'Apertura',    m22:false},
+  {id:32, apellido:'Castro Feijoo',   nombre:'Tomás',       puesto:'Hooker',      m22:true},
+  {id:33, apellido:'Méndez',          nombre:'Santiago',    puesto:'2da línea',   m22:true},
+  {id:34, apellido:'Perez del Cerro', nombre:'Zenon',       puesto:'Centro',      m22:false},
+  {id:35, apellido:'Sciandro',        nombre:'Esteban',     puesto:'Pilar der',   m22:false},
+  {id:36, apellido:'De la Torre',     nombre:'Esteban',     puesto:'Medio scrum', m22:false},
+];
+
+const GRUPOS_POSICION = {
+  'Pilares':      ['Pilar izq','Pilar der'],
+  'Hookers':      ['Hooker'],
+  '2da línea':    ['2da línea'],
+  '3ra línea':    ['3ra línea','Octavo'],
+  'Medio scrum':  ['Medio scrum'],
+  'Apertura':     ['Apertura'],
+  'Centros':      ['Centro'],
+  'Wings':        ['Wing'],
+};
+
+var APODOS_MAP = {};
+var TACKLES_DATA = {};
+var GPS_DATA = {};
+
+function loadJugadoresData() {
+  try {
+    var am = localStorage.getItem('apodos_map');
+    if (am) APODOS_MAP = JSON.parse(am);
+    var td = localStorage.getItem('tackles_data');
+    if (td) TACKLES_DATA = JSON.parse(td);
+    var gd = localStorage.getItem('gps_data');
+    if (gd) GPS_DATA = JSON.parse(gd);
+  } catch(e) {}
+}
+loadJugadoresData();
 
 const SEMS = [
   // ── CUMBRE 1: KOSCIUSZKO ──
@@ -754,6 +844,7 @@ function goPage(id) {
   if(id==='gantt')     renderGantt();
   if(id==='biblioteca') renderBiblioteca();
   if(id==='resultados') renderResultados();
+  if(id==='jugadores') renderJugadores();
 }
 
 
@@ -3190,6 +3281,328 @@ renderCumbres();
 renderTabs();
 renderAll();
 renderTrackerBtn();
+
+// ── JUGADORES ─────────────────────────────────────────────────────
+var jugTab = 'plantel';
+var jugSemSel = 0;
+
+function setJugTab(tab) {
+  jugTab = tab;
+  ['plantel','tackles','gps'].forEach(function(t) {
+    var btn = document.getElementById('jug-btn-' + t);
+    if (btn) {
+      btn.style.background = t === tab ? '#0D1B4E' : '#fff';
+      btn.style.color = t === tab ? '#F5C518' : '#888';
+    }
+  });
+  renderJugadores();
+}
+
+function getSemLabel(semIdx) {
+  var s = SEMS[semIdx];
+  if (!s) return '';
+  return 'Sem ' + s.sem + ' · ' + s.fecha + ' · ' + s.rival;
+}
+
+function getJugadorStats(jugId) {
+  var partidos = 0, tacklesTotal = 0, erradosTotal = 0, volTotal = 0, volPartidos = 0;
+  Object.keys(TACKLES_DATA).forEach(function(semId) {
+    var d = TACKLES_DATA[semId][jugId];
+    if (d) { partidos++; tacklesTotal += d.t || 0; erradosTotal += d.err || 0; }
+  });
+  Object.keys(GPS_DATA).forEach(function(semId) {
+    var g = GPS_DATA[semId][jugId];
+    if (g && g.vol) { volTotal += g.vol; volPartidos++; }
+  });
+  return {
+    partidos: partidos,
+    tackles: tacklesTotal,
+    errados: erradosTotal,
+    pctErr: tacklesTotal > 0 ? Math.round(erradosTotal / tacklesTotal * 100) : null,
+    volProm: volPartidos > 0 ? Math.round(volTotal / volPartidos) : null,
+  };
+}
+
+function renderJugadores() {
+  var el = document.getElementById('jugadores-content');
+  if (!el) return;
+  if (jugTab === 'plantel') renderPlantel(el);
+  else if (jugTab === 'tackles') renderTacklesTab(el);
+  else renderGpsTab(el);
+}
+
+function renderPlantel(el) {
+  var html = '<table class="res-table"><thead><tr>'
+    + '<th>#</th><th>Jugador</th><th>Puesto</th><th>m22</th><th>Partidos</th><th>Tkl</th><th>% Err</th><th>Vol Prom</th>'
+    + '</tr></thead><tbody>';
+  var orden = ['Pilares','Hookers','2da línea','3ra línea','Medio scrum','Apertura','Centros','Wings'];
+  var sorted = [];
+  orden.forEach(function(grp) {
+    var puestos = GRUPOS_POSICION[grp];
+    PLANTEL.forEach(function(p) {
+      if (puestos.indexOf(p.puesto) >= 0) sorted.push(p);
+    });
+  });
+  sorted.forEach(function(p) {
+    var st = getJugadorStats(p.id);
+    var errColor = st.pctErr === null ? '' : (st.pctErr <= 10 ? 'color:#27AE60' : (st.pctErr <= 20 ? 'color:#F5C518' : 'color:#E74C3C'));
+    html += '<tr>'
+      + '<td>' + p.id + '</td>'
+      + '<td style="font-weight:600">' + p.apellido + ', ' + p.nombre + '</td>'
+      + '<td>' + p.puesto + '</td>'
+      + '<td>' + (p.m22 ? '⭐' : '') + '</td>'
+      + '<td>' + st.partidos + '</td>'
+      + '<td>' + st.tackles + '</td>'
+      + '<td style="font-weight:700;' + errColor + '">' + (st.pctErr !== null ? st.pctErr + '%' : '—') + '</td>'
+      + '<td>' + (st.volProm !== null ? st.volProm + 'm' : '—') + '</td>'
+      + '</tr>';
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function renderSemSelector(tipo) {
+  var html = '<select onchange="jugSemSel=parseInt(this.value);renderJugadores()" '
+    + 'style="width:100%;padding:8px 10px;font-size:16px;border-radius:8px;border:1px solid #E2E7F5;font-weight:600;color:#0D1B4E;margin-bottom:12px">';
+  SEMS.forEach(function(s, i) {
+    var sel = i === jugSemSel ? ' selected' : '';
+    html += '<option value="' + i + '"' + sel + '>Sem ' + s.sem + ' · ' + s.fecha + ' · ' + s.rival + '</option>';
+  });
+  html += '</select>';
+  html += '<div style="margin-bottom:12px">'
+    + '<label style="display:inline-block;padding:10px 16px;background:#0D1B4E;color:#F5C518;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">'
+    + '📂 Subir planilla de ' + tipo
+    + '<input type="file" accept=".xlsx,.xls,.csv" onchange="handleFileUpload(this.files[0],\'' + tipo + '\')" style="display:none">'
+    + '</label></div>';
+  return html;
+}
+
+function renderTacklesTab(el) {
+  var html = renderSemSelector('tackles');
+  var semId = jugSemSel;
+  var data = TACKLES_DATA[semId];
+  if (data) {
+    html += '<table class="res-table"><thead><tr>'
+      + '<th>Jugador</th><th>Puesto</th><th>Tkl</th><th>Pos</th><th>Doble</th><th>Pasivo</th><th>Err</th><th>% Err</th>'
+      + '</tr></thead><tbody>';
+    var totalT = 0, totalP = 0, totalD = 0, totalPas = 0, totalE = 0;
+    Object.keys(data).forEach(function(jugId) {
+      var d = data[jugId];
+      var p = PLANTEL.find(function(x) { return x.id === parseInt(jugId); });
+      if (!p) return;
+      var pctErr = d.t > 0 ? Math.round(d.err / d.t * 100) : 0;
+      var errColor = pctErr <= 10 ? 'color:#27AE60' : (pctErr <= 20 ? 'color:#F5C518' : 'color:#E74C3C');
+      totalT += d.t || 0; totalP += d.pos || 0; totalD += d.doble || 0;
+      totalPas += d.pasivo || 0; totalE += d.err || 0;
+      html += '<tr>'
+        + '<td style="font-weight:600">' + p.apellido + '</td>'
+        + '<td>' + p.puesto + '</td>'
+        + '<td style="font-weight:700">' + (d.t || 0) + '</td>'
+        + '<td>' + (d.pos || 0) + '</td>'
+        + '<td>' + (d.doble || 0) + '</td>'
+        + '<td>' + (d.pasivo || 0) + '</td>'
+        + '<td>' + (d.err || 0) + '</td>'
+        + '<td style="font-weight:700;' + errColor + '">' + pctErr + '%</td>'
+        + '</tr>';
+    });
+    var totalPct = totalT > 0 ? Math.round(totalE / totalT * 100) : 0;
+    html += '<tr style="background:#0D1B4E;color:#F5C518;font-weight:700">'
+      + '<td colspan="2">TOTAL</td>'
+      + '<td>' + totalT + '</td><td>' + totalP + '</td><td>' + totalD + '</td>'
+      + '<td>' + totalPas + '</td><td>' + totalE + '</td><td>' + totalPct + '%</td>'
+      + '</tr></tbody></table>';
+  } else {
+    html += '<div style="text-align:center;padding:30px;color:#888;font-size:13px">Sin datos de tackles para esta semana. Subí la planilla.</div>';
+  }
+  el.innerHTML = html;
+}
+
+function renderGpsTab(el) {
+  var html = renderSemSelector('gps');
+  var semId = jugSemSel;
+  var data = GPS_DATA[semId];
+  if (data) {
+    html += '<table class="res-table"><thead><tr>'
+      + '<th>Jugador</th><th>Puesto</th><th>Vol</th><th>HSR</th><th>PL</th><th>Ctc</th><th>Tkl</th><th>Zona</th>'
+      + '</tr></thead><tbody>';
+    Object.keys(data).forEach(function(jugId) {
+      var g = data[jugId];
+      var p = PLANTEL.find(function(x) { return x.id === parseInt(jugId); });
+      if (!p) return;
+      // Calcular zona vs promedio historico
+      var st = getJugadorStats(parseInt(jugId));
+      var zona = '🔵';
+      if (st.volProm !== null && g.vol) {
+        if (g.vol >= st.volProm * 0.9) zona = '🟢';
+        else if (g.vol >= st.volProm * 0.7) zona = '🟡';
+        else zona = '🔴';
+      }
+      html += '<tr>'
+        + '<td style="font-weight:600">' + p.apellido + '</td>'
+        + '<td>' + p.puesto + '</td>'
+        + '<td style="font-weight:700">' + (g.vol || 0) + '</td>'
+        + '<td>' + (g.hsr || 0) + '</td>'
+        + '<td>' + (g.pl || 0) + '</td>'
+        + '<td>' + (g.ctc || 0) + '</td>'
+        + '<td>' + (g.tkl || 0) + '</td>'
+        + '<td style="font-size:16px">' + zona + '</td>'
+        + '</tr>';
+    });
+    html += '</tbody></table>';
+  } else {
+    html += '<div style="text-align:center;padding:30px;color:#888;font-size:13px">Sin datos de GPS para esta semana. Subí la planilla.</div>';
+  }
+  el.innerHTML = html;
+}
+
+function handleFileUpload(file, tipo) {
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var data = new Uint8Array(e.target.result);
+      var wb = XLSX.read(data, {type:'array'});
+      var ws = wb.Sheets[wb.SheetNames[0]];
+      var rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+
+      var headerRow = 0;
+      var maxStrings = 0;
+      rows.slice(0, 5).forEach(function(row, i) {
+        var strings = row.filter(function(c) { return typeof c === 'string' && c.trim(); }).length;
+        if (strings > maxStrings) { maxStrings = strings; headerRow = i; }
+      });
+      var headers = rows[headerRow];
+
+      var nameCol = -1;
+      headers.forEach(function(h, i) {
+        if (nameCol < 0 && typeof h === 'string' && h.trim()) nameCol = i;
+      });
+
+      var KEYWORDS = tipo === 'tackles'
+        ? {t:['tackles','total','tkl'], pos:['positivo','pos'], doble:['doble'], pasivo:['pasivo'], err:['errado','errados','err','missed']}
+        : {vol:['vol','volume','distancia'], hsr:['hsr','high','velocidad'], pl:['pl','playerload','load'], acc:['acc','accel'], decel:['decel'], ctc:['ctc','contact','ctcts'], tkl:['tkl','tackle']};
+
+      var colMap = {};
+      headers.forEach(function(h, i) {
+        if (typeof h !== 'string') return;
+        var hl = h.toLowerCase().trim();
+        Object.keys(KEYWORDS).forEach(function(key) {
+          KEYWORDS[key].forEach(function(kw) {
+            if (hl.indexOf(kw) >= 0 && !colMap[key]) colMap[key] = i;
+          });
+        });
+      });
+
+      var jugadores = [];
+      rows.slice(headerRow + 1).forEach(function(row) {
+        if (!row[nameCol]) return;
+        var nombre = String(row[nameCol]).trim();
+        if (nombre.toLowerCase() === 'total' || !nombre || nombre.length < 2) return;
+        var entry = {nombre: nombre};
+        Object.keys(colMap).forEach(function(key) {
+          var val = row[colMap[key]];
+          entry[key] = parseInt(val) || 0;
+        });
+        jugadores.push(entry);
+      });
+
+      if (jugadores.length === 0) { alert('No se encontraron jugadores en el archivo'); return; }
+      renderMapeo(jugadores, tipo, jugSemSel);
+    } catch(err) {
+      alert('Error al leer el archivo: ' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function renderMapeo(jugadores, tipo, semId) {
+  var html = '<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:500;overflow-y:auto;padding:20px">'
+    + '<div style="background:#fff;border-radius:12px;max-width:600px;margin:0 auto;overflow:hidden">'
+    + '<div style="background:#0D1B4E;padding:14px 18px;display:flex;align-items:center;justify-content:space-between">'
+    + '<div>'
+    + '<div style="font-size:13px;font-weight:700;color:#F5C518">Confirmá quién es cada jugador</div>'
+    + '<div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px">' + getSemLabel(semId) + '</div>'
+    + '</div>'
+    + '<button onclick="cerrarMapeo()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-size:18px;cursor:pointer">✕</button>'
+    + '</div>'
+    + '<div style="padding:12px 16px">';
+
+  jugadores.forEach(function(jug, idx) {
+    var conocido = APODOS_MAP[jug.nombre];
+    var bgColor = conocido ? '#F0FAF4' : '#FFFBEA';
+    var badge = conocido
+      ? '<span style="font-size:10px;color:#27AE60;font-weight:600">✓ conocido</span>'
+      : '<span style="font-size:10px;color:#B8860B;font-weight:600">nuevo</span>';
+
+    var opts = '<option value="">— elegir —</option>';
+    PLANTEL.forEach(function(p) {
+      var sel = conocido === p.id ? ' selected' : '';
+      opts += '<option value="' + p.id + '"' + sel + '>' + p.apellido + ' ' + p.nombre + ' (' + p.puesto + ')</option>';
+    });
+
+    html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:0.5px solid #E2E7F5;background:' + bgColor + ';margin:0 -16px">'
+      + '<div style="font-size:13px;font-weight:600;color:#0D1B4E;min-width:80px">' + jug.nombre + '</div>'
+      + badge
+      + '<select id="map-' + idx + '" style="flex:1;font-size:16px;padding:4px 6px;border-radius:6px;border:0.5px solid #C5CCE0">' + opts + '</select>'
+      + '</div>';
+  });
+
+  html += '</div>'
+    + '<div style="padding:14px 16px;border-top:0.5px solid #E2E7F5">'
+    + '<button id="btn-confirmar-mapeo" style="width:100%;padding:12px;background:#0D1B4E;color:#F5C518;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">✓ Confirmar y guardar</button>'
+    + '</div></div></div>';
+
+  var overlay = document.createElement('div');
+  overlay.id = 'mapeo-overlay';
+  overlay.innerHTML = html;
+  document.body.appendChild(overlay);
+
+  // Store data for confirm handler
+  window._mapeoJugadores = jugadores;
+  window._mapeoTipo = tipo;
+  window._mapeoSemId = semId;
+  document.getElementById('btn-confirmar-mapeo').onclick = function() { confirmarMapeo(); };
+}
+
+function cerrarMapeo() {
+  var el = document.getElementById('mapeo-overlay');
+  if (el) el.parentNode.removeChild(el);
+}
+
+function confirmarMapeo() {
+  var jugadores = window._mapeoJugadores;
+  var tipo = window._mapeoTipo;
+  var semId = window._mapeoSemId;
+
+  jugadores.forEach(function(jug, idx) {
+    var sel = document.getElementById('map-' + idx);
+    if (!sel || !sel.value) return;
+    var jugId = parseInt(sel.value);
+    APODOS_MAP[jug.nombre] = jugId;
+
+    if (tipo === 'tackles') {
+      if (!TACKLES_DATA[semId]) TACKLES_DATA[semId] = {};
+      TACKLES_DATA[semId][jugId] = {
+        t: jug.t || 0, pos: jug.pos || 0, doble: jug.doble || 0,
+        pasivo: jug.pasivo || 0, err: jug.err || 0,
+      };
+    } else {
+      if (!GPS_DATA[semId]) GPS_DATA[semId] = {};
+      GPS_DATA[semId][jugId] = {
+        vol: jug.vol || 0, hsr: jug.hsr || 0, pl: jug.pl || 0,
+        acc: jug.acc || 0, decel: jug.decel || 0, ctc: jug.ctc || 0, tkl: jug.tkl || 0,
+      };
+    }
+  });
+
+  localStorage.setItem('apodos_map', JSON.stringify(APODOS_MAP));
+  localStorage.setItem('tackles_data', JSON.stringify(TACKLES_DATA));
+  localStorage.setItem('gps_data', JSON.stringify(GPS_DATA));
+
+  cerrarMapeo();
+  renderJugadores();
+}
+
 </script>
 <div id="tracker-flotante-wrap"></div>
 </body>
