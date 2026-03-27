@@ -3808,21 +3808,45 @@ function renderEquipoPanel() {
     html += '</div></div>';
 
     // Suplentes section below field
-    html += '<div style="margin-top:12px">'
-      + '<div style="font-size:10px;font-weight:700;color:#0D1B4E;margin-bottom:6px">SUPLENTES FRESCOS <span style="color:#888">' + eq.suplentes.length + '/8</span></div>'
-      + '<div style="display:flex;flex-wrap:wrap;gap:4px">';
+    html += '<div style="margin-top:12px;background:#fff;border-radius:10px;padding:10px 12px;border:0.5px solid #E2E7F5">'
+      + '<div style="font-size:11px;font-weight:700;color:#0D1B4E;margin-bottom:8px">SUPLENTES FRESCOS <span style="color:#888">' + eq.suplentes.length + '/8</span></div>';
 
-    PLANTEL.forEach(function(p) {
-      if (eq.titulares.indexOf(p.id) >= 0) return;
-      var isSel = eq.suplentes.indexOf(p.id) >= 0;
-      var isFull = eq.suplentes.length >= 8 && !isSel;
-      var cls = 'equipo-jug-btn' + (isSel ? ' equipo-jug-btn-sel' : '') + (isFull ? ' equipo-jug-btn-dis' : '');
-      html += '<button class="' + cls + '" style="font-size:11px;padding:4px 8px;min-height:32px" onclick="' + (isFull ? '' : 'toggleJugador(' + semNum + ',' + p.id + ',\'suplentes\',\'' + tab + '\')') + '">'
-        + p.apellido + (p.m22 ? '<span class="equipo-m22">m22</span>' : '')
-        + '</button>';
+    var supOrden = ['Pilares','Hookers','2da l\u00EDnea','3ra l\u00EDnea','Medio scrum','Apertura','Centros','Wings'];
+    supOrden.forEach(function(grp) {
+      var puestos = GRUPOS_POSICION[grp];
+      if (!puestos) return;
+      var jugs = PLANTEL.filter(function(p) {
+        return puestos.indexOf(p.puesto) >= 0 && eq.titulares.indexOf(p.id) < 0;
+      });
+      if (jugs.length === 0) return;
+      html += '<div style="font-size:9px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.05em;margin:6px 0 3px">' + grp + '</div>'
+        + '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px">';
+      jugs.forEach(function(p) {
+        var isSel = eq.suplentes.indexOf(p.id) >= 0;
+        var isFull = eq.suplentes.length >= 8 && !isSel;
+        var bg = isSel ? '#0D1B4E' : '#F4F6FF';
+        var col = isSel ? '#F5C518' : '#444';
+        var bdr = isSel ? '#F5C518' : '#E2E7F5';
+        var opa = isFull ? 'opacity:0.4;cursor:not-allowed;' : 'cursor:pointer;';
+        html += '<button style="font-size:12px;padding:5px 10px;min-height:36px;border-radius:8px;border:1.5px solid ' + bdr + ';background:' + bg + ';color:' + col + ';font-weight:600;' + opa + '" '
+          + 'onclick="' + (isFull ? '' : 'toggleJugador(' + semNum + ',' + p.id + ',\'suplentes\',\'' + tab + '\')') + '">'
+          + p.apellido + (p.m22 ? ' <span style="font-size:8px;background:#FEF9D9;color:#5A4500;padding:1px 3px;border-radius:3px">m22</span>' : '')
+          + '</button>';
+      });
+      html += '</div>';
     });
 
-    html += '</div></div></div>';
+    html += '</div>';
+
+    // Share button
+    html += '<div style="margin-top:10px;display:flex;gap:8px">'
+      + '<button onclick="capturarEquipo(' + semNum + ',\'' + tab + '\')" style="flex:1;padding:10px;font-size:12px;font-weight:700;border-radius:8px;border:1px solid #E2E7F5;background:#fff;color:#0D1B4E;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px">'
+      + '\uD83D\uDCF7 Compartir equipo</button>'
+      + '<button onclick="copiarEquipoWA(' + semNum + ',\'' + tab + '\')" style="flex:1;padding:10px;font-size:12px;font-weight:700;border-radius:8px;border:1px solid #27AE60;background:#27AE60;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px">'
+      + '\uD83D\uDCCB Copiar WhatsApp</button>'
+      + '</div>';
+
+    html += '</div>';
   }
   html += '</div>';
   return html;
@@ -3990,6 +4014,68 @@ function eliminarJugador(jugId) {
   localStorage.setItem('plantel_custom', JSON.stringify(PLANTEL));
   cerrarModalJugador();
   renderJugadores();
+}
+
+// ── COMPARTIR EQUIPO ──────────────────────────────────────────
+function capturarEquipo(semNum, tab) {
+  var panel = document.querySelector('.equipo-body');
+  if (!panel) return;
+  var btn = event.currentTarget;
+  btn.textContent = 'Generando...';
+  html2canvas(panel, {scale:2, backgroundColor:'#fff', useCORS:true}).then(function(canvas) {
+    canvas.toBlob(function(blob) {
+      if (!blob) { btn.textContent = '\uD83D\uDCF7 Compartir equipo'; return; }
+      var file = new File([blob], 'equipo-regatas.png', {type:'image/png'});
+      if (navigator.share && navigator.canShare && navigator.canShare({files:[file]})) {
+        navigator.share({files:[file], title:'Equipo Regatas'}).catch(function(){});
+      } else {
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url; a.download = 'equipo-regatas.png'; a.click();
+        URL.revokeObjectURL(url);
+      }
+      btn.textContent = '\uD83D\uDCF7 Compartir equipo';
+    }, 'image/png');
+  }).catch(function() { btn.textContent = '\uD83D\uDCF7 Compartir equipo'; });
+}
+
+function copiarEquipoWA(semNum, tab) {
+  var s = SEMS.find(function(x) { return x.sem === semNum; });
+  if (!s) return;
+  ensureResultado(s);
+  var eq = s.resultado.equipo[tab];
+  var assigns = getSlotAssignments(semNum, tab);
+  var tabLabel = tab === 'A' ? '1er Equipo' : '2do Equipo';
+
+  var txt = '\u25B2 *REGATAS BELLAVISTA \u00B7 PRIMERA*\n';
+  txt += '*Sem ' + s.sem + ' vs ' + s.rival + ' \u00B7 ' + s.fecha + ' \u00B7 ' + (s.local === 'L' ? 'Local' : 'Visitante') + '*\n';
+  txt += '*' + tabLabel + '*\n\n';
+
+  txt += '*TITULARES*\n';
+  FIELD_SLOTS.forEach(function(slot) {
+    var jugId = assigns[slot.num];
+    var p = jugId ? PLANTEL.find(function(x) { return x.id === jugId; }) : null;
+    txt += slot.num + '. ' + (p ? p.apellido + ' ' + p.nombre : '_vacante_') + ' (' + slot.puesto + ')\n';
+  });
+
+  if (eq.suplentes.length > 0) {
+    txt += '\n*SUPLENTES*\n';
+    eq.suplentes.forEach(function(id, i) {
+      var p = PLANTEL.find(function(x) { return x.id === id; });
+      if (p) txt += (16 + i) + '. ' + p.apellido + ' ' + p.nombre + ' (' + p.puesto + ')\n';
+    });
+  }
+
+  txt += '\n_Ser Mejores, Siempre_';
+
+  navigator.clipboard.writeText(txt).then(function() {
+    var btn = document.querySelector('[onclick*="copiarEquipoWA"]');
+    if (btn) {
+      btn.textContent = '\u2713 Copiado';
+      btn.style.background = '#1A6B3E';
+      setTimeout(function() { btn.textContent = '\uD83D\uDCCB Copiar WhatsApp'; btn.style.background = '#27AE60'; }, 2000);
+    }
+  });
 }
 
 </script>
