@@ -3657,11 +3657,114 @@ function toggleJugador(semNum, jugId, tipo, tab) {
   renderResultadoSection();
 }
 
-var IDEAL_POS = {
-  'Pilares': 2, 'Hookers': 1, '2da línea': 2,
-  '3ra línea': 3, 'Medio scrum': 1, 'Apertura': 1,
-  'Centros': 2, 'Wings': 3
-};
+// Rugby field positions: [label, puesto filter, grid-row, grid-column]
+var FIELD_SLOTS = [
+  {num:1,  label:'1',  puesto:'Pilar izq',   row:1, col:3},
+  {num:2,  label:'2',  puesto:'Hooker',      row:1, col:5},
+  {num:3,  label:'3',  puesto:'Pilar der',   row:1, col:7},
+  {num:4,  label:'4',  puesto:'2da l\u00EDnea', row:2, col:4},
+  {num:5,  label:'5',  puesto:'2da l\u00EDnea', row:2, col:6},
+  {num:6,  label:'6',  puesto:'3ra l\u00EDnea', row:3, col:3},
+  {num:7,  label:'7',  puesto:'3ra l\u00EDnea', row:3, col:7},
+  {num:8,  label:'8',  puesto:'Octavo',      row:3, col:5},
+  {num:9,  label:'9',  puesto:'Medio scrum', row:4, col:4},
+  {num:10, label:'10', puesto:'Apertura',    row:4, col:6},
+  {num:11, label:'11', puesto:'Wing',        row:5, col:1},
+  {num:12, label:'12', puesto:'Centro',      row:5, col:4},
+  {num:13, label:'13', puesto:'Centro',      row:5, col:6},
+  {num:14, label:'14', puesto:'Wing',        row:5, col:9},
+  {num:15, label:'15', puesto:'Wing',        row:6, col:5},
+];
+
+// Track which player is assigned to each slot
+// slotAssignments[semNum][tab] = { 1: jugId, 2: jugId, ... }
+var slotAssignments = {};
+
+function getSlotAssignments(semNum, tab) {
+  if (!slotAssignments[semNum]) slotAssignments[semNum] = {};
+  if (!slotAssignments[semNum][tab]) slotAssignments[semNum][tab] = {};
+  return slotAssignments[semNum][tab];
+}
+
+function loadSlotAssignments() {
+  try {
+    var sa = localStorage.getItem('slot_assignments');
+    if (sa) slotAssignments = JSON.parse(sa);
+  } catch(e) {}
+}
+loadSlotAssignments();
+
+function saveSlotAssignments() {
+  localStorage.setItem('slot_assignments', JSON.stringify(slotAssignments));
+}
+
+function assignSlot(semNum, tab, slotNum, jugId) {
+  var assigns = getSlotAssignments(semNum, tab);
+  var s = SEMS.find(function(x) { return x.sem === semNum; });
+  if (!s) return;
+  ensureResultado(s);
+  var eq = s.resultado.equipo[tab];
+
+  // Remove old player from titulares if changing
+  var oldId = assigns[slotNum];
+  if (oldId) {
+    var idx = eq.titulares.indexOf(oldId);
+    if (idx >= 0) eq.titulares.splice(idx, 1);
+  }
+
+  if (jugId) {
+    // Remove this player from any other slot
+    Object.keys(assigns).forEach(function(k) {
+      if (assigns[k] === jugId) {
+        delete assigns[k];
+      }
+    });
+    assigns[slotNum] = jugId;
+    if (eq.titulares.indexOf(jugId) < 0 && eq.titulares.length < 15) {
+      eq.titulares.push(jugId);
+    }
+  } else {
+    delete assigns[slotNum];
+  }
+
+  saveSlotAssignments();
+  saveToLocal();
+  renderResultadoSection();
+}
+
+function renderFieldSlot(semNum, tab, slot, assigns) {
+  var jugId = assigns[slot.num];
+  var p = jugId ? PLANTEL.find(function(x) { return x.id === jugId; }) : null;
+  var candidates = PLANTEL.filter(function(x) {
+    if (slot.puesto === 'Octavo') return x.puesto === 'Octavo' || x.puesto === '3ra l\u00EDnea';
+    if (slot.puesto === '3ra l\u00EDnea') return x.puesto === '3ra l\u00EDnea' || x.puesto === 'Octavo';
+    return x.puesto === slot.puesto;
+  });
+  // Also allow assigning anyone from other slots
+  var usedIds = [];
+  Object.keys(assigns).forEach(function(k) { if (assigns[k] && parseInt(k) !== slot.num) usedIds.push(assigns[k]); });
+
+  var opts = '<option value="">—</option>';
+  candidates.forEach(function(c) {
+    var used = usedIds.indexOf(c.id) >= 0;
+    var sel = jugId === c.id ? ' selected' : '';
+    opts += '<option value="' + c.id + '"' + sel + (used ? ' style="color:#aaa"' : '') + '>'
+      + c.apellido + (c.m22 ? ' m22' : '') + '</option>';
+  });
+
+  var bgColor = p ? 'rgba(13,27,78,0.9)' : 'rgba(255,255,255,0.15)';
+  var borderColor = p ? '#F5C518' : 'rgba(255,255,255,0.3)';
+  var textColor = p ? '#F5C518' : 'rgba(255,255,255,0.6)';
+
+  return '<div style="grid-row:' + slot.row + ';grid-column:' + slot.col + ';text-align:center">'
+    + '<div style="background:' + bgColor + ';border:1.5px solid ' + borderColor + ';border-radius:10px;padding:4px 2px;min-width:70px">'
+    + '<div style="font-size:10px;font-weight:800;color:' + textColor + ';margin-bottom:2px">' + slot.label + '</div>'
+    + '<select onchange="assignSlot(' + semNum + ',\'' + tab + '\',' + slot.num + ',parseInt(this.value)||null)" '
+    + 'style="width:100%;font-size:11px;padding:2px;border:none;border-radius:4px;background:rgba(255,255,255,0.1);color:#fff;text-align:center;appearance:none;-webkit-appearance:none">'
+    + opts + '</select>'
+    + (p ? '<div style="font-size:9px;color:#fff;margin-top:1px;font-weight:600">' + p.apellido + '</div>' : '')
+    + '</div></div>';
+}
 
 function renderEquipoPanel() {
   var s = SEMS[curSem];
@@ -3671,12 +3774,13 @@ function renderEquipoPanel() {
   var tab = equipoTab[semNum] || 'A';
   var eq = s.resultado.equipo[tab];
   var titCount = eq.titulares.length;
+  var assigns = getSlotAssignments(semNum, tab);
 
   var html = '<div class="equipo-panel">'
     + '<div class="equipo-hdr" onclick="toggleEquipo(' + semNum + ')">'
     + '<div>'
     + '<div class="equipo-hdr-title">SELECCI\u00D3N \u00B7 SEM ' + semNum + ' \u00B7 VS ' + s.rival.toUpperCase() + '</div>'
-    + '<div class="equipo-hdr-sub">' + titCount + '/15 titulares seleccionados</div>'
+    + '<div class="equipo-hdr-sub">' + titCount + '/15 titulares</div>'
     + '</div>'
     + '<span class="equipo-hdr-chevron" style="transform:rotate(' + (isOpen ? '180' : '0') + 'deg)">\u25BC</span>'
     + '</div>';
@@ -3688,61 +3792,37 @@ function renderEquipoPanel() {
       + '<button class="equipo-tab ' + (tab === 'B' ? 'equipo-tab-active' : 'equipo-tab-inactive') + '" onclick="setTabEquipo(' + semNum + ',\'B\')">2do Equipo</button>'
       + '</div>';
 
-    // Titulares
-    html += '<div style="font-size:10px;font-weight:700;color:#0D1B4E;margin-bottom:4px">TITULARES <span style="color:#888">' + eq.titulares.length + '/15</span></div>';
-    var orden = ['Pilares','Hookers','2da l\u00EDnea','3ra l\u00EDnea','Medio scrum','Apertura','Centros','Wings'];
-    orden.forEach(function(grp) {
-      var puestos = GRUPOS_POSICION[grp];
-      if (!puestos) return;
-      var jugs = PLANTEL.filter(function(p) { return puestos.indexOf(p.puesto) >= 0; });
-      if (jugs.length === 0) return;
-      html += '<div class="equipo-grp-label">' + grp + '</div>';
-      jugs.forEach(function(p) {
-        var isSel = eq.titulares.indexOf(p.id) >= 0;
-        var isFull = eq.titulares.length >= 15 && !isSel;
-        var cls = 'equipo-jug-btn' + (isSel ? ' equipo-jug-btn-sel' : '') + (isFull ? ' equipo-jug-btn-dis' : '');
-        html += '<button class="' + cls + '" onclick="' + (isFull ? '' : 'toggleJugador(' + semNum + ',' + p.id + ',\'titulares\',\'' + tab + '\')') + '">'
-          + p.apellido + (p.m22 ? '<span class="equipo-m22">m22</span>' : '')
-          + '</button>';
-      });
+    // Rugby field
+    html += '<div style="background:linear-gradient(180deg,#1a5c2a 0%,#1e6b31 20%,#1a5c2a 40%,#1e6b31 60%,#1a5c2a 80%,#1e6b31 100%);border-radius:12px;padding:16px 8px;position:relative;overflow:hidden">'
+      // Field lines
+      + '<div style="position:absolute;top:50%;left:10%;right:10%;height:1px;background:rgba(255,255,255,0.2)"></div>'
+      + '<div style="position:absolute;top:25%;left:20%;right:20%;height:1px;background:rgba(255,255,255,0.1)"></div>'
+      + '<div style="position:absolute;top:75%;left:20%;right:20%;height:1px;background:rgba(255,255,255,0.1)"></div>'
+      // Grid of positions
+      + '<div style="display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(6,auto);gap:8px 4px;justify-items:center;align-items:center">';
+
+    FIELD_SLOTS.forEach(function(slot) {
+      html += renderFieldSlot(semNum, tab, slot, assigns);
     });
 
-    // Suplentes
-    html += '<div style="font-size:10px;font-weight:700;color:#0D1B4E;margin:12px 0 4px">SUPLENTES FRESCOS <span style="color:#888">' + eq.suplentes.length + '/8</span></div>'
-      + '<div style="font-size:9px;color:#888;margin-bottom:6px">Los que entran planificados</div>';
-    orden.forEach(function(grp) {
-      var puestos = GRUPOS_POSICION[grp];
-      if (!puestos) return;
-      var jugs = PLANTEL.filter(function(p) { return puestos.indexOf(p.puesto) >= 0; });
-      if (jugs.length === 0) return;
-      var relevants = jugs.filter(function(p) { return eq.titulares.indexOf(p.id) < 0; });
-      if (relevants.length === 0) return;
-      html += '<div class="equipo-grp-label">' + grp + '</div>';
-      relevants.forEach(function(p) {
-        var isSel = eq.suplentes.indexOf(p.id) >= 0;
-        var isFull = eq.suplentes.length >= 8 && !isSel;
-        var cls = 'equipo-jug-btn' + (isSel ? ' equipo-jug-btn-sel' : '') + (isFull ? ' equipo-jug-btn-dis' : '');
-        html += '<button class="' + cls + '" onclick="' + (isFull ? '' : 'toggleJugador(' + semNum + ',' + p.id + ',\'suplentes\',\'' + tab + '\')') + '">'
-          + p.apellido + (p.m22 ? '<span class="equipo-m22">m22</span>' : '')
-          + '</button>';
-      });
-    });
-
-    // Resumen posiciones
-    html += '<div class="equipo-resumen">';
-    Object.keys(IDEAL_POS).forEach(function(grp) {
-      var ideal = IDEAL_POS[grp];
-      var puestos = GRUPOS_POSICION[grp];
-      if (!puestos) return;
-      var count = eq.titulares.filter(function(id) {
-        var p = PLANTEL.find(function(x) { return x.id === id; });
-        return p && puestos.indexOf(p.puesto) >= 0;
-      }).length;
-      var cls = count >= ideal ? 'equipo-pos-ok' : (count > 0 ? 'equipo-pos-warn' : 'equipo-pos-bad');
-      var icon = count >= ideal ? '\u2705' : (count > 0 ? '\u26A0\uFE0F' : '\u274C');
-      html += '<span class="' + cls + '">' + icon + ' ' + grp + ' (' + count + '/' + ideal + ')</span>';
-    });
     html += '</div></div>';
+
+    // Suplentes section below field
+    html += '<div style="margin-top:12px">'
+      + '<div style="font-size:10px;font-weight:700;color:#0D1B4E;margin-bottom:6px">SUPLENTES FRESCOS <span style="color:#888">' + eq.suplentes.length + '/8</span></div>'
+      + '<div style="display:flex;flex-wrap:wrap;gap:4px">';
+
+    PLANTEL.forEach(function(p) {
+      if (eq.titulares.indexOf(p.id) >= 0) return;
+      var isSel = eq.suplentes.indexOf(p.id) >= 0;
+      var isFull = eq.suplentes.length >= 8 && !isSel;
+      var cls = 'equipo-jug-btn' + (isSel ? ' equipo-jug-btn-sel' : '') + (isFull ? ' equipo-jug-btn-dis' : '');
+      html += '<button class="' + cls + '" style="font-size:11px;padding:4px 8px;min-height:32px" onclick="' + (isFull ? '' : 'toggleJugador(' + semNum + ',' + p.id + ',\'suplentes\',\'' + tab + '\')') + '">'
+        + p.apellido + (p.m22 ? '<span class="equipo-m22">m22</span>' : '')
+        + '</button>';
+    });
+
+    html += '</div></div></div>';
   }
   html += '</div>';
   return html;
