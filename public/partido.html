@@ -212,9 +212,36 @@ function initStats(s) {
     penalesCometidos: {offside:0, inconducta:0, tacklePeligroso:0, kickAfuera:0, kickAdentro:0, tackleadorNoSale:0, cargaSinPelota:0, cortina:0, diezYardas:0},
     penalesFavor: {palosAfuera:0, palosAdentro:0, jugadoRapido:0, jugadoNormal:0, freekickRapido:0, freekickNormal:0, scrum:0},
     tries: [],
+    eventLog: [],
     peo: null, tackles: null
   };
 }
+
+// Event label map
+var EVENT_LABELS = {
+  'scrum.ganados':'Scrum ganado','scrum.perdidos':'Scrum perdido','scrum.robados':'Scrum robado',
+  'scrum.torcidas':'Scrum torcida','scrum.penalFK':'Scrum penal/FK',
+  'line.ganados':'Line ganado','line.perdidos':'Line perdido','line.robados':'Line robado',
+  'line.torcidas':'Line torcida','line.penalFK':'Line penal/FK',
+  'salidas.recBien':'Recepci\u00F3n bien','salidas.recMal':'Recepci\u00F3n mal',
+  'salidas.ganAlta':'Ganamos alta','salidas.malPat':'Mal patada',
+  'perdidas.knockOn':'Knock-on','perdidas.retener':'Retener','perdidas.kickAfuera':'Kick afuera',
+  'perdidas.kickNoRecup':'Kick no recup.','perdidas.tirarsEnRuck':'Tirarse en ruck',
+  'perdidas.paseForward':'Pase forward','perdidas.ingresoLateral':'Ingreso lateral',
+  'perdidas.tackleCont':'Tackle/cont.','perdidas.manoEnRuck':'Manos en ruck',
+  'perdidas.saleCampo':'Sale del campo','perdidas.derrumbeMaill':'Derrumbe maul',
+  'perdidas.maul':'Maul','perdidas.scrum':'Scrum','perdidas.malPase':'Mal pase',
+  'perdidas.ruck':'Ruck','perdidas.line':'Line-out','perdidas.pescada':'Pescada','perdidas.offside':'Offside',
+  'penalesCometidos.offside':'Penal: offside','penalesCometidos.inconducta':'Penal: inconducta',
+  'penalesCometidos.tacklePeligroso':'Penal: tackle peligroso','penalesCometidos.kickAfuera':'Penal: kick afuera',
+  'penalesCometidos.kickAdentro':'Penal: kick adentro','penalesCometidos.tackleadorNoSale':'Penal: tackleador no sale',
+  'penalesCometidos.cargaSinPelota':'Penal: carga sin pelota','penalesCometidos.cortina':'Penal: cortina',
+  'penalesCometidos.diezYardas':'Penal: 10 yardas',
+  'penalesFavor.palosAfuera':'A favor: palos afuera','penalesFavor.palosAdentro':'A favor: palos adentro',
+  'penalesFavor.jugadoRapido':'A favor: jugado r\u00E1pido','penalesFavor.jugadoNormal':'A favor: jugado normal',
+  'penalesFavor.freekickRapido':'A favor: FK r\u00E1pido','penalesFavor.freekickNormal':'A favor: FK normal',
+  'penalesFavor.scrum':'A favor: scrum'
+};
 
 // ── SELECTOR ────────────────────────────────────────────────
 async function showSelector() {
@@ -269,32 +296,50 @@ function autoSave() {
 }
 
 // ── EVENTS ──────────────────────────────────────────────────
+function logEvent(label, score) {
+  if (!stats.eventLog) stats.eventLog = [];
+  stats.eventLog.push({
+    min: timerHalf > 0 ? getMatchMinute() : null,
+    label: label,
+    score: stats.ptsNos + '-' + stats.ptsRival,
+    time: new Date().toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'})
+  });
+}
+
 function inc(path) {
   var parts = path.split('.');
   var obj = stats;
   for (var i = 0; i < parts.length - 1; i++) obj = obj[parts[i]];
   obj[parts[parts.length - 1]]++;
-  ultimoEvento = {campo: path, delta: 1};
+  ultimoEvento = {tipo: 'inc', campo: path};
+  logEvent(EVENT_LABELS[path] || path, null);
   vib(30);
-  autoSave();
-  renderApp();
-}
-
-function dec(path) {
-  var parts = path.split('.');
-  var obj = stats;
-  for (var i = 0; i < parts.length - 1; i++) obj = obj[parts[i]];
-  if (obj[parts[parts.length - 1]] > 0) obj[parts[parts.length - 1]]--;
   autoSave();
   renderApp();
 }
 
 function undo() {
   if (!ultimoEvento) return;
-  var parts = ultimoEvento.campo.split('.');
-  var obj = stats;
-  for (var i = 0; i < parts.length - 1; i++) obj = obj[parts[i]];
-  obj[parts[parts.length - 1]] = Math.max(0, obj[parts[parts.length - 1]] - ultimoEvento.delta);
+  if (ultimoEvento.tipo === 'inc') {
+    var parts = ultimoEvento.campo.split('.');
+    var obj = stats;
+    for (var i = 0; i < parts.length - 1; i++) obj = obj[parts[i]];
+    obj[parts[parts.length - 1]] = Math.max(0, obj[parts[parts.length - 1]] - 1);
+  } else if (ultimoEvento.tipo === 'try') {
+    var idx = ultimoEvento.tryIdx;
+    if (idx >= 0 && idx < stats.tries.length) {
+      var t = stats.tries[idx];
+      var pts = 5 + (t.convertido === true ? 2 : 0);
+      if (t.equipo === 'nos') stats.ptsNos = Math.max(0, stats.ptsNos - pts);
+      else stats.ptsRival = Math.max(0, stats.ptsRival - pts);
+      stats.tries.splice(idx, 1);
+    }
+  } else if (ultimoEvento.tipo === 'score') {
+    if (ultimoEvento.side === 'nos') stats.ptsNos = Math.max(0, stats.ptsNos - ultimoEvento.delta);
+    else stats.ptsRival = Math.max(0, stats.ptsRival - ultimoEvento.delta);
+  }
+  // Remove last log entry
+  if (stats.eventLog && stats.eventLog.length > 0) stats.eventLog.pop();
   ultimoEvento = null;
   vib(30);
   autoSave();
@@ -304,6 +349,8 @@ function undo() {
 function adjScore(side, delta) {
   if (side === 'nos') stats.ptsNos = Math.max(0, stats.ptsNos + delta);
   else stats.ptsRival = Math.max(0, stats.ptsRival + delta);
+  ultimoEvento = {tipo: 'score', side: side, delta: delta};
+  logEvent('Score ' + (side === 'nos' ? 'Regatas' : 'Rival') + ' ' + (delta > 0 ? '+' : '') + delta, null);
   autoSave();
   renderApp();
 }
@@ -335,7 +382,10 @@ function saveTry() {
   stats.tries.push(t);
   if (t.equipo === 'nos') stats.ptsNos += 5;
   else stats.ptsRival += 5;
-  ultimoEvento = {campo: 'try', delta: 1, tryIdx: stats.tries.length - 1};
+  ultimoEvento = {tipo: 'try', tryIdx: stats.tries.length - 1};
+  var tryLabel = 'Try ' + (t.equipo === 'nos' ? 'Regatas' : 'Rival');
+  if (t.origen) tryLabel += ' (' + t.origen + ')';
+  logEvent(tryLabel, null);
   tryPanel = null;
   vib(30);
   autoSave();
@@ -494,6 +544,9 @@ function renderApp() {
     + '<div style="flex:1"><div class="post-label">% Tackles err.</div>'
     + '<input class="post-input" type="number" min="0" max="100" value="' + (stats.tackles !== null ? stats.tackles : '') + '" onchange="stats.tackles=parseInt(this.value)||null;autoSave()" placeholder="—"></div>'
     + '</div></div>';
+
+  // Event log
+  html += renderEventLog();
 
   html += '</div>';
 
@@ -667,6 +720,62 @@ function renderTries() {
   });
 
   return html;
+}
+
+function renderEventLog() {
+  var log = stats.eventLog || [];
+  if (log.length === 0) return '';
+  var html = '<div class="post-section" style="margin-top:12px">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
+    + '<div style="font-size:11px;font-weight:700;color:#0D1B4E;text-transform:uppercase;letter-spacing:0.06em">Cronolog\u00EDa (' + log.length + ')</div>'
+    + '<button onclick="exportLog()" style="font-size:10px;font-weight:700;background:#0D1B4E;color:#F5C518;border:none;border-radius:6px;padding:4px 10px;cursor:pointer">\u2B07 Exportar</button>'
+    + '</div>';
+  // Show last 20 events, newest first
+  var shown = log.slice().reverse().slice(0, 20);
+  shown.forEach(function(ev) {
+    var minStr = ev.min !== null ? ev.min + '\'' : '';
+    html += '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:0.5px solid #F0F0F0;font-size:12px">'
+      + '<span style="min-width:32px;color:#888;font-weight:600;text-align:right">' + minStr + '</span>'
+      + '<span style="flex:1;color:#333">' + ev.label + '</span>'
+      + '<span style="color:#888;font-size:10px">' + ev.score + '</span>'
+      + '<span style="color:#aaa;font-size:9px">' + (ev.time || '') + '</span>'
+      + '</div>';
+  });
+  if (log.length > 20) {
+    html += '<div style="text-align:center;font-size:10px;color:#aaa;padding:4px">... ' + (log.length - 20) + ' eventos m\u00E1s</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function exportLog() {
+  var log = stats.eventLog || [];
+  if (log.length === 0) return;
+  var txt = '\u25B2 REGATAS vs ' + stats.rival.toUpperCase() + ' \u00B7 ' + stats.fecha + '\n';
+  txt += 'Resultado: ' + stats.ptsNos + ' - ' + stats.ptsRival + '\n\n';
+  txt += 'MIN  EVENTO                          SCORE  HORA\n';
+  txt += '---  ------------------------------  -----  -----\n';
+  log.forEach(function(ev) {
+    var min = ev.min !== null ? (ev.min < 10 ? ' ' + ev.min : '' + ev.min) + '\'' : '   ';
+    var label = ev.label;
+    while (label.length < 32) label += ' ';
+    txt += min + '  ' + label + '  ' + ev.score + '   ' + (ev.time || '') + '\n';
+  });
+
+  // Try clipboard first, then download
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(txt).then(function() {
+      alert('Cronolog\u00EDa copiada al portapapeles');
+    });
+  } else {
+    var blob = new Blob([txt], {type: 'text/plain'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'partido-regatas-sem' + stats.semId + '.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 }
 
 function makeBtn(path, label, cls, count) {
