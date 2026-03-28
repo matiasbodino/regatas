@@ -778,8 +778,49 @@ function exportLog() {
   }
 }
 
+// Long press (500ms) to decrement, short tap to increment
+var _lpTimer = null;
+var _lpFired = false;
+
+function lpStart(path, e) {
+  if (e) e.preventDefault();
+  _lpFired = false;
+  _lpTimer = setTimeout(function() {
+    _lpFired = true;
+    decAndRender(path);
+    vib([30, 20, 30]);
+  }, 500);
+}
+
+function lpEnd(path) {
+  if (_lpTimer) { clearTimeout(_lpTimer); _lpTimer = null; }
+  if (!_lpFired) inc(path);
+}
+
+function lpCancel() {
+  if (_lpTimer) { clearTimeout(_lpTimer); _lpTimer = null; }
+}
+
+function decAndRender(path) {
+  var parts = path.split('.');
+  var obj = stats;
+  for (var i = 0; i < parts.length - 1; i++) obj = obj[parts[i]];
+  if (obj[parts[parts.length - 1]] > 0) {
+    obj[parts[parts.length - 1]]--;
+    logEvent('\u21A9 ' + (EVENT_LABELS[path] || path), null);
+  }
+  autoSave();
+  renderApp();
+}
+
 function makeBtn(path, label, cls, count) {
-  return '<button class="tkr-btn ' + cls + '" onclick="inc(\'' + path + '\')">'
+  return '<button class="tkr-btn ' + cls + '" '
+    + 'ontouchstart="lpStart(\'' + path + '\',event)" '
+    + 'ontouchend="lpEnd(\'' + path + '\')" '
+    + 'ontouchcancel="lpCancel()" '
+    + 'onmousedown="lpStart(\'' + path + '\',event)" '
+    + 'onmouseup="lpEnd(\'' + path + '\')" '
+    + 'onmouseleave="lpCancel()">'
     + label
     + (count > 0 ? '<span class="tkr-counter">' + count + '</span>' : '')
     + '</button>';
