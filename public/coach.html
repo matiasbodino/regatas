@@ -2573,6 +2573,8 @@ function buildPartidosTable(semsData, showCicloCol) {
     var lineClass = r.line !== null ? (r.line >= tgt.line ? 'kpi-ok' : 'kpi-fail') : '';
     var scrumClass = r.scrum !== null ? (r.scrum >= tgt.scrum ? 'kpi-ok' : 'kpi-fail') : '';
     var tacklesClass = r.tackles !== null ? (r.tackles <= tgt.tackles ? 'kpi-ok' : 'kpi-fail') : '';
+    var pdcVal = (r.pdcTotal !== null && r.pdcPositivos !== null && r.pdcTotal > 0) ? Math.round(r.pdcPositivos / r.pdcTotal * 100) : null;
+    var pdcClass = pdcVal !== null ? (pdcVal >= (tgt.pdc || 50) ? 'kpi-ok' : 'kpi-fail') : '';
     return '<tr>'
       + '<td style="font-weight:600">Sem ' + s.sem + '</td>'
       + '<td>' + s.fecha + '</td>'
@@ -2583,7 +2585,7 @@ function buildPartidosTable(semsData, showCicloCol) {
       + '<td class="' + lineClass + '">' + (r.line !== null ? r.line + '%' : '\u2014') + '</td>'
       + '<td class="' + scrumClass + '">' + (r.scrum !== null ? r.scrum + '%' : '\u2014') + '</td>'
       + '<td class="' + tacklesClass + '">' + (r.tackles !== null ? r.tackles + '%' : '\u2014') + '</td>'
-      + '<td>' + (r.pdcTotal !== null && r.pdcPositivos !== null ? Math.round(r.pdcPositivos / Math.max(r.pdcTotal, 1) * 100) + '%' : '\u2014') + '</td>'
+      + '<td class="' + pdcClass + '">' + (pdcVal !== null ? pdcVal + '%' : '\u2014') + '</td>'
       + '</tr>';
   }).join('');
   var cicloTh = showCicloCol ? '<th>Ciclo</th>' : '';
@@ -2702,13 +2704,14 @@ function renderResultados() {
         var lineOk=p.linePct!==null?(p.linePct>=ci.tgt.line?'kpi-ok':'kpi-fail'):'';
         var scrumOk=p.scrumPct!==null?(p.scrumPct>=ci.tgt.scrum?'kpi-ok':'kpi-fail'):'';
         var tackOk=p.tacklesProm!==null?(p.tacklesProm<=ci.tgt.tackles?'kpi-ok':'kpi-fail'):'';
+        var pdcOk=p.pdcPct!==null?(p.pdcPct>=(ci.tgt.pdc||50)?'kpi-ok':'kpi-fail'):'';
         return '<tr>'
           + '<td style="font-weight:700;color:'+ci.color+'">\u25B2 '+ci.nombre+'</td>'
           + '<td>'+ci.n+'</td>'
           + '<td class="'+lineOk+'">'+(p.linePct!==null?fmt1(p.linePct)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">'+p.lineG+'/'+p.lineTotal+'</div></td>'
           + '<td class="'+scrumOk+'">'+(p.scrumPct!==null?fmt1(p.scrumPct)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">'+p.scrumG+'/'+p.scrumTotal+'</div></td>'
           + '<td class="'+tackOk+'">'+(p.tacklesProm!==null?fmt1(p.tacklesProm)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">tgt <'+ci.tgt.tackles+'%</div></td>'
-          + '<td>'+(p.pdcPct!==null?fmt1(p.pdcPct)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">'+p.pdcPositivosT+'/'+p.pdcTotalT+'</div></td>'
+          + '<td class="'+pdcOk+'">'+(p.pdcPct!==null?fmt1(p.pdcPct)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">'+p.pdcPositivosT+'/'+p.pdcTotalT+'</div></td>'
           + '</tr>';
       }).join('');
       html += '<div class="card" style="margin-bottom:12px">'
