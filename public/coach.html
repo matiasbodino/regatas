@@ -911,28 +911,28 @@ function goPage(id) {
 const CUMBRES = [
   {num:1, nombre:'Kosciuszko', sub:'La Promesa',    alt:'2.228m', color:'#0D1B4E', sems:[1,2,3],
    foco:'Instalar hábitos. Punto de contacto. El estándar mínimo en cada repetición.',
-   frase:'"Empezamos."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados'], targets:{peo:90,line:90,scrum:40,tackles:15}, bandera:null, umbral:75},
+   frase:'"Empezamos."', kpis:['90% Line','40% Scrum','<15% Tackles errados','50% PDC'], targets:{line:90,scrum:40,tackles:15,pdc:50}, bandera:null, umbral:75},
   {num:2, nombre:'Kilimanjaro', sub:'La Identidad', alt:'5.895m', color:'#1A3470', sems:[4,5,6],
    foco:'Identidad bajo presión. Defensa instalada. ¿Quiénes somos cuando la exigencia sube?',
-   frase:'"Sabemos quiénes somos."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados'], targets:{peo:90,line:90,scrum:40,tackles:15}, bandera:null, umbral:75},
+   frase:'"Sabemos quiénes somos."', kpis:['90% Line','40% Scrum','<15% Tackles errados','50% PDC'], targets:{line:90,scrum:40,tackles:15,pdc:50}, bandera:null, umbral:75},
   {num:3, nombre:'Elbrus',      sub:'El Pack',       alt:'5.642m', color:'#2B4EA0', sems:[7,8,9,10,11],
    foco:'Liderazgo interno visible. 5 partidos seguidos. Nadie escala solo.',
-   frase:'"Nadie escala solo."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados'], targets:{peo:90,line:90,scrum:40,tackles:15}, bandera:null, umbral:75},
+   frase:'"Nadie escala solo."', kpis:['90% Line','40% Scrum','<15% Tackles errados','50% PDC'], targets:{line:90,scrum:40,tackles:15,pdc:50}, bandera:null, umbral:75},
   {num:4, nombre:'Aconcagua',   sub:'La Nuestra',    alt:'6.961m', color:'#0D1B4E', sems:[12,13,14,15,16],
    foco:'Clímax. La montaña de casa. No le tenemos miedo — la conocemos.',
-   frase:'"Esta siempre fue nuestra."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados'], targets:{peo:90,line:90,scrum:40,tackles:15}, bandera:null, umbral:75},
+   frase:'"Esta siempre fue nuestra."', kpis:['90% Line','40% Scrum','<15% Tackles errados','50% PDC'], targets:{line:90,scrum:40,tackles:15,pdc:50}, bandera:null, umbral:75},
   {num:5, nombre:'Vinson',      sub:'El Carácter',   alt:'4.892m', color:'#1A3470', sems:[17,18,19,20,21],
    foco:'Segunda vuelta. Nadie te ve escalarla. La escalás porque sos ese tipo de equipo.',
-   frase:'"Lo hicimos aunque nadie nos miraba."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados'], targets:{peo:90,line:90,scrum:40,tackles:15}, bandera:null, umbral:75},
+   frase:'"Lo hicimos aunque nadie nos miraba."', kpis:['90% Line','40% Scrum','<15% Tackles errados','50% PDC'], targets:{line:90,scrum:40,tackles:15,pdc:50}, bandera:null, umbral:75},
   {num:6, nombre:'Everest',     sub:'La Razón',      alt:'8.849m', color:'#2B4EA0', sems:[22,23,24,25],
    foco:'No hay más montañas. Todo lo construido desde Kosciuszko se juega acá.',
-   frase:'"Llegamos juntos."', kpis:['90% PEO','90% Line','40% Scrum','<15% Tackles errados'], targets:{peo:90,line:90,scrum:40,tackles:15}, bandera:null, umbral:75},
+   frase:'"Llegamos juntos."', kpis:['90% Line','40% Scrum','<15% Tackles errados','50% PDC'], targets:{line:90,scrum:40,tackles:15,pdc:50}, bandera:null, umbral:75},
 ];
 
 function getTargetsByCiclo(cicloName) {
   var c = CUMBRES.find(function(c) { return c.nombre === cicloName; });
   if (c && c.targets) return c.targets;
-  return {peo:90,line:90,scrum:40,tackles:15};
+  return {line:90,scrum:40,tackles:15,pdc:50};
 }
 
 function getSemsByCiclo(cicloName) {
@@ -1033,10 +1033,10 @@ function renderCumbres() {
               <div style="font-size:9px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px">TARGETS NUMÉRICOS</div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
                 ${[
-                  {key:'peo',label:'% PEO',val:c.targets.peo},
                   {key:'line',label:'% Line',val:c.targets.line},
                   {key:'scrum',label:'% Scrum',val:c.targets.scrum},
-                  {key:'tackles',label:'% Tackles err.',val:c.targets.tackles}
+                  {key:'tackles',label:'% Tackles err.',val:c.targets.tackles},
+                  {key:'pdc',label:'% PDC',val:c.targets.pdc}
                 ].map(function(t){return '<div style="display:flex;align-items:center;gap:4px">'
                   +'<span style="font-size:9px;color:#888;min-width:55px">'+t.label+'</span>'
                   +'<input type="number" min="0" max="100" value="'+t.val+'"'
@@ -2331,11 +2331,6 @@ function renderResultadoSection() {
     + '<div class="res-section-title" style="margin-top:8px">KPIs observados · ▲ ' + s.ciclo + '</div>'
     + '<div class="res-grid">'
     + '<div class="res-field">'
-    + '<div class="res-field-label">% PEO</div>'
-    + '<input class="res-input" type="number" min="0" max="100" value="' + (r.peo !== null ? r.peo : '') + '" onchange="chResultado(\'peo\',this.value)" onclick="event.stopPropagation()">'
-    + '<div class="res-field-target">target: ' + tgt.peo + '%</div>'
-    + '</div>'
-    + '<div class="res-field">'
     + '<div class="res-field-label">Lines obtenidos</div>'
     + '<input class="res-input" type="number" min="0" value="' + (r.lineG !== null ? r.lineG : '') + '" onchange="chResultado(\'lineG\',this.value)" onclick="event.stopPropagation()">'
     + '</div>'
@@ -2461,7 +2456,7 @@ function fmt1(v) { return v % 1 === 0 ? v.toString() : v.toFixed(1); }
 
 function calcPromediosPonderados(semsData) {
   var scrumGT=0,scrumPT=0,lineGT=0,linePT=0,penalesT=0;
-  var peoSum=0,peoN=0,tacklesSum=0,tacklesN=0,partidos=0;
+  var tacklesSum=0,tacklesN=0,partidos=0;
   var pdcTotalT=0,pdcPositivosT=0;
   semsData.forEach(function(s) {
     var r = s.resultado;
@@ -2469,7 +2464,6 @@ function calcPromediosPonderados(semsData) {
     if (r.scrumG!==null&&r.scrumP!==null) { scrumGT+=(r.scrumG||0); scrumPT+=(r.scrumP||0); } // dominados / totales
     if (r.lineG!==null&&r.lineP!==null) { lineGT+=(r.lineG||0); linePT+=(r.lineP||0); } // obtenidos / totales
     if (r.penales!==null) penalesT+=(r.penales||0);
-    if (r.peo!==null) { peoSum+=r.peo; peoN++; }
     if (r.tackles!==null) { tacklesSum+=r.tackles; tacklesN++; }
     if (r.pdcTotal!==null&&r.pdcPositivos!==null) { pdcTotalT+=(r.pdcTotal||0); pdcPositivosT+=(r.pdcPositivos||0); }
     if (r.ptsNos!==null||r.ptsRival!==null) partidos++;
@@ -2481,7 +2475,6 @@ function calcPromediosPonderados(semsData) {
     lineG:lineGT, lineP:linePT, lineTotal:linePT,
     penalesTotal:penalesT,
     penalesPorPartido: partidos>0 ? round1(penalesT/partidos) : null,
-    peoProm: peoN>0 ? round1(peoSum/peoN) : null,
     tacklesProm: tacklesN>0 ? round1(tacklesSum/tacklesN) : null,
     pdcPct: pdcTotalT>0 ? round1(pdcPositivosT/pdcTotalT*100) : null,
     pdcPositivosT:pdcPositivosT, pdcTotalT:pdcTotalT,
@@ -2492,27 +2485,26 @@ function calcPromediosPonderados(semsData) {
 function buildKpiCards(semsData, targets) {
   var pond = calcPromediosPonderados(semsData);
   var tgtFallback = targets || {};
-  if (!tgtFallback.peo) {
-    var tgtVals = semsData.filter(function(s){return s.resultado&&s.resultado.peo!==null;})
+  if (!tgtFallback.line) {
+    var tgtVals = semsData.filter(function(s){return s.resultado&&s.resultado.ptsNos!==null;})
       .map(function(s){return getTargetsByCiclo(s.ciclo);});
     if (tgtVals.length>0) {
       tgtFallback = {
-        peo:Math.round(tgtVals.reduce(function(a,t){return a+t.peo;},0)/tgtVals.length),
         line:Math.round(tgtVals.reduce(function(a,t){return a+t.line;},0)/tgtVals.length),
         scrum:Math.round(tgtVals.reduce(function(a,t){return a+t.scrum;},0)/tgtVals.length),
-        tackles:Math.round(tgtVals.reduce(function(a,t){return a+t.tackles;},0)/tgtVals.length)
+        tackles:Math.round(tgtVals.reduce(function(a,t){return a+t.tackles;},0)/tgtVals.length),
+        pdc:Math.round(tgtVals.reduce(function(a,t){return a+(t.pdc||50);},0)/tgtVals.length)
       };
     } else {
-      tgtFallback = {peo:90,line:90,scrum:40,tackles:15};
+      tgtFallback = {line:90,scrum:40,tackles:15,pdc:50};
     }
   }
 
   var items = [
-    {label:'PEO', avg:pond.peoProm, tgt:tgtFallback.peo, higher:true, detail:pond.partidos+' partidos'},
     {label:'Obt. Line', avg:pond.linePct, tgt:tgtFallback.line, higher:true, detail:pond.lineG+' obt. de '+pond.lineTotal+' totales'},
     {label:'Dom. Scrum', avg:pond.scrumPct, tgt:tgtFallback.scrum, higher:true, detail:pond.scrumG+' dom. de '+pond.scrumTotal+' totales'},
     {label:'Tackles err.', avg:pond.tacklesProm, tgt:tgtFallback.tackles, higher:false, detail:pond.partidos+' partidos'},
-    {label:'Ptos Contacto', avg:pond.pdcPct, tgt:50, higher:true, detail:pond.pdcPositivosT+' pos. de '+pond.pdcTotalT+' totales'}
+    {label:'Ptos Contacto', avg:pond.pdcPct, tgt:tgtFallback.pdc||50, higher:true, detail:pond.pdcPositivosT+' pos. de '+pond.pdcTotalT+' totales'}
   ];
 
   return items.map(function(it) {
@@ -2578,7 +2570,6 @@ function buildPartidosTable(semsData, showCicloCol) {
     var ganamos = r.ptsNos > r.ptsRival;
     var empate = r.ptsNos === r.ptsRival;
     var resClass = ganamos ? 'res-win' : (empate ? '' : 'res-loss');
-    var peoClass = r.peo !== null ? (r.peo >= tgt.peo ? 'kpi-ok' : 'kpi-fail') : '';
     var lineClass = r.line !== null ? (r.line >= tgt.line ? 'kpi-ok' : 'kpi-fail') : '';
     var scrumClass = r.scrum !== null ? (r.scrum >= tgt.scrum ? 'kpi-ok' : 'kpi-fail') : '';
     var tacklesClass = r.tackles !== null ? (r.tackles <= tgt.tackles ? 'kpi-ok' : 'kpi-fail') : '';
@@ -2589,7 +2580,6 @@ function buildPartidosTable(semsData, showCicloCol) {
       + '<td>' + (s.local === 'L' ? 'L' : 'V') + '</td>'
       + '<td class="' + resClass + '">' + r.ptsNos + ' - ' + r.ptsRival + '</td>'
       + (showCicloCol ? '<td style="font-size:10px;color:#888">' + s.ciclo + '</td>' : '')
-      + '<td class="' + peoClass + '">' + (r.peo !== null ? r.peo + '%' : '\u2014') + '</td>'
       + '<td class="' + lineClass + '">' + (r.line !== null ? r.line + '%' : '\u2014') + '</td>'
       + '<td class="' + scrumClass + '">' + (r.scrum !== null ? r.scrum + '%' : '\u2014') + '</td>'
       + '<td class="' + tacklesClass + '">' + (r.tackles !== null ? r.tackles + '%' : '\u2014') + '</td>'
@@ -2598,7 +2588,7 @@ function buildPartidosTable(semsData, showCicloCol) {
   }).join('');
   var cicloTh = showCicloCol ? '<th>Ciclo</th>' : '';
   return '<div style="overflow-x:auto"><table class="res-table">'
-    + '<thead><tr><th>Sem</th><th>Fecha</th><th>Rival</th><th>L/V</th><th>Resultado</th>' + cicloTh + '<th>PEO</th><th>Line</th><th>Scrum</th><th>Tackles</th><th>PDC</th></tr></thead>'
+    + '<thead><tr><th>Sem</th><th>Fecha</th><th>Rival</th><th>L/V</th><th>Resultado</th>' + cicloTh + '<th>Line</th><th>Scrum</th><th>Tackles</th><th>PDC</th></tr></thead>'
     + '<tbody>' + rows + '</tbody></table></div>';
 }
 
@@ -2624,17 +2614,17 @@ function renderResultados() {
     if (!cumbre) { document.getElementById('resultados-content').innerHTML = ''; return; }
 
     var semsCiclo = allConDatos.filter(function(s) { return s.ciclo === cicloNombre; });
-    var tgt = cumbre.targets || {peo:90,line:90,scrum:40,tackles:15};
+    var tgt = cumbre.targets || {line:90,scrum:40,tackles:15,pdc:50};
     var totalSemsCiclo = cumbre.sems.length;
 
     // Calcular KPIs cumplidos para progreso de bandera
     var kpisCumplidos = 0, kpisTotal = 0;
     semsCiclo.forEach(function(s) {
       var r = s.resultado;
-      if (r.peo !== null) { kpisTotal++; if (r.peo >= tgt.peo) kpisCumplidos++; }
       if (r.line !== null) { kpisTotal++; if (r.line >= tgt.line) kpisCumplidos++; }
       if (r.scrum !== null) { kpisTotal++; if (r.scrum >= tgt.scrum) kpisCumplidos++; }
       if (r.tackles !== null) { kpisTotal++; if (r.tackles <= tgt.tackles) kpisCumplidos++; }
+      if (r.pdcTotal !== null && r.pdcPositivos !== null && r.pdcTotal > 0) { kpisTotal++; if (Math.round(r.pdcPositivos/r.pdcTotal*100) >= (tgt.pdc||50)) kpisCumplidos++; }
     });
     var pctKpis = kpisTotal > 0 ? Math.round(kpisCumplidos / kpisTotal * 100) : 0;
     var pctColor = pctKpis >= (cumbre.umbral || 75) ? '#27AE60' : '#E74C3C';
@@ -2653,7 +2643,7 @@ function renderResultados() {
     // KPI cards del ciclo
     html += '<div class="card" style="margin-bottom:12px">'
       + '<div style="font-size:12px;font-weight:600;color:#0D1B4E;margin-bottom:8px">KPIs del ciclo</div>'
-      + '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">'
+      + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">'
       + buildKpiCards(semsCiclo, tgt)
       + '</div></div>';
 
@@ -2688,7 +2678,7 @@ function renderResultados() {
     // Promedios acumulados
     html += '<div class="card" style="margin-bottom:12px">'
       + '<div style="font-size:14px;font-weight:600;color:#0D1B4E;margin-bottom:12px">Promedios acumulados</div>'
-      + '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">'
+      + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">'
       + buildKpiCards(allConDatos, null)
       + '</div></div>';
 
@@ -2709,14 +2699,12 @@ function renderResultados() {
     if (ciclosConDatos.length > 0) {
       var cicloRows = ciclosConDatos.map(function(ci) {
         var p = ci.p;
-        var peoOk=p.peoProm!==null?(p.peoProm>=ci.tgt.peo?'kpi-ok':'kpi-fail'):'';
         var lineOk=p.linePct!==null?(p.linePct>=ci.tgt.line?'kpi-ok':'kpi-fail'):'';
         var scrumOk=p.scrumPct!==null?(p.scrumPct>=ci.tgt.scrum?'kpi-ok':'kpi-fail'):'';
         var tackOk=p.tacklesProm!==null?(p.tacklesProm<=ci.tgt.tackles?'kpi-ok':'kpi-fail'):'';
         return '<tr>'
           + '<td style="font-weight:700;color:'+ci.color+'">\u25B2 '+ci.nombre+'</td>'
           + '<td>'+ci.n+'</td>'
-          + '<td class="'+peoOk+'">'+(p.peoProm!==null?fmt1(p.peoProm)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">tgt '+ci.tgt.peo+'%</div></td>'
           + '<td class="'+lineOk+'">'+(p.linePct!==null?fmt1(p.linePct)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">'+p.lineG+'/'+p.lineTotal+'</div></td>'
           + '<td class="'+scrumOk+'">'+(p.scrumPct!==null?fmt1(p.scrumPct)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">'+p.scrumG+'/'+p.scrumTotal+'</div></td>'
           + '<td class="'+tackOk+'">'+(p.tacklesProm!==null?fmt1(p.tacklesProm)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">tgt <'+ci.tgt.tackles+'%</div></td>'
@@ -2726,7 +2714,7 @@ function renderResultados() {
       html += '<div class="card" style="margin-bottom:12px">'
         + '<div style="font-size:14px;font-weight:600;color:#0D1B4E;margin-bottom:12px">KPIs por ciclo</div>'
         + '<div style="overflow-x:auto"><table class="res-table">'
-        + '<thead><tr><th>Ciclo</th><th>Partidos</th><th>PEO</th><th>Line</th><th>Scrum</th><th>Tackles</th><th>PDC</th></tr></thead>'
+        + '<thead><tr><th>Ciclo</th><th>Partidos</th><th>Line</th><th>Scrum</th><th>Tackles</th><th>PDC</th></tr></thead>'
         + '<tbody>' + cicloRows + '</tbody></table></div></div>';
     }
 
@@ -2827,7 +2815,7 @@ function calcCumbreKPIs(cumbreNum) {
   var semsConResultado = SEMS.filter(function(s) {
     if (s.ciclo !== c.nombre || !s.resultado) return false;
     var r = s.resultado;
-    return r.ptsNos !== null || r.peo !== null || r.line !== null || r.scrum !== null || r.tackles !== null;
+    return r.ptsNos !== null || r.line !== null || r.scrum !== null || r.tackles !== null || (r.pdcTotal !== null && r.pdcPositivos !== null);
   });
   if (!semsConResultado.length) {
     return {partidos:0,puntos:0,pool:0,pct:0,habilitada:false,detalle:[],totalSems:totalSemsDelCiclo,rivales:[]};
@@ -2838,13 +2826,13 @@ function calcCumbreKPIs(cumbreNum) {
   var rivales = [];
   semsConResultado.forEach(function(s) {
     var r = s.resultado;
-    var kpis = {peo:null,line:null,scrum:null,tackles:null};
+    var kpis = {line:null,scrum:null,tackles:null,pdc:null};
     var pts = 0;
     var kpiCount = 0;
-    if (r.peo !== null) { kpis.peo = r.peo >= tgt.peo; if(kpis.peo) pts++; kpiCount++; }
     if (r.line !== null) { kpis.line = r.line >= tgt.line; if(kpis.line) pts++; kpiCount++; }
     if (r.scrum !== null) { kpis.scrum = r.scrum >= tgt.scrum; if(kpis.scrum) pts++; kpiCount++; }
     if (r.tackles !== null) { kpis.tackles = r.tackles <= tgt.tackles; if(kpis.tackles) pts++; kpiCount++; }
+    if (r.pdcTotal !== null && r.pdcPositivos !== null && r.pdcTotal > 0) { var pdcPct = Math.round(r.pdcPositivos/r.pdcTotal*100); kpis.pdc = pdcPct >= (tgt.pdc||50); if(kpis.pdc) pts++; kpiCount++; }
     pool += kpiCount;
     puntos += pts;
     rivales.push(s.rival);
@@ -2883,15 +2871,15 @@ function buildBanderaWidget(c) {
     html += '<div>'
       +'<button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'block\':\'none\';this.textContent=this.nextElementSibling.style.display===\'none\'?\'Ver detalle \u25BC\':\'Ocultar \u25B2\'" style="font-size:10px;color:#2B4EA0;background:none;border:none;cursor:pointer;font-weight:600;padding:0;margin-bottom:4px">Ver detalle \u25BC</button>'
       +'<div style="display:none">'
-      +'<table class="bandera-detalle-table"><thead><tr><th>Rival</th><th>Res</th><th>PEO</th><th>Line</th><th>Scrum</th><th>Tack</th></tr></thead><tbody>';
+      +'<table class="bandera-detalle-table"><thead><tr><th>Rival</th><th>Res</th><th>Line</th><th>Scrum</th><th>Tack</th><th>PDC</th></tr></thead><tbody>';
     stats.detalle.forEach(function(d) {
       html += '<tr>'
         +'<td style="font-weight:600">'+d.rival+'</td>'
         +'<td>'+d.res+'</td>'
-        +'<td>'+(d.kpis.peo===null?'<span class="kpi-dot" style="background:#ccc"></span>':'<span class="kpi-dot" style="background:'+(d.kpis.peo?'#27AE60':'#E74C3C')+'"></span>')+'</td>'
         +'<td>'+(d.kpis.line===null?'<span class="kpi-dot" style="background:#ccc"></span>':'<span class="kpi-dot" style="background:'+(d.kpis.line?'#27AE60':'#E74C3C')+'"></span>')+'</td>'
         +'<td>'+(d.kpis.scrum===null?'<span class="kpi-dot" style="background:#ccc"></span>':'<span class="kpi-dot" style="background:'+(d.kpis.scrum?'#27AE60':'#E74C3C')+'"></span>')+'</td>'
         +'<td>'+(d.kpis.tackles===null?'<span class="kpi-dot" style="background:#ccc"></span>':'<span class="kpi-dot" style="background:'+(d.kpis.tackles?'#27AE60':'#E74C3C')+'"></span>')+'</td>'
+        +'<td>'+(d.kpis.pdc===null?'<span class="kpi-dot" style="background:#ccc"></span>':'<span class="kpi-dot" style="background:'+(d.kpis.pdc?'#27AE60':'#E74C3C')+'"></span>')+'</td>'
         +'</tr>';
     });
     html += '</tbody></table></div></div>';
