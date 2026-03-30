@@ -2258,13 +2258,15 @@ async function renderBiblioteca(){
 // ── RESULTADO DEL PARTIDO ─────────────────────────────────────
 
 function ensureResultado(s) {
-  if (!s.resultado) s.resultado = {ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null,scrumG:null,scrumP:null,lineG:null,lineP:null,penales:null};
+  if (!s.resultado) s.resultado = {ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null,scrumG:null,scrumP:null,lineG:null,lineP:null,penales:null,pdcTotal:null,pdcPositivos:null};
   // Migrar resultado viejo: agregar campos nuevos si faltan
   if (s.resultado.scrumG === undefined) s.resultado.scrumG = null;
   if (s.resultado.scrumP === undefined) s.resultado.scrumP = null;
   if (s.resultado.lineG === undefined) s.resultado.lineG = null;
   if (s.resultado.lineP === undefined) s.resultado.lineP = null;
   if (s.resultado.penales === undefined) s.resultado.penales = null;
+  if (s.resultado.pdcTotal === undefined) s.resultado.pdcTotal = null;
+  if (s.resultado.pdcPositivos === undefined) s.resultado.pdcPositivos = null;
   if (!s.resultado.equipo) s.resultado.equipo = {A:{titulares:[],suplentes:[]},B:{titulares:[],suplentes:[]}};
   if (!s.resultado.equipo.A) s.resultado.equipo.A = {titulares:[],suplentes:[]};
   if (!s.resultado.equipo.B) s.resultado.equipo.B = {titulares:[],suplentes:[]};
@@ -2360,6 +2362,15 @@ function renderResultadoSection() {
     + '<input class="res-input" type="number" min="0" max="100" value="' + (r.tackles !== null ? r.tackles : '') + '" onchange="chResultado(\'tackles\',this.value)" onclick="event.stopPropagation()">'
     + '<div class="res-field-target">target: &lt;' + tgt.tackles + '%</div>'
     + '</div>'
+    + '<div class="res-field">'
+    + '<div class="res-field-label">Ptos contacto totales</div>'
+    + '<input class="res-input" type="number" min="0" value="' + (r.pdcTotal !== null ? r.pdcTotal : '') + '" onchange="chResultado(\'pdcTotal\',this.value)" onclick="event.stopPropagation()">'
+    + '</div>'
+    + '<div class="res-field">'
+    + '<div class="res-field-label">Ptos contacto positivos</div>'
+    + '<input class="res-input" type="number" min="0" value="' + (r.pdcPositivos !== null ? r.pdcPositivos : '') + '" onchange="chResultado(\'pdcPositivos\',this.value)" onclick="event.stopPropagation()">'
+    + (r.pdcTotal !== null && r.pdcPositivos !== null ? '<div class="res-field-target">' + Math.round(r.pdcPositivos / Math.max(r.pdcTotal, 1) * 100) + '% positivos</div>' : '')
+    + '</div>'
     + '</div>'
     + '</div>';
   try { html += renderEquipoPanel(); } catch(e) { console.error('renderEquipoPanel error:', e); }
@@ -2451,6 +2462,7 @@ function fmt1(v) { return v % 1 === 0 ? v.toString() : v.toFixed(1); }
 function calcPromediosPonderados(semsData) {
   var scrumGT=0,scrumPT=0,lineGT=0,linePT=0,penalesT=0;
   var peoSum=0,peoN=0,tacklesSum=0,tacklesN=0,partidos=0;
+  var pdcTotalT=0,pdcPositivosT=0;
   semsData.forEach(function(s) {
     var r = s.resultado;
     if (!r) return;
@@ -2459,6 +2471,7 @@ function calcPromediosPonderados(semsData) {
     if (r.penales!==null) penalesT+=(r.penales||0);
     if (r.peo!==null) { peoSum+=r.peo; peoN++; }
     if (r.tackles!==null) { tacklesSum+=r.tackles; tacklesN++; }
+    if (r.pdcTotal!==null&&r.pdcPositivos!==null) { pdcTotalT+=(r.pdcTotal||0); pdcPositivosT+=(r.pdcPositivos||0); }
     if (r.ptsNos!==null||r.ptsRival!==null) partidos++;
   });
   return {
@@ -2470,6 +2483,8 @@ function calcPromediosPonderados(semsData) {
     penalesPorPartido: partidos>0 ? round1(penalesT/partidos) : null,
     peoProm: peoN>0 ? round1(peoSum/peoN) : null,
     tacklesProm: tacklesN>0 ? round1(tacklesSum/tacklesN) : null,
+    pdcPct: pdcTotalT>0 ? round1(pdcPositivosT/pdcTotalT*100) : null,
+    pdcPositivosT:pdcPositivosT, pdcTotalT:pdcTotalT,
     partidos:partidos
   };
 }
@@ -2496,7 +2511,8 @@ function buildKpiCards(semsData, targets) {
     {label:'PEO', avg:pond.peoProm, tgt:tgtFallback.peo, higher:true, detail:pond.partidos+' partidos'},
     {label:'Obt. Line', avg:pond.linePct, tgt:tgtFallback.line, higher:true, detail:pond.lineG+' obt. de '+pond.lineTotal+' totales'},
     {label:'Dom. Scrum', avg:pond.scrumPct, tgt:tgtFallback.scrum, higher:true, detail:pond.scrumG+' dom. de '+pond.scrumTotal+' totales'},
-    {label:'Tackles err.', avg:pond.tacklesProm, tgt:tgtFallback.tackles, higher:false, detail:pond.partidos+' partidos'}
+    {label:'Tackles err.', avg:pond.tacklesProm, tgt:tgtFallback.tackles, higher:false, detail:pond.partidos+' partidos'},
+    {label:'Ptos Contacto', avg:pond.pdcPct, tgt:50, higher:true, detail:pond.pdcPositivosT+' pos. de '+pond.pdcTotalT+' totales'}
   ];
 
   return items.map(function(it) {
@@ -2577,11 +2593,12 @@ function buildPartidosTable(semsData, showCicloCol) {
       + '<td class="' + lineClass + '">' + (r.line !== null ? r.line + '%' : '\u2014') + '</td>'
       + '<td class="' + scrumClass + '">' + (r.scrum !== null ? r.scrum + '%' : '\u2014') + '</td>'
       + '<td class="' + tacklesClass + '">' + (r.tackles !== null ? r.tackles + '%' : '\u2014') + '</td>'
+      + '<td>' + (r.pdcTotal !== null && r.pdcPositivos !== null ? Math.round(r.pdcPositivos / Math.max(r.pdcTotal, 1) * 100) + '%' : '\u2014') + '</td>'
       + '</tr>';
   }).join('');
   var cicloTh = showCicloCol ? '<th>Ciclo</th>' : '';
   return '<div style="overflow-x:auto"><table class="res-table">'
-    + '<thead><tr><th>Sem</th><th>Fecha</th><th>Rival</th><th>L/V</th><th>Resultado</th>' + cicloTh + '<th>PEO</th><th>Line</th><th>Scrum</th><th>Tackles</th></tr></thead>'
+    + '<thead><tr><th>Sem</th><th>Fecha</th><th>Rival</th><th>L/V</th><th>Resultado</th>' + cicloTh + '<th>PEO</th><th>Line</th><th>Scrum</th><th>Tackles</th><th>PDC</th></tr></thead>'
     + '<tbody>' + rows + '</tbody></table></div>';
 }
 
@@ -2636,7 +2653,7 @@ function renderResultados() {
     // KPI cards del ciclo
     html += '<div class="card" style="margin-bottom:12px">'
       + '<div style="font-size:12px;font-weight:600;color:#0D1B4E;margin-bottom:8px">KPIs del ciclo</div>'
-      + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">'
+      + '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">'
       + buildKpiCards(semsCiclo, tgt)
       + '</div></div>';
 
@@ -2671,7 +2688,7 @@ function renderResultados() {
     // Promedios acumulados
     html += '<div class="card" style="margin-bottom:12px">'
       + '<div style="font-size:14px;font-weight:600;color:#0D1B4E;margin-bottom:12px">Promedios acumulados</div>'
-      + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">'
+      + '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">'
       + buildKpiCards(allConDatos, null)
       + '</div></div>';
 
@@ -2703,12 +2720,13 @@ function renderResultados() {
           + '<td class="'+lineOk+'">'+(p.linePct!==null?fmt1(p.linePct)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">'+p.lineG+'/'+p.lineTotal+'</div></td>'
           + '<td class="'+scrumOk+'">'+(p.scrumPct!==null?fmt1(p.scrumPct)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">'+p.scrumG+'/'+p.scrumTotal+'</div></td>'
           + '<td class="'+tackOk+'">'+(p.tacklesProm!==null?fmt1(p.tacklesProm)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">tgt <'+ci.tgt.tackles+'%</div></td>'
+          + '<td>'+(p.pdcPct!==null?fmt1(p.pdcPct)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">'+p.pdcPositivosT+'/'+p.pdcTotalT+'</div></td>'
           + '</tr>';
       }).join('');
       html += '<div class="card" style="margin-bottom:12px">'
         + '<div style="font-size:14px;font-weight:600;color:#0D1B4E;margin-bottom:12px">KPIs por ciclo</div>'
         + '<div style="overflow-x:auto"><table class="res-table">'
-        + '<thead><tr><th>Ciclo</th><th>Partidos</th><th>PEO</th><th>Line</th><th>Scrum</th><th>Tackles</th></tr></thead>'
+        + '<thead><tr><th>Ciclo</th><th>Partidos</th><th>PEO</th><th>Line</th><th>Scrum</th><th>Tackles</th><th>PDC</th></tr></thead>'
         + '<tbody>' + cicloRows + '</tbody></table></div></div>';
     }
 
