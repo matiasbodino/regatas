@@ -342,6 +342,7 @@ select,input{font-family:inherit}
 .res-win{color:#27AE60;font-weight:700}
 .res-loss{color:#E74C3C;font-weight:700}
 .kpi-ok{color:#27AE60;font-weight:700}
+.kpi-warn{color:#D4A017;font-weight:700}
 .kpi-fail{color:#E74C3C;font-weight:700}
 .res-input{width:50px;text-align:center;font-size:13px;padding:4px;border-radius:6px;border:0.5px solid #C5CCE0;background:#fff;color:#1A1A2E}
 .res-input:focus{outline:none;border-color:#2B4EA0}
@@ -2453,6 +2454,20 @@ function setResVista(modo) {
 
 function round1(v) { return Math.round(v * 10) / 10; }
 function fmt1(v) { return v % 1 === 0 ? v.toString() : v.toFixed(1); }
+// higher=true: >= tgt green, >= 90% yellow, < 80% red
+// higher=false (tackles): <= tgt green, <= 110% yellow, > 120% red
+function kpiClass(val, tgt, higher) {
+  if (val === null) return '';
+  if (higher) {
+    if (val >= tgt) return 'kpi-ok';
+    if (val >= tgt * 0.8) return 'kpi-warn';
+    return 'kpi-fail';
+  } else {
+    if (val <= tgt) return 'kpi-ok';
+    if (val <= tgt * 1.2) return 'kpi-warn';
+    return 'kpi-fail';
+  }
+}
 
 function calcPromediosPonderados(semsData) {
   var scrumGT=0,scrumPT=0,lineGT=0,linePT=0,penalesT=0;
@@ -2508,8 +2523,9 @@ function buildKpiCards(semsData, targets) {
   ];
 
   return items.map(function(it) {
-    var ok = it.avg!==null ? (it.higher ? it.avg>=it.tgt : it.avg<=it.tgt) : false;
-    var color = it.avg!==null ? (ok?'#27AE60':'#E74C3C') : '#aaa';
+    var cls = kpiClass(it.avg, it.tgt, it.higher);
+    var color = cls==='kpi-ok'?'#27AE60':cls==='kpi-warn'?'#D4A017':'#E74C3C';
+    if (it.avg===null) color='#aaa';
     var pct = it.avg!==null ? Math.min(100, it.higher ? (it.avg/it.tgt*100) : (it.tgt/Math.max(it.avg,1)*100)) : 0;
     return '<div style="background:#fff;border:0.5px solid #E2E7F5;border-radius:10px;padding:12px 14px">'
       + '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">'+it.label+'</div>'
@@ -2570,11 +2586,11 @@ function buildPartidosTable(semsData, showCicloCol) {
     var ganamos = r.ptsNos > r.ptsRival;
     var empate = r.ptsNos === r.ptsRival;
     var resClass = ganamos ? 'res-win' : (empate ? '' : 'res-loss');
-    var lineClass = r.line !== null ? (r.line >= tgt.line ? 'kpi-ok' : 'kpi-fail') : '';
-    var scrumClass = r.scrum !== null ? (r.scrum >= tgt.scrum ? 'kpi-ok' : 'kpi-fail') : '';
-    var tacklesClass = r.tackles !== null ? (r.tackles <= tgt.tackles ? 'kpi-ok' : 'kpi-fail') : '';
+    var lineClass = kpiClass(r.line, tgt.line, true);
+    var scrumClass = kpiClass(r.scrum, tgt.scrum, true);
+    var tacklesClass = kpiClass(r.tackles, tgt.tackles, false);
     var pdcVal = (r.pdcTotal !== null && r.pdcPositivos !== null && r.pdcTotal > 0) ? Math.round(r.pdcPositivos / r.pdcTotal * 100) : null;
-    var pdcClass = pdcVal !== null ? (pdcVal >= (tgt.pdc || 50) ? 'kpi-ok' : 'kpi-fail') : '';
+    var pdcClass = kpiClass(pdcVal, tgt.pdc || 50, true);
     return '<tr>'
       + '<td style="font-weight:600">Sem ' + s.sem + '</td>'
       + '<td>' + s.fecha + '</td>'
@@ -2701,10 +2717,10 @@ function renderResultados() {
     if (ciclosConDatos.length > 0) {
       var cicloRows = ciclosConDatos.map(function(ci) {
         var p = ci.p;
-        var lineOk=p.linePct!==null?(p.linePct>=ci.tgt.line?'kpi-ok':'kpi-fail'):'';
-        var scrumOk=p.scrumPct!==null?(p.scrumPct>=ci.tgt.scrum?'kpi-ok':'kpi-fail'):'';
-        var tackOk=p.tacklesProm!==null?(p.tacklesProm<=ci.tgt.tackles?'kpi-ok':'kpi-fail'):'';
-        var pdcOk=p.pdcPct!==null?(p.pdcPct>=(ci.tgt.pdc||50)?'kpi-ok':'kpi-fail'):'';
+        var lineOk=kpiClass(p.linePct, ci.tgt.line, true);
+        var scrumOk=kpiClass(p.scrumPct, ci.tgt.scrum, true);
+        var tackOk=kpiClass(p.tacklesProm, ci.tgt.tackles, false);
+        var pdcOk=kpiClass(p.pdcPct, ci.tgt.pdc||50, true);
         return '<tr>'
           + '<td style="font-weight:700;color:'+ci.color+'">\u25B2 '+ci.nombre+'</td>'
           + '<td>'+ci.n+'</td>'
@@ -2832,10 +2848,10 @@ function calcCumbreKPIs(cumbreNum) {
     var kpis = {line:null,scrum:null,tackles:null,pdc:null};
     var pts = 0;
     var kpiCount = 0;
-    if (r.line !== null) { kpis.line = r.line >= tgt.line; if(kpis.line) pts++; kpiCount++; }
-    if (r.scrum !== null) { kpis.scrum = r.scrum >= tgt.scrum; if(kpis.scrum) pts++; kpiCount++; }
-    if (r.tackles !== null) { kpis.tackles = r.tackles <= tgt.tackles; if(kpis.tackles) pts++; kpiCount++; }
-    if (r.pdcTotal !== null && r.pdcPositivos !== null && r.pdcTotal > 0) { var pdcPct = Math.round(r.pdcPositivos/r.pdcTotal*100); kpis.pdc = pdcPct >= (tgt.pdc||50); if(kpis.pdc) pts++; kpiCount++; }
+    if (r.line !== null) { kpis.line = kpiClass(r.line, tgt.line, true); if(kpis.line==='kpi-ok') pts++; kpiCount++; }
+    if (r.scrum !== null) { kpis.scrum = kpiClass(r.scrum, tgt.scrum, true); if(kpis.scrum==='kpi-ok') pts++; kpiCount++; }
+    if (r.tackles !== null) { kpis.tackles = kpiClass(r.tackles, tgt.tackles, false); if(kpis.tackles==='kpi-ok') pts++; kpiCount++; }
+    if (r.pdcTotal !== null && r.pdcPositivos !== null && r.pdcTotal > 0) { var pdcPct = Math.round(r.pdcPositivos/r.pdcTotal*100); kpis.pdc = kpiClass(pdcPct, tgt.pdc||50, true); if(kpis.pdc==='kpi-ok') pts++; kpiCount++; }
     pool += kpiCount;
     puntos += pts;
     rivales.push(s.rival);
@@ -2879,10 +2895,10 @@ function buildBanderaWidget(c) {
       html += '<tr>'
         +'<td style="font-weight:600">'+d.rival+'</td>'
         +'<td>'+d.res+'</td>'
-        +'<td>'+(d.kpis.line===null?'<span class="kpi-dot" style="background:#ccc"></span>':'<span class="kpi-dot" style="background:'+(d.kpis.line?'#27AE60':'#E74C3C')+'"></span>')+'</td>'
-        +'<td>'+(d.kpis.scrum===null?'<span class="kpi-dot" style="background:#ccc"></span>':'<span class="kpi-dot" style="background:'+(d.kpis.scrum?'#27AE60':'#E74C3C')+'"></span>')+'</td>'
-        +'<td>'+(d.kpis.tackles===null?'<span class="kpi-dot" style="background:#ccc"></span>':'<span class="kpi-dot" style="background:'+(d.kpis.tackles?'#27AE60':'#E74C3C')+'"></span>')+'</td>'
-        +'<td>'+(d.kpis.pdc===null?'<span class="kpi-dot" style="background:#ccc"></span>':'<span class="kpi-dot" style="background:'+(d.kpis.pdc?'#27AE60':'#E74C3C')+'"></span>')+'</td>'
+        +'<td><span class="kpi-dot" style="background:'+(d.kpis.line===null?'#ccc':d.kpis.line==='kpi-ok'?'#27AE60':d.kpis.line==='kpi-warn'?'#D4A017':'#E74C3C')+'"></span></td>'
+        +'<td><span class="kpi-dot" style="background:'+(d.kpis.scrum===null?'#ccc':d.kpis.scrum==='kpi-ok'?'#27AE60':d.kpis.scrum==='kpi-warn'?'#D4A017':'#E74C3C')+'"></span></td>'
+        +'<td><span class="kpi-dot" style="background:'+(d.kpis.tackles===null?'#ccc':d.kpis.tackles==='kpi-ok'?'#27AE60':d.kpis.tackles==='kpi-warn'?'#D4A017':'#E74C3C')+'"></span></td>'
+        +'<td><span class="kpi-dot" style="background:'+(d.kpis.pdc===null?'#ccc':d.kpis.pdc==='kpi-ok'?'#27AE60':d.kpis.pdc==='kpi-warn'?'#D4A017':'#E74C3C')+'"></span></td>'
         +'</tr>';
     });
     html += '</tbody></table></div></div>';
