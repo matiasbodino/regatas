@@ -665,6 +665,88 @@ const FACETAS = {
 
 const TARGETS = {'Pto. Contacto':8,'Destrezas':10,'Ataque':37,'Defensa':23,'Line / Backs':8,'Scrum / Backs':6,'Pie / Salidas':8,'Sit. Real':0,'Juego Cond.':0};
 const DOTS = {G:'#27AE60',Y:'#F5C518',R:'#E74C3C'};
+
+// Custom groups/facetas from localStorage
+function loadCustomGruposFacetas() {
+  try {
+    var cg = localStorage.getItem('custom_grupos');
+    if (cg) {
+      var parsed = JSON.parse(cg);
+      Object.keys(parsed).forEach(function(g) {
+        if (!GRUPOS[g]) {
+          GRUPOS[g] = parsed[g];
+          grpOrder.push(g);
+          TARGETS[g] = 0;
+        }
+      });
+    }
+    var cf = localStorage.getItem('custom_facetas');
+    if (cf) {
+      var parsedF = JSON.parse(cf);
+      Object.keys(parsedF).forEach(function(g) {
+        if (!FACETAS[g]) FACETAS[g] = [];
+        parsedF[g].forEach(function(f) {
+          if (FACETAS[g].indexOf(f) < 0) FACETAS[g].push(f);
+        });
+      });
+    }
+  } catch(e) {}
+}
+loadCustomGruposFacetas();
+
+function agregarFaceta(grupo) {
+  var nombre = prompt('Nueva faceta para ' + grupo + ':');
+  if (!nombre || !nombre.trim()) return;
+  nombre = nombre.trim();
+  if (!FACETAS[grupo]) FACETAS[grupo] = [];
+  if (FACETAS[grupo].indexOf(nombre) >= 0) return;
+  FACETAS[grupo].push(nombre);
+  // Persist custom facetas
+  var cf = {};
+  try { cf = JSON.parse(localStorage.getItem('custom_facetas') || '{}'); } catch(e) {}
+  if (!cf[grupo]) cf[grupo] = [];
+  if (cf[grupo].indexOf(nombre) < 0) cf[grupo].push(nombre);
+  localStorage.setItem('custom_facetas', JSON.stringify(cf));
+  renderAll();
+}
+
+var COLORES_GRUPO = [
+  {color:'#8E44AD',light:'#F5EEF8',text:'#8E44AD'},
+  {color:'#2E86C1',light:'#EBF5FB',text:'#2E86C1'},
+  {color:'#D4AC0D',light:'#FEF9E7',text:'#D4AC0D'},
+  {color:'#A04000',light:'#FBEEE6',text:'#A04000'},
+  {color:'#1ABC9C',light:'#E8F6F3',text:'#1ABC9C'},
+  {color:'#E74C3C',light:'#FDEDEC',text:'#E74C3C'},
+];
+
+function agregarGrupo() {
+  var nombre = prompt('Nombre del nuevo grupo:');
+  if (!nombre || !nombre.trim()) return;
+  nombre = nombre.trim();
+  if (GRUPOS[nombre]) { alert('El grupo ya existe'); return; }
+  var faceta = prompt('Primera faceta del grupo ' + nombre + ':');
+  if (!faceta || !faceta.trim()) return;
+  faceta = faceta.trim();
+
+  var colorIdx = Object.keys(GRUPOS).length % COLORES_GRUPO.length;
+  var colors = COLORES_GRUPO[colorIdx];
+  GRUPOS[nombre] = colors;
+  FACETAS[nombre] = [faceta];
+  TARGETS[nombre] = 0;
+  grpOrder.push(nombre);
+
+  // Persist
+  var cg = {};
+  try { cg = JSON.parse(localStorage.getItem('custom_grupos') || '{}'); } catch(e) {}
+  cg[nombre] = colors;
+  localStorage.setItem('custom_grupos', JSON.stringify(cg));
+  var cf = {};
+  try { cf = JSON.parse(localStorage.getItem('custom_facetas') || '{}'); } catch(e) {}
+  cf[nombre] = [faceta];
+  localStorage.setItem('custom_facetas', JSON.stringify(cf));
+  renderAll();
+}
+
 let _uid = 0;
 const uid = () => 'b'+(++_uid);
 const mk  = (g,m,f,d='G') => ({id:uid(),tipo:'bloque',grupo:g,mins:m,faceta:f,dot:d,open:false,horaInicio:null,contenidos:[],links:[],backsParalelo:null});
@@ -1383,8 +1465,8 @@ function renderDays(){
       }
       const gc=GRUPOS[bl.grupo]||GRUPOS['Ataque'];
       const dot=DOTS[bl.dot]||DOTS.G;
-      const facOpts=(FACETAS[bl.grupo]||[]).map(f=>`<option value="${f}"${f===bl.faceta?' selected':''  }>${f}</option>`).join('');
-      const grOpts=Object.keys(GRUPOS).map(g=>`<option value="${g}"${g===bl.grupo?' selected':''  }>${g}</option>`).join('');
+      const facOpts=(FACETAS[bl.grupo]||[]).map(f=>`<option value="${f}"${f===bl.faceta?' selected':''  }>${f}</option>`).join('')+'<option value="__nueva_faceta__">+ Agregar faceta...</option>';
+      const grOpts=Object.keys(GRUPOS).map(g=>`<option value="${g}"${g===bl.grupo?' selected':''  }>${g}</option>`).join('')+'<option value="__nuevo_grupo__">+ Agregar grupo...</option>';
       const safeLink=(bl.link||''  ).replace(/"/g,'&quot;');
       const safePremisa=(bl.premisa||''  ).replace(/"/g,'&quot;');
       // ── Backs paralelo editor section for Line/Backs and Scrum/Backs ──
@@ -1673,10 +1755,14 @@ function pegarDia(dia) {
 }
 
 function toggleBlock(dia,id){const b=SEMS[curSem][dia].find(b=>b.id===id);if(b){b.open=!b.open;renderDays();}}
-function chGrupo(dia,id,val){const b=SEMS[curSem][dia].find(b=>b.id===id);if(b){b.grupo=val;b.faceta=(FACETAS[val]||[''])[0];renderAll();}}
+function chGrupo(dia,id,val){
+  if(val==='__nuevo_grupo__'){agregarGrupo();return;}
+  const b=SEMS[curSem][dia].find(b=>b.id===id);if(b){b.grupo=val;b.faceta=(FACETAS[val]||[''])[0];renderAll();}
+}
 function chFaceta(dia,id,val){
   const b=SEMS[curSem][dia].find(b=>b.id===id);
   if(!b)return;
+  if(val==='__nueva_faceta__'){agregarFaceta(b.grupo);return;}
   if(val==='__otra__'){
     const custom=prompt('¿Cuál faceta?','');
     if(custom&&custom.trim()){b.faceta=custom.trim();renderDays();}
