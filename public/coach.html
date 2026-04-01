@@ -646,6 +646,8 @@ const GRUPOS = {
   'Line / Backs': {color:'#7A5200',light:'#FEF9D9',text:'#7A5200'},
   'Scrum / Backs':{color:'#5C3D00',light:'#FFF5E0',text:'#5C3D00'},
   'Pie / Salidas':{color:'#4A3010',light:'#FDF4E3',text:'#8B5E1A'},
+  'Sit. Real':    {color:'#0B5345',light:'#D1F2EB',text:'#0B5345'},
+  'Juego Cond.':  {color:'#1B4F72',light:'#D6EAF8',text:'#1B4F72'},
 };
 
 const FACETAS = {
@@ -653,13 +655,15 @@ const FACETAS = {
   'Pto. Contacto':['Pto. Contacto','Breakdown - 1vs1','Breakdown - Trencito','Breakdown - Urgencia vs 2 escudos','Breakdown - Loco','Breakdown - Manuel','Breakdown - Simbi 2+1','Breakdown - Postes','Breakdown - Tríos','Breakdown - Ruck + Célula','Breakdown - Pelota'],
   'Destrezas':    ['Destrezas I — Atrapar y Pasar','Destrezas II — Ball Carry','Destreza Oro','Carrera Pases','Ola de Pases','Varillas 1 / 2','Evasión','Kick + Catch & Pass','Manos Rápidas','3 vs 2','8 vs 5'],
   'Ataque':       ['Mov General — Vueltas','Est. y semis separados','Est. y semis juntos','10 vs 10 — reinicios','10 vs 10 — juego libre','Jaimito / Semis','Recepción de patada','Lanzamientos','Jugada 5y','Ataque 25y','Contact','Juego desestructurado XV','Jaimito + Jaimito'],
-  'Defensa':      ['Defensa cerca del ruck','Transición corto → abierto','Defensa + Scrum'],
+  'Defensa':      ['Defensa cerca del ruck','Transición corto → abierto','Defensa + Scrum','Tackle'],
   'Line / Backs': ['Line / Backs solos','Line contra disputa','Maul solo abajo','3 vs 4'],
   'Scrum / Backs':['Scrum + Backs','Scrum + Defensa'],
   'Pie / Salidas':['Salidas','Juego c/pie','Salidas + Juego c/pie','Recepción de patada rival','Kick chase'],
+  'Sit. Real':    ['Situación real de juego'],
+  'Juego Cond.':  ['Juego condicionado'],
 };
 
-const TARGETS = {'Pto. Contacto':8,'Destrezas':10,'Ataque':37,'Defensa':23,'Line / Backs':8,'Scrum / Backs':6,'Pie / Salidas':8};
+const TARGETS = {'Pto. Contacto':8,'Destrezas':10,'Ataque':37,'Defensa':23,'Line / Backs':8,'Scrum / Backs':6,'Pie / Salidas':8,'Sit. Real':0,'Juego Cond.':0};
 const DOTS = {G:'#27AE60',Y:'#F5C518',R:'#E74C3C'};
 let _uid = 0;
 const uid = () => 'b'+(++_uid);
@@ -891,7 +895,7 @@ const calcDist = s => {
   return t;
 };
 
-const grpOrder = ['Pto. Contacto','Destrezas','Ataque','Defensa','Line / Backs','Scrum / Backs','Pie / Salidas'];
+const grpOrder = ['Pto. Contacto','Destrezas','Ataque','Defensa','Line / Backs','Scrum / Backs','Pie / Salidas','Sit. Real','Juego Cond.'];
 
 // ── NAVIGATION ────────────────────────────────────────────────
 function goPage(id) {
