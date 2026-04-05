@@ -1646,7 +1646,7 @@ function renderDays(){
                 <span style="font-size:10px;color:#aaa">min</span>
                 ${(bl.links&&bl.links.length)?`<span title="${bl.links.length} video${bl.links.length>1?'s':''} cargado${bl.links.length>1?'s':''}" style="font-size:11px">🎥${bl.links.length>1?` ×${bl.links.length}`:''}</span>`:''}
               </div>
-              ${bl.premisa?`<div style="font-size:10px;color:#888;font-style:italic;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${bl.premisa}">${bl.premisa.length>55?bl.premisa.slice(0,55)+'…':bl.premisa}</div>`:''}
+              ${bl.premisa?`<div style="font-size:10px;color:#888;font-style:italic;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${safePremisa}">${bl.premisa.length>55?bl.premisa.slice(0,55)+'…':bl.premisa}</div>`:''}
             </div>`;
       }
 
