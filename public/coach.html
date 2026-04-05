@@ -1755,7 +1755,7 @@ function pegarDia(dia) {
   renderAll();
 }
 
-function toggleBlock(dia,id){const b=SEMS[curSem][dia].find(b=>b.id===id);if(b){b.open=!b.open;renderDays();}}
+function toggleBlock(dia,id){console.log('TOGGLE',dia,id,'bloques:',SEMS[curSem][dia].map(b=>b.id));const b=SEMS[curSem][dia].find(b=>b.id===id);console.log('encontrado:',!!b);if(b){b.open=!b.open;renderDays();}}
 function chGrupo(dia,id,val){
   if(val==='__nuevo_grupo__'){agregarGrupo();return;}
   const b=SEMS[curSem][dia].find(b=>b.id===id);if(b){b.grupo=val;b.faceta=(FACETAS[val]||[''])[0];renderAll();}
