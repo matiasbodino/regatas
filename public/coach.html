@@ -225,7 +225,7 @@ select,input{font-family:inherit}
   .nav-brand .title{font-size:12px}
   .nav-links{overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%;padding-bottom:2px}
   .nav-link{padding:0 12px;height:38px;font-size:11px}
-  .nav-save-bar{width:100%;padding:6px 12px;border-top:1px solid rgba(255,255,255,0.1);border-left:none;display:flex;gap:6px;justify-content:flex-end}
+  .nav-save-bar{width:100%;padding:6px 12px;border-top:1px solid rgba(255,255,255,0.1);border-left:none;display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
 
   /* PAGES */
   .page{padding:12px}
@@ -479,6 +479,7 @@ select,input{font-family:inherit}
     <label title="Importar datos" style="padding:4px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.7);font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap">⬆ Importar<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
     <button id="btn-guardar" onclick="guardarSemana()" title="Guardar semana y bloquear edición" style="padding:4px 10px;border-radius:6px;border:1px solid #27AE60;background:#27AE60;color:#fff;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">💾 Guardar</button>
     <button id="btn-publicar" onclick="publicarSemana()" title="Publicar semana activa para jugadores" style="padding:4px 10px;border-radius:6px;border:1px solid #F5C518;background:#F5C518;color:#0D1B4E;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">📢 Publicar</button>
+    <button id="btn-sync" onclick="sincronizarDesdeSupabase()" title="Traer cambios del otro coach" style="padding:4px 10px;border-radius:6px;border:1px solid #3498DB;background:#3498DB;color:#fff;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">🔄 Sincronizar</button>
   </div>
 </nav>
 
@@ -3389,6 +3390,68 @@ async function publicarSemana() {
   }
 }
 
+// ── SINCRONIZAR DESDE SUPABASE ──────────────────────────────
+async function sincronizarDesdeSupabase(silent) {
+  var btn = document.getElementById('btn-sync');
+  if (btn) { btn.textContent = '🔄 Cargando...'; btn.disabled = true; }
+  try {
+    var result = await supabaseClient
+      .from('semana_activa')
+      .select('datos')
+      .eq('id', 1)
+      .single();
+    if (result.error) throw result.error;
+    if (!result.data || !result.data.datos) {
+      if (!silent) alert('No hay datos publicados en Supabase todavía.');
+      if (btn) { btn.textContent = '🔄 Sincronizar'; btn.disabled = false; }
+      return;
+    }
+    var d = result.data.datos;
+    var semanas = {};
+    if (d.semanas) { semanas = d.semanas; }
+    else if (d.sem) { semanas[d.sem] = d; }
+    var count = 0;
+    Object.keys(semanas).forEach(function(semNum) {
+      var saved = semanas[semNum];
+      var idx = SEMS.findIndex(function(s) { return s.sem == semNum; });
+      if (idx >= 0) {
+        if (saved.lun) SEMS[idx].lun = saved.lun;
+        if (saved.mar) SEMS[idx].mar = saved.mar;
+        if (saved.jue) SEMS[idx].jue = saved.jue;
+        if (saved.backs) SEMS[idx].backs = saved.backs;
+        if (saved.resultado) SEMS[idx].resultado = saved.resultado;
+        count++;
+      }
+    });
+    if (d.cumbresEstado) {
+      try { localStorage.setItem(STORAGE_KEY_CUMBRES, JSON.stringify(d.cumbresEstado)); } catch(e) {}
+      loadCumbres(); renderCumbres();
+    }
+    saveToLocal(); renderTabs(); renderAll(); renderTrackerBtn();
+    if (btn) {
+      btn.textContent = '✓ ' + count + ' sem';
+      btn.style.background = '#27AE60'; btn.style.borderColor = '#27AE60';
+      setTimeout(function() {
+        btn.textContent = '🔄 Sincronizar';
+        btn.style.background = '#3498DB'; btn.style.borderColor = '#3498DB';
+        btn.disabled = false;
+      }, 2500);
+    }
+    var ind = document.getElementById('save-indicator');
+    if (ind) { ind.textContent = 'sincronizado ' + new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}); ind.style.color = 'rgba(52,152,219,0.9)'; }
+  } catch(e) {
+    if (btn) {
+      btn.textContent = '⚠ Error'; btn.style.background = '#E74C3C'; btn.style.borderColor = '#E74C3C';
+      setTimeout(function() {
+        btn.textContent = '🔄 Sincronizar';
+        btn.style.background = '#3498DB'; btn.style.borderColor = '#3498DB';
+        btn.disabled = false;
+      }, 3000);
+    }
+    if (!silent) console.error('Sync error:', e);
+  }
+}
+
 // Intercept all mutations to trigger autosave
 const _renderAll=renderAll;
 renderAll=function(){_renderAll();scheduleSave();};
@@ -3463,6 +3526,7 @@ renderCumbres();
 renderTabs();
 renderAll();
 renderTrackerBtn();
+sincronizarDesdeSupabase(true);
 
 // ── JUGADORES ─────────────────────────────────────────────────────
 var jugTab = 'plantel';
