@@ -750,6 +750,25 @@ function agregarGrupo() {
 
 let _uid = 0;
 const uid = () => 'b'+(++_uid);
+function reindexUids() {
+  var seen = {};
+  SEMS.forEach(function(s) {
+    ['lun','mar','jue'].forEach(function(d) {
+      (s[d]||[]).forEach(function(b) {
+        if (b.id && seen[b.id]) { b.id = uid(); }
+        seen[b.id] = true;
+        var n = parseInt((b.id||'').replace('b','')); if (n > _uid) _uid = n;
+      });
+    });
+    if (s.backs) { ['mar','jue'].forEach(function(d) {
+      (s.backs[d]||[]).forEach(function(b) {
+        if (b.id && seen[b.id]) { b.id = uid(); }
+        seen[b.id] = true;
+        var n = parseInt((b.id||'').replace('b','')); if (n > _uid) _uid = n;
+      });
+    }); }
+  });
+}
 const mk  = (g,m,f,d='G') => ({id:uid(),tipo:'bloque',grupo:g,mins:m,faceta:f,dot:d,open:false,horaInicio:null,contenidos:[],links:[],backsParalelo:null});
 const mkA = (m=1) => ({id:uid(),tipo:'agua',mins:m});
 const mkB = (f,m,p='',l='') => ({id:uid(),faceta:f,mins:m,premisa:p,link:l});
@@ -1755,7 +1774,7 @@ function pegarDia(dia) {
   renderAll();
 }
 
-function toggleBlock(dia,id){console.log('TOGGLE',dia,id,'bloques:',SEMS[curSem][dia].map(b=>b.id));const b=SEMS[curSem][dia].find(b=>b.id===id);console.log('encontrado:',!!b);if(b){b.open=!b.open;renderDays();}}
+function toggleBlock(dia,id){const b=SEMS[curSem][dia].find(b=>b.id===id);if(b){b.open=!b.open;renderDays();}}
 function chGrupo(dia,id,val){
   if(val==='__nuevo_grupo__'){agregarGrupo();return;}
   const b=SEMS[curSem][dia].find(b=>b.id===id);if(b){b.grupo=val;b.faceta=(FACETAS[val]||[''])[0];renderAll();}
@@ -3267,6 +3286,7 @@ function loadFromLocal() {
         if(saved.resultado) SEMS[i].resultado=saved.resultado;
       }
     });
+    reindexUids();
     const ind = document.getElementById('save-indicator');
     if(ind){ ind.textContent='cargado del browser'; ind.style.color='rgba(39,174,96,0.8)'; }
     return true;
@@ -3423,6 +3443,7 @@ async function sincronizarDesdeSupabase(silent) {
         count++;
       }
     });
+    reindexUids();
     if (d.cumbresEstado) {
       try { localStorage.setItem(STORAGE_KEY_CUMBRES, JSON.stringify(d.cumbresEstado)); } catch(e) {}
       loadCumbres(); renderCumbres();
