@@ -2063,7 +2063,7 @@ function renderGantt(){
   SEMS.forEach(s=>DAYS.forEach(d=>allSessions.push({sem:s.sem,rival:s.rival,day:d.l,blocks:s[d.k]||[]})));
 
   const trained=(blocks,kws)=>kws.some(kw=>blocks.some(b=>
-    b.faceta.toLowerCase().includes(kw)||b.grupo.toLowerCase().includes(kw)
+    (b.faceta||'').toLowerCase().includes(kw)||(b.grupo||'').toLowerCase().includes(kw)
   ));
 
   let prevSem=null;
