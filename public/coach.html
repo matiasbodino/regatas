@@ -2059,7 +2059,7 @@ function renderGantt(){
   GANTT_FACETAS = buildGanttFacetas();
 
   const trained=(blocks,grupo,facetaName,isGroup)=>{
-    if (isGroup) return blocks.some(b=>(b.grupo||'')===grupo);
+    if (isGroup) return false; // header del grupo: solo visual, no marca
     var target=(facetaName||'').toLowerCase();
     return blocks.some(b=>
       (b.grupo||'')===grupo && (b.faceta||'').toLowerCase()===target
