@@ -963,29 +963,14 @@ const BIBLIOTECA = [
   ]},
 ];
 
-const GANTT_FACETAS = [
-  {g:'Pto. Contacto',name:'Pto. Contacto / Breakdown',kw:['contacto','breakdown']},
-  {g:'Destrezas',name:'Destrezas I — Atrapar/Pasar',kw:['destrezas i','carrera pases','ola de pases','varillas','evasión','kick']},
-  {g:'Destrezas',name:'Destrezas II — Ball Carry',kw:['ball carry','manos rápidas','destreza oro']},
-  {g:'Ataque',name:'Mov General — Vueltas',kw:['vueltas','mov general']},
-  {g:'Ataque',name:'Est. y semis separados',kw:['separados']},
-  {g:'Ataque',name:'Est. y semis juntos',kw:['juntos']},
-  {g:'Ataque',name:'10 vs 10 — reinicios',kw:['reinicios']},
-  {g:'Ataque',name:'10 vs 10 — juego libre',kw:['juego libre']},
-  {g:'Ataque',name:'Jaimito / Semis',kw:['jaimito','semis']},
-  {g:'Ataque',name:'Recepción de patada (ataque)',kw:['recepción de patada']},
-  {g:'Ataque',name:'Lanzamientos',kw:['lanzamientos']},
-  {g:'Ataque',name:'Jugada 5y / Ataque 25y',kw:['5y','25y']},
-  {g:'Ataque',name:'Contact',kw:['contact']},
-  {g:'Defensa',name:'Defensa cerca del ruck',kw:['cerca del ruck']},
-  {g:'Defensa',name:'Transición corto → abierto',kw:['transición']},
-  {g:'Defensa',name:'Defensa + Scrum',kw:['defensa + scrum']},
-  {g:'Line / Backs',name:'Line / Backs solos',kw:['line / backs','line/ backs','line contra','maul','3 vs 4']},
-  {g:'Scrum / Backs',name:'Scrum + Backs',kw:['scrum + backs','scrum + defensa']},
-  {g:'Pie / Salidas',name:'Salidas + Juego c/pie',kw:['salidas']},
-  {g:'Pie / Salidas',name:'Recepción de patada (pie)',kw:['recepción de patada rival']},
-  {g:'Pie / Salidas',name:'Juego 25y / Kick chase',kw:['kick chase']},
-];
+// One row per grupo (incluyendo customs). Una sesión cuenta como
+// "entrenada" si tiene al menos un bloque del grupo.
+function buildGanttFacetas() {
+  return Object.keys(FACETAS)
+    .filter(function(g) { return g !== 'Gimnasio'; })
+    .map(function(g) { return { g: g, name: g }; });
+}
+var GANTT_FACETAS = buildGanttFacetas();
 
 // ── STATE ──────────────────────────────────────────────────────
 let curSem = 0;
@@ -2062,9 +2047,10 @@ function renderGantt(){
   const allSessions=[];
   SEMS.forEach(s=>DAYS.forEach(d=>allSessions.push({sem:s.sem,rival:s.rival,day:d.l,blocks:s[d.k]||[]})));
 
-  const trained=(blocks,kws)=>kws.some(kw=>blocks.some(b=>
-    (b.faceta||'').toLowerCase().includes(kw)||(b.grupo||'').toLowerCase().includes(kw)
-  ));
+  // Rebuild in case custom facetas were added since last render
+  GANTT_FACETAS = buildGanttFacetas();
+
+  const trained=(blocks,grupo)=>blocks.some(b=>(b.grupo||'')===grupo);
 
   let prevSem=null;
   const dayHdrs=allSessions.map(sess=>{
@@ -2091,7 +2077,7 @@ function renderGantt(){
     prevG=f.g;
     const gc=GRUPOS[f.g];
     const cells=allSessions.map(sess=>{
-      const t=trained(sess.blocks,f.kw);
+      const t=trained(sess.blocks,f.g);
       return `<td class="gantt-cell" style="background:${t?gc.color+'22':'#fff'}">
         ${t?`<div style="width:10px;height:10px;border-radius:50%;background:${gc.color};margin:6px auto"></div>`:''}
       </td>`;
