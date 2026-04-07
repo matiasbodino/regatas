@@ -963,12 +963,20 @@ const BIBLIOTECA = [
   ]},
 ];
 
-// One row per grupo (incluyendo customs). Una sesión cuenta como
-// "entrenada" si tiene al menos un bloque del grupo.
+// Filas: header del grupo + una fila por sub-faceta. Match exacto por
+// grupo+faceta. La fila del grupo queda marcada si cualquier sub-faceta
+// del grupo aparece en la sesión.
 function buildGanttFacetas() {
-  return Object.keys(FACETAS)
-    .filter(function(g) { return g !== 'Gimnasio'; })
-    .map(function(g) { return { g: g, name: g }; });
+  var rows = [];
+  Object.keys(FACETAS).forEach(function(g) {
+    if (g === 'Gimnasio') return;
+    rows.push({ g: g, name: g, isGroup: true });
+    (FACETAS[g] || []).forEach(function(name) {
+      if (name === g) return; // evita duplicar cuando grupo y faceta tienen el mismo nombre
+      rows.push({ g: g, name: name, isGroup: false });
+    });
+  });
+  return rows;
 }
 var GANTT_FACETAS = buildGanttFacetas();
 
@@ -2050,7 +2058,13 @@ function renderGantt(){
   // Rebuild in case custom facetas were added since last render
   GANTT_FACETAS = buildGanttFacetas();
 
-  const trained=(blocks,grupo)=>blocks.some(b=>(b.grupo||'')===grupo);
+  const trained=(blocks,grupo,facetaName,isGroup)=>{
+    if (isGroup) return blocks.some(b=>(b.grupo||'')===grupo);
+    var target=(facetaName||'').toLowerCase();
+    return blocks.some(b=>
+      (b.grupo||'')===grupo && (b.faceta||'').toLowerCase()===target
+    );
+  };
 
   let prevSem=null;
   const dayHdrs=allSessions.map(sess=>{
@@ -2077,7 +2091,7 @@ function renderGantt(){
     prevG=f.g;
     const gc=GRUPOS[f.g];
     const cells=allSessions.map(sess=>{
-      const t=trained(sess.blocks,f.g);
+      const t=trained(sess.blocks,f.g,f.name,f.isGroup);
       return `<td class="gantt-cell" style="background:${t?gc.color+'22':'#fff'}">
         ${t?`<div style="width:10px;height:10px;border-radius:50%;background:${gc.color};margin:6px auto"></div>`:''}
       </td>`;
