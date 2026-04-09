@@ -156,14 +156,94 @@ select,input{font-family:inherit}
 .sem-badge{background:var(--navy);color:var(--gold);font-size:11px;font-weight:600;padding:3px 10px;border-radius:12px}
 
 /* ── GANTT ── */
-.gantt-wrap{overflow-x:auto}
-.gantt-table{border-collapse:collapse;min-width:100%}
-.gantt-table th,.gantt-table td{border:0.5px solid var(--bdr);padding:0;font-size:11px}
-.gantt-faceta{padding:5px 10px;font-weight:600;white-space:nowrap;min-width:160px;background:var(--white)}
+.gantt-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;border-bottom:0.5px solid var(--bdr);background:var(--white)}
+.gantt-toolbar .g-search{flex:1;min-width:160px;border:0.5px solid var(--bdr);border-radius:var(--r-sm);padding:6px 10px;font-size:12px;font-family:inherit;background:var(--white);color:var(--ink)}
+.gantt-toolbar .g-search:focus{outline:none;border-color:var(--navy)}
+.gantt-toolbar .g-btn{font-size:11px;font-weight:600;padding:5px 10px;border:0.5px solid var(--bdr);border-radius:var(--r-sm);background:var(--white);color:var(--ink);cursor:pointer;font-family:inherit}
+.gantt-toolbar .g-btn:hover{border-color:var(--navy);color:var(--navy)}
+.gantt-toolbar .g-btn.active{background:var(--navy);color:var(--gold);border-color:var(--navy)}
+.gantt-toolbar .g-select{font-size:11px;font-weight:600;padding:5px 8px;border:0.5px solid var(--bdr);border-radius:var(--r-sm);background:var(--white);color:var(--ink);font-family:inherit;cursor:pointer}
+.gantt-toolbar .g-toggle{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;user-select:none}
+.gantt-toolbar .g-toggle input{margin:0}
+.gantt-toolbar details.g-multi{position:relative}
+.gantt-toolbar details.g-multi summary{list-style:none;cursor:pointer;font-size:11px;font-weight:600;padding:5px 10px;border:0.5px solid var(--bdr);border-radius:var(--r-sm);background:var(--white);color:var(--ink)}
+.gantt-toolbar details.g-multi summary::-webkit-details-marker{display:none}
+.gantt-toolbar details.g-multi[open] summary{background:var(--navy);color:var(--gold);border-color:var(--navy)}
+.gantt-toolbar details.g-multi .g-multi-pop{position:absolute;top:calc(100% + 4px);left:0;z-index:50;background:var(--white);border:0.5px solid var(--bdr);border-radius:var(--r-sm);box-shadow:0 4px 16px rgba(0,0,0,0.08);padding:8px 4px;min-width:180px;max-height:300px;overflow-y:auto}
+.gantt-toolbar details.g-multi .g-multi-pop label{display:flex;align-items:center;gap:8px;padding:5px 10px;font-size:11px;font-weight:600;color:var(--ink);cursor:pointer;border-radius:var(--r-sm)}
+.gantt-toolbar details.g-multi .g-multi-pop label:hover{background:var(--light)}
+.gantt-toolbar details.g-multi .g-multi-pop label input{margin:0}
+.gantt-toolbar details.g-multi .g-multi-pop .g-multi-clear{display:block;width:calc(100% - 8px);margin:6px 4px 0;padding:5px;font-size:10px;font-weight:700;color:var(--muted);background:transparent;border:0.5px dashed var(--bdr);border-radius:var(--r-sm);cursor:pointer}
+.gantt-wrap{overflow:auto;max-height:calc(100vh - 220px);position:relative;scroll-padding-top:70px;background:var(--white)}
+.page-gantt-fullscreen #page-gantt{position:fixed;inset:0;background:var(--white);z-index:9999;padding:0;overflow:auto}
+.page-gantt-fullscreen #page-gantt .section-hdr{display:none}
+.page-gantt-fullscreen #page-gantt .gantt-wrap{max-height:calc(100vh - 60px)}
+.page-gantt-fullscreen .nav,.page-gantt-fullscreen .nav-wrap{display:none !important}
+.gantt-table{border-collapse:separate;border-spacing:0;min-width:100%}
+.gantt-table th,.gantt-table td{border:0.5px solid var(--bdr);padding:0;font-size:11px;background-clip:padding-box}
+.gantt-table thead{position:relative;z-index:30}
+.gantt-table tbody{position:relative;z-index:1}
+
+/* Sticky left columns: DÍAS (0) → FACETA (66) → PCT (266) */
+.gantt-estado{padding:5px 8px;text-align:center;font-size:10px;font-weight:700;white-space:nowrap;min-width:66px;background:var(--white);position:sticky;left:0;z-index:4}
+.gantt-estado.warn{background:#FFF4E0;color:#B45309}
+.gantt-estado.alert{background:#FEE2E2;color:#B91C1C}
+.gantt-estado.fresh{color:#9CA3AF}
+.gantt-estado.never{color:#CBD5E1}
+
+.gantt-faceta{padding:6px 16px 6px 12px;font-weight:600;white-space:nowrap;min-width:220px;background:var(--white);position:sticky;left:66px;z-index:4}
 .gantt-faceta.group-hdr{font-weight:700;font-size:10px;letter-spacing:0.07em;text-transform:uppercase}
-.gantt-cell{width:22px;height:22px;text-align:center;vertical-align:middle}
-.gantt-day-hdr{width:22px;height:24px;text-align:center;font-size:9px;font-weight:700;color:var(--white);vertical-align:middle}
-.gantt-sem-hdr{text-align:center;font-size:9px;font-weight:700;color:var(--gold);background:var(--mnav);padding:3px 4px;white-space:nowrap}
+.gantt-faceta.warn{color:#B45309}
+.gantt-faceta.alert{color:#B91C1C}
+.gantt-faceta .alert-icon{display:inline-block;margin-left:6px;font-size:10px}
+
+.gantt-pct{padding:4px 10px;background:var(--white);position:sticky;left:286px;z-index:4;width:140px;min-width:140px;max-width:140px;box-shadow:6px 0 6px -6px rgba(13,27,78,0.18)}
+
+/* Sticky header cells (top + left intersections) */
+.gantt-estado-hdr{position:sticky;left:0;z-index:25;background:#0D1B4E;color:var(--gold);font-size:9px;font-weight:700;letter-spacing:0.05em;padding:5px 8px;text-align:center}
+.gantt-faceta-hdr{position:sticky;left:66px;z-index:25;background:#0D1B4E;color:var(--gold);font-size:10px;font-weight:700;letter-spacing:0.06em;padding:5px 12px;text-align:left}
+.gantt-faceta-hdr.day-hdr{background:#2C3E50}
+.gantt-pct-hdr{position:sticky;left:286px;z-index:25;background:#0D1B4E;color:var(--gold);font-size:9px;font-weight:700;letter-spacing:0.05em;padding:5px 8px;text-align:center;box-shadow:6px 0 6px -6px rgba(0,0,0,0.25);width:140px;min-width:140px}
+
+.gantt-rival-hdr{background:#0D1B4E;color:#F5C518;font-size:9px;font-weight:700;letter-spacing:0.04em;padding:4px 6px;text-align:center;white-space:nowrap;position:sticky;top:0;z-index:20;border-bottom:0.5px solid #1A3470}
+
+/* Progress pill */
+.g-pill{position:relative;display:flex;align-items:center;width:100%;height:18px;border-radius:999px;background:#EEF2F7;overflow:hidden;font-size:10px;font-weight:700;color:var(--ink)}
+.g-pill .g-pill-fill{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:linear-gradient(90deg,rgba(13,27,78,0.18),rgba(13,27,78,0.28))}
+.g-pill .g-pill-text{position:relative;z-index:1;width:100%;text-align:center;letter-spacing:0.02em;color:#0D1B4E;text-shadow:0 1px 0 rgba(255,255,255,0.6)}
+.g-pill.is-block{height:20px;font-size:11px}
+.g-pill.tone-ataque .g-pill-fill{background:linear-gradient(90deg,rgba(34,211,238,0.32),rgba(8,145,178,0.45))}
+.g-pill.tone-defensa .g-pill-fill{background:linear-gradient(90deg,rgba(168,85,247,0.32),rgba(124,58,237,0.45))}
+.g-pill.tone-default .g-pill-fill{background:linear-gradient(90deg,rgba(13,27,78,0.18),rgba(13,27,78,0.32))}
+
+.gantt-cell{width:22px;height:24px;text-align:center;vertical-align:middle;background:var(--white)}
+.gantt-cell.heat-empty{background:#F5F6F7}
+.gantt-cell .dot{display:inline-block;width:8px;height:8px;border-radius:50%;vertical-align:middle}
+.gantt-cell .dot.future{background:transparent !important;border:1.5px solid currentColor;width:8px;height:8px;opacity:0.9}
+
+.gantt-day-hdr{width:22px;height:24px;text-align:center;font-size:9px;font-weight:700;color:var(--white);vertical-align:middle;position:sticky;top:44px;z-index:20}
+.gantt-sem-hdr{text-align:center;font-size:9px;font-weight:700;color:var(--gold);background:var(--mnav);padding:3px 4px;white-space:nowrap;position:sticky;top:22px;z-index:20}
+
+/* Two-row header — row 1 (rival, 22px), row 2 (M/J, 20px). The left
+   sticky cells (DÍAS / FACETA / VOL.) use rowspan=2 with top:0. */
+.gantt-table thead tr:nth-child(1) th{height:22px}
+.gantt-table thead tr:nth-child(2) th{height:20px}
+.gantt-table thead .gantt-estado-hdr,
+.gantt-table thead .gantt-faceta-hdr,
+.gantt-table thead .gantt-pct-hdr,
+.gantt-table thead .gantt-rival-hdr{top:0}
+.gantt-table thead tr:nth-child(2) .gantt-day-hdr{top:22px}
+
+/* Body breathing room + sticky col tint to mark them as the table axis */
+.gantt-table tbody tr{height:30px}
+.gantt-table tbody tr:first-child td{padding-top:14px}
+.gantt-table tbody td.gantt-estado,
+.gantt-table tbody td.gantt-faceta,
+.gantt-table tbody td.gantt-pct{background:#FAFBFD}
+.gantt-table tbody td{transition:none}
+.gantt-table tbody tr:hover .gantt-faceta,
+.gantt-table tbody tr:hover .gantt-estado,
+.gantt-table tbody tr:hover .gantt-pct{background:#F1F4FA}
 
 /* ── BIBLIOTECA ── */
 .bib-group{margin-bottom:16px}
@@ -541,7 +621,38 @@ select,input{font-family:inherit}
     <div><h2>Frecuencia de facetas</h2><p>Una fila por faceta · una columna por sesión · verde = entrenada</p></div>
     <div class="tri">▲</div>
   </div>
-  <div class="card" style="padding:12px">
+  <div class="card" style="padding:0">
+    <div class="gantt-toolbar">
+      <input id="gantt-search" class="g-search" type="text" placeholder="Buscar faceta…" oninput="ganttOnSearch(this.value)">
+      <select id="gantt-sort" class="g-select" onchange="ganttSetSort(this.value)">
+        <option value="default">Por bloque (default)</option>
+        <option value="trained">Volumen ↓ (más entrenadas)</option>
+        <option value="trained_asc">Volumen ↑ (menos entrenadas)</option>
+        <option value="forgotten">Más olvidadas (días ↓)</option>
+        <option value="alpha">Orden alfabético</option>
+      </select>
+      <details class="g-multi" id="gantt-grupos-multi">
+        <summary id="gantt-grupos-summary">Bloques</summary>
+        <div class="g-multi-pop" id="gantt-grupos-pop"></div>
+      </details>
+      <select id="gantt-day" class="g-select" onchange="ganttSetDay(this.value)">
+        <option value="all">Todos los días</option>
+        <option value="mar">Solo Martes</option>
+        <option value="jue">Solo Jueves</option>
+      </select>
+      <select id="gantt-rival" class="g-select" onchange="ganttSetRival(this.value)">
+        <option value="__all__">Todos los rivales</option>
+      </select>
+      <label class="g-toggle">
+        <input id="gantt-heatmap" type="checkbox" onchange="ganttSetHeatmap(this.checked)">
+        Heatmap
+      </label>
+      <label class="g-toggle">
+        <input id="gantt-audit" type="checkbox" onchange="ganttSetAudit(this.checked)">
+        Auditoría (huecos &gt;7d)
+      </label>
+      <button class="g-btn" id="gantt-fullscreen-btn" type="button" onclick="ganttToggleFullscreen()">⛶ Pantalla completa</button>
+    </div>
     <div class="gantt-wrap" id="gantt-wrap"></div>
   </div>
 </div>
@@ -1000,7 +1111,7 @@ function goPage(id) {
   event.currentTarget.classList.add('active');
   if(id==='cumbres')   renderCumbres();
   if(id==='dashboard') renderDashFull();
-  if(id==='gantt')     renderGantt();
+  if(id==='gantt')     { renderGantt(); var gw=document.getElementById('gantt-wrap'); if(gw){ gw.scrollTop=0; gw.scrollLeft=0; } }
   if(id==='biblioteca') renderBiblioteca();
   if(id==='resultados') renderResultados();
   if(id==='jugadores') renderJugadores();
@@ -1708,7 +1819,14 @@ function renderDays(){
       </div>
     </div>`;
   }).join('');
-}function renderAll(){renderKPIs();renderDashWidget();renderDays();renderResultadoSection();renderPublishedBanner();}
+}function renderAll(){
+  renderKPIs();renderDashWidget();renderDays();renderResultadoSection();renderPublishedBanner();
+  // Live sync: if the Frecuencia tab is mounted, refresh it whenever the
+  // planner mutates SEMS so changes show up without a page reload.
+  if(document.getElementById('gantt-wrap') && typeof renderGantt==='function') {
+    try { renderGantt(); } catch(e) {}
+  }
+}
 
 // ── COPIAR/PEGAR DÍA ENTERO ──────────────────────────────────
 var clipDia = null; // {bloques:[], backs:[], fromSem:N, fromDia:'mar'}
@@ -2050,65 +2168,410 @@ function renderDashFull(){
 }
 
 // ── GANTT ─────────────────────────────────────────────────────
+// View state for filters / search / heatmap toggle. Persist nothing —
+// resets per session.
+var GANTT_VIEW = { search:'', sort:'default', grupos:[], rival:'__all__', heatmap:false, audit:false, day:'all' };
+function ganttSetAudit(v){ GANTT_VIEW.audit=!!v; renderGantt(); }
+function ganttSetDay(v){ GANTT_VIEW.day=v; renderGantt(); }
+function ganttToggleFullscreen(){
+  document.body.classList.toggle('page-gantt-fullscreen');
+  // Re-render so sticky offsets recalc against the new viewport.
+  if(typeof renderGantt==='function') renderGantt();
+}
+function ganttToneForGroup(g){
+  if(g==='Ataque') return 'ataque';
+  if(g==='Defensa') return 'defensa';
+  return 'default';
+}
+// Priority order for grupos in the gantt — Ataque/Defensa always pinned first.
+var GANTT_GRUPO_PRIORITY = ['Ataque','Defensa'];
+function ganttGrupoRank(g){
+  var i=GANTT_GRUPO_PRIORITY.indexOf(g);
+  return i<0 ? GANTT_GRUPO_PRIORITY.length+1 : i;
+}
+function ganttToggleGrupo(g){
+  var arr=GANTT_VIEW.grupos.slice();
+  var i=arr.indexOf(g);
+  if(i>=0) arr.splice(i,1); else arr.push(g);
+  GANTT_VIEW.grupos=arr;
+  renderGantt();
+}
+function ganttClearGrupos(){ GANTT_VIEW.grupos=[]; renderGantt(); }
+function ganttSetRival(v){ GANTT_VIEW.rival=v; renderGantt(); }
+var GANTT_MES_MAP = {Ene:0,Feb:1,Mar:2,Abr:3,May:4,Jun:5,Jul:6,Ago:7,Sep:8,Oct:9,Nov:10,Dic:11};
+function ganttParseFecha(fecha){
+  if(!fecha) return null;
+  var parts=fecha.trim().split(/\s+/);
+  if(parts.length<2) return null;
+  var d=parseInt(parts[0],10);
+  var m=GANTT_MES_MAP[parts[1].slice(0,3)];
+  if(isNaN(d)||m==null) return null;
+  return new Date(new Date().getFullYear(),m,d);
+}
+var GANTT_DAY_NAMES={M:'Martes',J:'Jueves',L:'Lunes'};
+var GANTT_MONTH_NAMES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function ganttFormatSessionDate(sess){
+  var d=ganttParseFecha(sess.fecha);
+  var dayName=GANTT_DAY_NAMES[sess.day]||sess.day;
+  if(!d) return dayName+(sess.fecha?(' '+sess.fecha):'');
+  return dayName+' '+d.getDate()+' de '+GANTT_MONTH_NAMES[d.getMonth()];
+}
+function ganttDaysSince(date){
+  if(!date) return null;
+  var ms=Date.now()-date.getTime();
+  return Math.floor(ms/86400000);
+}
+function ganttSetSort(s){ GANTT_VIEW.sort=s; renderGantt(); }
+function ganttSetHeatmap(v){ GANTT_VIEW.heatmap=!!v; renderGantt(); }
+function ganttOnSearch(v){ GANTT_VIEW.search=(v||'').toLowerCase(); renderGantt(); }
+
 function renderGantt(){
-  const DAYS=[{k:'lun',l:'L'},{k:'mar',l:'M'},{k:'jue',l:'J'}];
+  // M-J only — "The Lab" view: training-day matrix. Saturday (match) is
+  // shown as the rival header above each M-J pair, never as a cell.
+  var ALL_DAYS=[{k:'mar',l:'M'},{k:'jue',l:'J'}];
+  var DAYS = GANTT_VIEW.day==='mar' ? [{k:'mar',l:'M'}]
+           : GANTT_VIEW.day==='jue' ? [{k:'jue',l:'J'}]
+           : ALL_DAYS;
+  // Always iterate ALL 25 weeks even if a session has no blocks — empty
+  // cells preserve the timeline scale.
   const allSessions=[];
-  SEMS.forEach(s=>DAYS.forEach(d=>allSessions.push({sem:s.sem,rival:s.rival,day:d.l,blocks:s[d.k]||[]})));
+  SEMS.forEach(s=>DAYS.forEach(d=>{
+    allSessions.push({sem:s.sem,rival:s.rival,day:d.l,fecha:s.fecha,blocks:s[d.k]||[]});
+  }));
+  // Rival filter: collapse the timeline to sessions of the matching week.
+  var visibleSessions = GANTT_VIEW.rival==='__all__'
+    ? allSessions
+    : allSessions.filter(function(s){ return s.rival===GANTT_VIEW.rival; });
 
-  // Rebuild in case custom facetas were added since last render
+  // Populate group multi-select (checkboxes) and rival dropdown.
   GANTT_FACETAS = buildGanttFacetas();
+  var pop=document.getElementById('gantt-grupos-pop');
+  if(pop){
+    var grupos=Object.keys(FACETAS).filter(function(g){return g!=='Gimnasio';});
+    grupos.sort(function(a,b){return ganttGrupoRank(a)-ganttGrupoRank(b);});
+    var html=grupos.map(function(g){
+      var checked=GANTT_VIEW.grupos.indexOf(g)>=0?' checked':'';
+      return '<label><input type="checkbox" value="'+g+'" onchange="ganttToggleGrupo(\''+g.replace(/'/g,"\\'")+'\')"'+checked+'>'+g+'</label>';
+    }).join('');
+    html+='<button type="button" class="g-multi-clear" onclick="ganttClearGrupos()">Limpiar selección</button>';
+    pop.innerHTML=html;
+  }
+  var summary=document.getElementById('gantt-grupos-summary');
+  if(summary){
+    summary.textContent = GANTT_VIEW.grupos.length===0
+      ? 'Bloques'
+      : 'Bloques ('+GANTT_VIEW.grupos.length+')';
+  }
+  var rivalSel=document.getElementById('gantt-rival');
+  if(rivalSel){
+    var rivals={};
+    SEMS.forEach(function(s){ if(s.rival) rivals[s.rival]=1; });
+    var rivalList=Object.keys(rivals).sort();
+    var rivalOpts=['<option value="__all__">Todos los rivales</option>'];
+    rivalList.forEach(function(r){
+      rivalOpts.push('<option value="'+r+'"'+(r===GANTT_VIEW.rival?' selected':'')+'>'+r+'</option>');
+    });
+    rivalSel.innerHTML=rivalOpts.join('');
+  }
 
-  const trained=(blocks,grupo,facetaName,isGroup)=>{
-    if (isGroup) return false; // header del grupo: solo visual, no marca
+  // Sync sort + day dropdowns with current view state
+  var sortSel=document.getElementById('gantt-sort');
+  if(sortSel && sortSel.value!==GANTT_VIEW.sort) sortSel.value=GANTT_VIEW.sort;
+  var daySel=document.getElementById('gantt-day');
+  if(daySel && daySel.value!==GANTT_VIEW.day) daySel.value=GANTT_VIEW.day;
+
+  const trained=(blocks,grupo,facetaName)=>{
     var target=(facetaName||'').toLowerCase();
     return blocks.some(b=>
       (b.grupo||'')===grupo && (b.faceta||'').toLowerCase()===target
     );
   };
 
+  // Per-faceta stats: indices are computed against `visibleSessions`
+  // (post rival filter) so cells line up. Days-since uses today's date
+  // and the latest fecha that already passed.
+  const today=new Date();
+  const stats={};
+  GANTT_FACETAS.forEach(function(f){
+    if(f.isGroup) return;
+    var key=f.g+'|'+f.name;
+    var indices=[];
+    var pastDates=[];
+    for(var i=0;i<visibleSessions.length;i++){
+      if(trained(visibleSessions[i].blocks,f.g,f.name)){
+        indices.push(i);
+        var fd=ganttParseFecha(visibleSessions[i].fecha);
+        if(fd && fd.getTime()<=today.getTime()) pastDates.push(fd);
+      }
+    }
+    var daysSince=null;
+    if(pastDates.length){
+      var latest=pastDates[pastDates.length-1];
+      daysSince=Math.max(0, Math.floor((today.getTime()-latest.getTime())/86400000));
+    }
+    stats[key]={indices:indices,count:indices.length,daysSince:daysSince};
+  });
+
+  // Hierarchical denominators:
+  //  - block %  = block hits / total planned sessions in calendar
+  //  - faceta % = faceta hits / total hits of its block
+  var totalSessions = visibleSessions.length;
+  var blockTotals = {};
+  Object.keys(FACETAS).forEach(function(g){
+    if(g==='Gimnasio') return;
+    var sum=0;
+    (FACETAS[g]||[]).forEach(function(n){
+      if(n===g) return;
+      var s=stats[g+'|'+n];
+      if(s) sum+=s.count;
+    });
+    blockTotals[g]=sum;
+  });
+
+  // Apply filter / sort to rows. We rebuild the rows preserving group
+  // headers when at least one of their facetas survives the filter.
+  const search=GANTT_VIEW.search;
+  const grupoFilter=GANTT_VIEW.grupos;
+  var visibleFacetas=GANTT_FACETAS.filter(function(f){
+    if(f.isGroup) return false;
+    if(grupoFilter.length>0 && grupoFilter.indexOf(f.g)<0) return false;
+    if(search && f.name.toLowerCase().indexOf(search)<0) return false;
+    return true;
+  });
+
+  if(GANTT_VIEW.sort==='trained'){
+    visibleFacetas.sort(function(a,b){
+      var ra=ganttGrupoRank(a.g), rb=ganttGrupoRank(b.g);
+      if(ra!==rb) return ra-rb;
+      return (stats[b.g+'|'+b.name].count) - (stats[a.g+'|'+a.name].count);
+    });
+  } else if(GANTT_VIEW.sort==='trained_asc'){
+    visibleFacetas.sort(function(a,b){
+      var ra=ganttGrupoRank(a.g), rb=ganttGrupoRank(b.g);
+      if(ra!==rb) return ra-rb;
+      return (stats[a.g+'|'+a.name].count) - (stats[b.g+'|'+b.name].count);
+    });
+  } else if(GANTT_VIEW.sort==='alpha'){
+    visibleFacetas.sort(function(a,b){
+      return a.name.localeCompare(b.name,'es');
+    });
+  } else if(GANTT_VIEW.sort==='forgotten'){
+    // Ataque/Defensa first, then by days-since (never-trained on top of each block)
+    visibleFacetas.sort(function(a,b){
+      var ra=ganttGrupoRank(a.g), rb=ganttGrupoRank(b.g);
+      if(ra!==rb) return ra-rb;
+      var sa=stats[a.g+'|'+a.name], sb=stats[b.g+'|'+b.name];
+      var da=sa.daysSince==null?Number.MAX_SAFE_INTEGER:sa.daysSince;
+      var db=sb.daysSince==null?Number.MAX_SAFE_INTEGER:sb.daysSince;
+      return db-da;
+    });
+  }
+
+  // Group facetas in their grupo order so we can render group headers
+  // before each block. When sorting, only render group headers in
+  // 'default' mode to keep flat sorted lists readable.
+  var rows=[];
+  if(GANTT_VIEW.sort==='default'){
+    var grouped={};
+    visibleFacetas.forEach(function(f){ (grouped[f.g]=grouped[f.g]||[]).push(f); });
+    var grupoOrder=Object.keys(FACETAS).filter(function(g){return g!=='Gimnasio';});
+    grupoOrder.sort(function(a,b){ return ganttGrupoRank(a)-ganttGrupoRank(b); });
+    grupoOrder.forEach(function(g){
+      if(!grouped[g] || grouped[g].length===0) return;
+      rows.push({g:g,name:g,isGroup:true});
+      grouped[g].forEach(function(f){ rows.push(f); });
+    });
+  } else {
+    rows=visibleFacetas;
+  }
+
+  // Block coverage in last 4 sems (last month). For each grupo, count
+  // distinct facetas trained in that window over the total facetas of
+  // the grupo.
+  var lastMonthSems=Math.max(0, SEMS.length-4);
+  function coverageForGroup(g){
+    var totalFacetas=(FACETAS[g]||[]).filter(function(n){return n!==g;});
+    if(totalFacetas.length===0) return null;
+    var seen={};
+    for(var i=0;i<visibleSessions.length;i++){
+      if(visibleSessions[i].sem<=lastMonthSems) continue;
+      visibleSessions[i].blocks.forEach(function(b){
+        if((b.grupo||'')===g && b.faceta) seen[b.faceta.toLowerCase()]=1;
+      });
+    }
+    var trainedCount=Object.keys(seen).filter(function(n){
+      return totalFacetas.some(function(t){return t.toLowerCase()===n;});
+    }).length;
+    return {trained:trainedCount,total:totalFacetas.length,pct:Math.round(100*trainedCount/totalFacetas.length)};
+  }
+
+  // Headers (sticky). 3 rows: rival → sem → day.
   let prevSem=null;
-  const dayHdrs=allSessions.map(sess=>{
+  const dayHdrs=visibleSessions.map(sess=>{
     const isnew=sess.sem!==prevSem;
     prevSem=sess.sem;
     return {sess,isnew};
   });
 
-  const semHdrRow='<tr><td class="gantt-faceta" style="background:#0D1B4E;color:#F5C518;font-size:10px;font-weight:700;letter-spacing:0.06em;padding:5px 10px">FACETA</td>'+
-    dayHdrs.map(({sess,isnew})=>
-      isnew?`<th class="gantt-sem-hdr" colspan="1" style="font-size:8px">S${sess.sem}</th>`
-           :`<th style="background:#1A3470;width:22px"></th>`
-    ).join('')+'</tr>';
+  // Build rival row by collapsing consecutive sessions of the same sem
+  // into a single colspan cell.
+  var rivalCells='';
+  var ridx=0;
+  while(ridx<visibleSessions.length){
+    var startSem=visibleSessions[ridx].sem;
+    var span=0;
+    while(ridx+span<visibleSessions.length && visibleSessions[ridx+span].sem===startSem) span++;
+    var rival=visibleSessions[ridx].rival || '—';
+    var rivalShort=(rival||'—').replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ]/g,'').slice(0,3).toUpperCase();
+    rivalCells+=`<th class="gantt-rival-hdr" colspan="${span}" title="S${startSem} · ${rival}">${rivalShort}</th>`;
+    ridx+=span;
+  }
 
-  const dayHdrRow='<tr><td class="gantt-faceta" style="background:#2C3E50"></td>'+
+  // Two-row header. Row 1: rival short codes (colspan per week).
+  // Row 2: day labels (M / J). The left corner uses a single rowspan=2
+  // cell per sticky column ("DÍAS / FACETA / VOL.").
+  const rivalHdrRow='<tr>'+
+    '<th class="gantt-estado-hdr" rowspan="2">DÍAS</th>'+
+    '<th class="gantt-faceta-hdr" rowspan="2">FACETA</th>'+
+    '<th class="gantt-pct-hdr" rowspan="2">VOL.</th>'+
+    rivalCells+'</tr>';
+
+  const dayHdrRow='<tr>'+
     dayHdrs.map(({sess})=>{
-      const bg=sess.day==='L'?'#1A6B3E':sess.day==='M'?'#1A3470':'#7A5200';
+      const bg=sess.day==='M'?'#1A3470':'#7A5200';
       return `<th class="gantt-day-hdr" style="background:${bg}">${sess.day}</th>`;
     }).join('')+'</tr>';
 
+  const semHdrRow=''; // sem row removed — redundant with rival row above
+
+  // 4-week heatmap window in sessions: 4 weeks * 3 sessions per week = 12
+  const HEATMAP_WINDOW=12;
+
+  // Per-visible-session future flag (sess.fecha > today). Sessions with
+  // unparseable fecha are treated as past so they don't get hollowed.
+  const futureFlags=visibleSessions.map(function(s){
+    var d=ganttParseFecha(s.fecha);
+    return d ? d.getTime()>today.getTime() : false;
+  });
+
   let prevG=null;
-  const facetaRows=GANTT_FACETAS.map(f=>{
-    const isNewG=f.g!==prevG;
+  const facetaRows=rows.map(f=>{
+    const isNewG=f.isGroup;
     prevG=f.g;
-    const gc=GRUPOS[f.g];
-    const cells=allSessions.map(sess=>{
-      const t=trained(sess.blocks,f.g,f.name,f.isGroup);
-      return `<td class="gantt-cell" style="background:${t?gc.color+'22':'#fff'}">
-        ${t?`<div style="width:10px;height:10px;border-radius:50%;background:${gc.color};margin:6px auto"></div>`:''}
-      </td>`;
+    const gc=GRUPOS[f.g] || {color:'#888',light:'#F2F2F2',text:'#888'};
+
+    if(isNewG){
+      // Block %: total hits in block / total planned sessions in calendar
+      var blockCount=blockTotals[f.g] || 0;
+      var blockPct = totalSessions>0 ? +(100*blockCount/totalSessions).toFixed(1) : 0;
+      var blockTone = ganttToneForGroup(f.g);
+      var blockPill = `<div class="g-pill is-block tone-${blockTone}" title="${blockCount} entrenamientos en ${totalSessions} sesiones del año">
+        <span class="g-pill-fill" style="width:${Math.min(100,blockPct)}%"></span>
+        <span class="g-pill-text">${blockCount}× · ${blockPct}%</span>
+      </div>`;
+      const colspan=visibleSessions.length;
+      var blockBg = hexToRgba(gc.color, 0.10);
+      return `<tr class="gantt-row-block">
+        <td class="gantt-estado" style="background:${blockBg}"></td>
+        <td class="gantt-faceta group-hdr" style="background:${blockBg};color:${gc.color};border-left:3px solid ${gc.color}">
+          ${f.name}
+        </td>
+        <td class="gantt-pct" style="background:${blockBg}">${blockPill}</td>
+        <td colspan="${colspan}" style="background:${blockBg};border-left:0"></td>
+      </tr>`;
+    }
+
+    const st=stats[f.g+'|'+f.name] || {indices:[],count:0,daysSince:null};
+
+    // Estado column — thresholds: 0-7 fresh, 8-14 warn, 15+ alert
+    var estadoCls='fresh', estadoTxt='—';
+    if(st.daysSince==null){ estadoCls='never'; estadoTxt='—'; }
+    else {
+      estadoTxt=st.daysSince+'d';
+      if(st.daysSince>=15) estadoCls='alert';
+      else if(st.daysSince>=8) estadoCls='warn';
+      else estadoCls='fresh';
+    }
+    // Audit mode: hide rows trained in the last 7 days (only show gaps).
+    if(GANTT_VIEW.audit && st.daysSince!=null && st.daysSince<=7) return '';
+
+    var nameCls = estadoCls==='alert' ? ' alert' : estadoCls==='warn' ? ' warn' : '';
+    var alertIcon = estadoCls==='alert' ? '<span class="alert-icon">⚠</span>' : '';
+
+    // Cells: dot mode or heatmap mode
+    const trainedSet={};
+    st.indices.forEach(function(i){ trainedSet[i]=1; });
+
+    const cells=visibleSessions.map(function(sess,i){
+      // Base tooltip: full date + rival, always present.
+      var baseTip = ganttFormatSessionDate(sess) + (sess.rival?(' · vs '+sess.rival):'');
+      if(GANTT_VIEW.heatmap){
+        var lo=Math.max(0,i-HEATMAP_WINDOW+1);
+        var c=0;
+        for(var k=lo;k<=i;k++){ if(trainedSet[k]) c++; }
+        if(c===0) return `<td class="gantt-cell heat-empty" title="${baseTip.replace(/"/g,'&quot;')}"></td>`;
+        var alpha = Math.min(0.9, 0.22 + c*0.18);
+        var bg = hexToRgba(gc.color, alpha);
+        return `<td class="gantt-cell" style="background:${bg}" title="${baseTip.replace(/"/g,'&quot;')}"></td>`;
+      } else {
+        var t=!!trainedSet[i];
+        var isFuture=futureFlags[i];
+        var bgFaint = t ? hexToRgba(gc.color, isFuture?0.04:0.08) : '#fff';
+        var dot = '';
+        var tipParts=[baseTip];
+        if(t){
+          var matched=(sess.blocks||[]).filter(function(b){
+            return (b.grupo||'')===f.g && (b.faceta||'').toLowerCase()===(f.name||'').toLowerCase();
+          });
+          matched.forEach(function(b){
+            var dur = (b.mins!=null?(b.mins+"'"):'');
+            tipParts.push('• '+(b.faceta||f.name)+(dur?(' — '+dur):''));
+          });
+          if(isFuture) tipParts.push('(planificado)');
+          if(isFuture){
+            dot = `<span class="dot future" style="color:${gc.color}"></span>`;
+          } else {
+            dot = `<span class="dot" style="background:${gc.color}"></span>`;
+          }
+        }
+        var tip=tipParts.join('\n').replace(/"/g,'&quot;');
+        return `<td class="gantt-cell" style="background:${bgFaint}" title="${tip}">${dot}</td>`;
+      }
     }).join('');
-    const rowBg=isNewG?gc.light:'#fff';
+
+    // Faceta %: hits in faceta / hits in its block
+    var blockTotal = blockTotals[f.g] || 0;
+    var pct = blockTotal>0 ? +(100*st.count/blockTotal).toFixed(1) : 0;
+    var pillTone = ganttToneForGroup(f.g);
+    var facetaPill = `<div class="g-pill tone-${pillTone}" title="${st.count} de ${blockTotal} entrenamientos del bloque">
+      <span class="g-pill-fill" style="width:${Math.min(100,pct)}%"></span>
+      <span class="g-pill-text">${st.count}× · ${pct}%</span>
+    </div>`;
+
     return `<tr>
-      <td class="gantt-faceta${isNewG?' group-hdr':''}" style="background:${rowBg};color:${isNewG?gc.color:''};border-left:3px solid ${gc.color}">
-        ${f.name}
-      </td>${cells}
+      <td class="gantt-estado ${estadoCls}">${estadoTxt}</td>
+      <td class="gantt-faceta${nameCls}" style="border-left:3px solid ${gc.color}">
+        ${f.name}${alertIcon}
+      </td>
+      <td class="gantt-pct">${facetaPill}</td>${cells}
     </tr>`;
   }).join('');
 
   document.getElementById('gantt-wrap').innerHTML=`
     <table class="gantt-table">
-      <thead>${semHdrRow}${dayHdrRow}</thead>
+      <thead>${rivalHdrRow}${semHdrRow}${dayHdrRow}</thead>
       <tbody>${facetaRows}</tbody>
     </table>`;
+}
+
+// Tiny hex→rgba helper for the heatmap fill (accepts #RGB or #RRGGBB)
+function hexToRgba(hex, a){
+  if(!hex) return 'rgba(0,0,0,'+a+')';
+  var h=hex.replace('#','');
+  if(h.length===3) h=h.split('').map(function(c){return c+c;}).join('');
+  var n=parseInt(h,16);
+  var r=(n>>16)&255, g=(n>>8)&255, b=n&255;
+  return 'rgba('+r+','+g+','+b+','+a+')';
 }
 
 // ── BIBLIOTECA — links editables con storage persistente ───────
