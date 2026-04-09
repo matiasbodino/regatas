@@ -2323,7 +2323,6 @@ function renderGantt(){
     if(g==='Gimnasio') return;
     var sum=0;
     (FACETAS[g]||[]).forEach(function(n){
-      if(n===g) return;
       var s=stats[g+'|'+n];
       if(s) sum+=s.count;
     });
