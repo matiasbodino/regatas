@@ -1083,7 +1083,9 @@ function buildGanttFacetas() {
     if (g === 'Gimnasio') return;
     rows.push({ g: g, name: g, isGroup: true });
     (FACETAS[g] || []).forEach(function(name) {
-      if (name === g) return; // evita duplicar cuando grupo y faceta tienen el mismo nombre
+      // Always include the faceta — even when it shares the group name
+      // (e.g. "Pto. Contacto" group has a "Pto. Contacto" faceta). The
+      // group row is just a visual header; the sub-row is what counts.
       rows.push({ g: g, name: name, isGroup: false });
     });
   });
