@@ -1766,19 +1766,35 @@ function renderDays(){
         var sc=GRUPOS[bl.split.grupo]||GRUPOS['Ataque'];
         var sFacOpts=(FACETAS[bl.split.grupo]||[]).map(f=>`<option value="${f}"${f===bl.split.faceta?' selected':''}>${f}</option>`).join('');
         var sGrOpts=Object.keys(GRUPOS).map(g=>`<option value="${g}"${g===bl.split.grupo?' selected':''}>${g}</option>`).join('');
-        var splitEditor=bl.open?`<div style="margin-top:4px;display:flex;gap:3px;flex-wrap:wrap" onclick="event.stopPropagation()">
-          <select onchange="chSplitGrupo('${k}','${bl.id}',this.value)" style="flex:1;font-size:10px;padding:2px 4px;border-radius:4px;border:0.5px solid ${sc.color}50">${sGrOpts}</select>
-          <select onchange="chSplitFaceta('${k}','${bl.id}',this.value)" style="flex:1;font-size:10px;padding:2px 4px;border-radius:4px;border:0.5px solid ${sc.color}50">${sFacOpts}</select>
+        var safeSplitPremisa=((bl.split.premisa||'')).replace(/"/g,'&quot;');
+        var splitEditor=bl.open?`<div style="margin-top:4px;display:flex;flex-direction:column;gap:3px" onclick="event.stopPropagation()">
+          <div style="display:flex;gap:3px">
+            <select onchange="chSplitGrupo('${k}','${bl.id}',this.value)" style="flex:1;font-size:10px;padding:2px 4px;border-radius:4px;border:0.5px solid ${sc.color}50">${sGrOpts}</select>
+            <select onchange="chSplitFaceta('${k}','${bl.id}',this.value)" style="flex:1;font-size:10px;padding:2px 4px;border-radius:4px;border:0.5px solid ${sc.color}50">${sFacOpts}</select>
+          </div>
+          <input type="text" value="${safeSplitPremisa}" placeholder="Premisa / coaching points..."
+            onchange="chSplitPremisa('${k}','${bl.id}',this.value)"
+            onclick="event.stopPropagation()" onkeydown="event.stopPropagation()"
+            style="width:100%;font-size:10px;padding:3px 6px;border-radius:4px;border:0.5px solid #C5CCE0;background:#fff;color:#1A1A2E">
+        </div>`:'';
+        var leftEditor=bl.open?`<div style="margin-top:4px" onclick="event.stopPropagation()">
+          <input type="text" value="${safePremisa}" placeholder="Premisa / coaching points..."
+            onchange="chPremisa('${k}','${bl.id}',this.value)"
+            onclick="event.stopPropagation()" onkeydown="event.stopPropagation()"
+            style="width:100%;font-size:10px;padding:3px 6px;border-radius:4px;border:0.5px solid #C5CCE0;background:#fff;color:#1A1A2E">
         </div>`:'';
         blockBodyHtml = `<div class="block-split-row" onclick="toggleBlock('${k}','${bl.id}')" style="background:${gc.light}">
           <div class="block-split-half" style="border-left:3px solid ${gc.color}">
             <div class="block-grupo" style="color:${gc.text}">${bl.grupo}</div>
             <div class="block-faceta">${bl.faceta}</div>
             ${(bl.contenidos&&bl.contenidos.length)?`<div class="ct-sum">${bl.contenidos.join(' + ')}</div>`:''}
+            ${bl.premisa&&!bl.open?`<div style="font-size:9px;color:#888;font-style:italic;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${bl.premisa.slice(0,40)}${bl.premisa.length>40?'…':''}</div>`:''}
+            ${leftEditor}
           </div>
           <div class="block-split-half" style="border-left-color:${sc.color}">
             <div class="block-grupo" style="color:${sc.text}">${bl.split.grupo}</div>
             <div class="block-faceta">${bl.split.faceta}</div>
+            ${bl.split.premisa&&!bl.open?`<div style="font-size:9px;color:#888;font-style:italic;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${bl.split.premisa.slice(0,40)}${bl.split.premisa.length>40?'…':''}</div>`:''}
             <button class="block-split-rm" onclick="event.stopPropagation();unsplitBlock('${k}','${bl.id}')" title="Quitar split">✕</button>
             ${splitEditor}
           </div>
@@ -2064,6 +2080,10 @@ function chSplitGrupo(dia,id,val){
 function chSplitFaceta(dia,id,val){
   var b=SEMS[curSem][dia].find(b=>b.id===id);if(!b||!b.split)return;
   b.split.faceta=val;renderAll();
+}
+function chSplitPremisa(dia,id,val){
+  var b=SEMS[curSem][dia].find(b=>b.id===id);if(!b||!b.split)return;
+  b.split.premisa=val;renderAll();
 }
 
 // ── BACKS ─────────────────────────────────────────────────────────
