@@ -81,7 +81,7 @@ select,input{font-family:inherit}
 .dash-sep{border:none;border-top:0.5px solid var(--bdr);margin:8px 0 6px}
 
 /* ── DAYS GRID ── */
-.days-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.days-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .day-col{background:var(--white);border:0.5px solid var(--bdr);border-radius:var(--r-lg);overflow:hidden}
 .day-hdr{background:var(--mnav);padding:8px 12px}
 .day-hdr-title{font-size:12px;font-weight:700;color:var(--gold);letter-spacing:0.05em}
@@ -150,6 +150,16 @@ select,input{font-family:inherit}
 .ct-pill-rm{background:none;border:none;color:#bbb;cursor:pointer;font-size:11px;padding:0;line-height:1}
 .ct-pill-rm:hover{color:var(--red)}
 .ct-sum{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.3;font-style:italic}
+/* ── Split block (2 cards side by side) ── */
+.block-split-row{display:flex;gap:0;flex:1;cursor:pointer}
+.block-split-half{flex:1;padding:6px 8px;min-width:0;position:relative}
+.block-split-half+.block-split-half{border-left:1.5px dashed var(--bdr2)}
+.block-split-half .block-grupo{font-size:8px}
+.block-split-half .block-faceta{font-size:11px}
+.block-split-rm{position:absolute;top:3px;right:4px;background:none;border:none;color:#ccc;cursor:pointer;font-size:10px;padding:0}
+.block-split-rm:hover{color:var(--red)}
+.block-split-btn{font-size:9px;font-weight:600;color:#aaa;background:none;border:none;cursor:pointer;padding:0;margin-left:6px}
+.block-split-btn:hover{color:var(--navy)}
 .sem-info-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .sem-rival{font-size:15px;font-weight:700;color:var(--navy)}
 .sem-meta{font-size:11px;color:var(--muted)}
@@ -1099,7 +1109,10 @@ let curSem = 0;
 // ── HELPERS ───────────────────────────────────────────────────
 const calcDist = s => {
   const t={};
-  ['lun','mar','jue'].forEach(d=>(s[d]||[]).filter(b=>b.tipo!=='agua').forEach(b=>{t[b.grupo]=(t[b.grupo]||0)+b.mins;}));
+  ['lun','mar','jue'].forEach(d=>(s[d]||[]).filter(b=>b.tipo!=='agua').forEach(b=>{
+    t[b.grupo]=(t[b.grupo]||0)+b.mins;
+    if(b.split && b.split.grupo) t[b.split.grupo]=(t[b.split.grupo]||0)+b.mins;
+  }));
   return t;
 };
 
@@ -1562,8 +1575,8 @@ function fechaDia(fechaSabado, diaKey) {
 
 function renderDays(){
   const s=SEMS[curSem];
-  const DAYS=[{k:'lun',t:'LUNES'},{k:'mar',t:'MARTES'},{k:'jue',t:'JUEVES'}];
-  const subs={lun:'Gimnasio + Activación',mar:'Campo completo',jue:'Captura + Set Pieces'};
+  const DAYS=[{k:'mar',t:'MARTES'},{k:'jue',t:'JUEVES'}];
+  const subs={mar:'Campo completo',jue:'Captura + Set Pieces'};
   document.getElementById('days-grid').innerHTML=DAYS.map(({k,t})=>{
     const sub=subs[k];
     const horas=calcHoras(s[k]||[]);
@@ -1748,9 +1761,45 @@ function renderDays(){
             ${bkSide}
           </div>
         </div>`;
+      } else if (bl.split) {
+        // ── SPLIT: two cards side by side ──
+        var sc=GRUPOS[bl.split.grupo]||GRUPOS['Ataque'];
+        var sFacOpts=(FACETAS[bl.split.grupo]||[]).map(f=>`<option value="${f}"${f===bl.split.faceta?' selected':''}>${f}</option>`).join('');
+        var sGrOpts=Object.keys(GRUPOS).map(g=>`<option value="${g}"${g===bl.split.grupo?' selected':''}>${g}</option>`).join('');
+        var splitEditor=bl.open?`<div style="margin-top:4px;display:flex;gap:3px;flex-wrap:wrap" onclick="event.stopPropagation()">
+          <select onchange="chSplitGrupo('${k}','${bl.id}',this.value)" style="flex:1;font-size:10px;padding:2px 4px;border-radius:4px;border:0.5px solid ${sc.color}50">${sGrOpts}</select>
+          <select onchange="chSplitFaceta('${k}','${bl.id}',this.value)" style="flex:1;font-size:10px;padding:2px 4px;border-radius:4px;border:0.5px solid ${sc.color}50">${sFacOpts}</select>
+        </div>`:'';
+        blockBodyHtml = `<div class="block-split-row" onclick="toggleBlock('${k}','${bl.id}')" style="background:${gc.light}">
+          <div class="block-split-half" style="border-left:3px solid ${gc.color}">
+            <div class="block-grupo" style="color:${gc.text}">${bl.grupo}</div>
+            <div class="block-faceta">${bl.faceta}</div>
+            ${(bl.contenidos&&bl.contenidos.length)?`<div class="ct-sum">${bl.contenidos.join(' + ')}</div>`:''}
+          </div>
+          <div class="block-split-half" style="border-left-color:${sc.color}">
+            <div class="block-grupo" style="color:${sc.text}">${bl.split.grupo}</div>
+            <div class="block-faceta">${bl.split.faceta}</div>
+            <button class="block-split-rm" onclick="event.stopPropagation();unsplitBlock('${k}','${bl.id}')" title="Quitar split">✕</button>
+            ${splitEditor}
+          </div>
+        </div>
+        <div style="padding:3px 8px;background:${gc.light}">
+          <div class="block-mins-row">
+            <input class="block-hora-inline${bl.horaInicio?'':' auto-hora'}"
+              type="text" value="${horas[bi]}" placeholder="00.00"
+              onclick="event.stopPropagation()" onchange="chHora('${k}','${bl.id}',this.value)" onkeydown="event.stopPropagation()"
+              style="width:42px;font-size:11px;font-weight:700;color:${bl.horaInicio?'#0D1B4E':'#888'};background:${bl.horaInicio?'#FEF9D9':'#F4F6FF'};border:0.5px solid ${bl.horaInicio?'#F5C518':'var(--bdr2)'};border-radius:4px;padding:2px 4px;text-align:center;cursor:text">
+            <span style="color:#ddd;font-size:10px">·</span>
+            <input class="block-mins-inline" type="number" value="${bl.mins}" min="1" max="120"
+              onclick="event.stopPropagation()" onchange="chMins('${k}','${bl.id}',this.value)" onkeydown="event.stopPropagation()">
+            <span style="font-size:10px;color:#aaa">min</span>
+          </div>
+          ${bl.premisa?`<div style="font-size:10px;color:#888;font-style:italic;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${bl.premisa.length>55?bl.premisa.slice(0,55)+'…':bl.premisa}</div>`:''}
+        </div>`;
       } else {
+        // ── SINGLE card (original) ──
         blockBodyHtml = `<div class="block-body" style="background:${gc.light}" onclick="toggleBlock('${k}','${bl.id}')">
-              <div class="block-grupo" style="color:${gc.text}">${bl.grupo}</div>
+              <div class="block-grupo" style="color:${gc.text}">${bl.grupo}<button class="block-split-btn" onclick="event.stopPropagation();splitBlock('${k}','${bl.id}')" title="Dividir en 2 actividades">⊕</button></div>
               <div class="block-faceta">${bl.faceta}</div>
               ${(bl.contenidos&&bl.contenidos.length)?`<div class="ct-sum">${bl.contenidos.join(' + ')}</div>`:''}
               <div class="block-mins-row">
@@ -1997,6 +2046,25 @@ function chBacksParaleloLink(dia, id, val) {
 function delBlock(dia,id){SEMS[curSem][dia]=SEMS[curSem][dia].filter(b=>b.id!==id);renderAll();}
 function addBlock(dia){SEMS[curSem][dia].push(mk('Ataque',15,'Est. y semis separados'));renderAll();}
 function addAgua(dia){SEMS[curSem][dia].push(mkA(1));renderAll();}
+// ── Split block: add a second grupo+faceta card alongside the main one ──
+function splitBlock(dia,id){
+  var b=SEMS[curSem][dia].find(b=>b.id===id);if(!b)return;
+  var other=b.grupo==='Ataque'?'Destrezas':'Ataque';
+  b.split={grupo:other,faceta:(FACETAS[other]||[''])[0]};
+  renderAll();
+}
+function unsplitBlock(dia,id){
+  var b=SEMS[curSem][dia].find(b=>b.id===id);if(!b)return;
+  b.split=null;renderAll();
+}
+function chSplitGrupo(dia,id,val){
+  var b=SEMS[curSem][dia].find(b=>b.id===id);if(!b||!b.split)return;
+  b.split.grupo=val;b.split.faceta=(FACETAS[val]||[''])[0];renderAll();
+}
+function chSplitFaceta(dia,id,val){
+  var b=SEMS[curSem][dia].find(b=>b.id===id);if(!b||!b.split)return;
+  b.split.faceta=val;renderAll();
+}
 
 // ── BACKS ─────────────────────────────────────────────────────────
 function ensureBacks(dia){
@@ -2284,9 +2352,11 @@ function renderGantt(){
 
   const trained=(blocks,grupo,facetaName)=>{
     var target=(facetaName||'').toLowerCase();
-    return blocks.some(b=>
-      (b.grupo||'')===grupo && (b.faceta||'').toLowerCase()===target
-    );
+    return blocks.some(function(b){
+      if((b.grupo||'')===grupo && (b.faceta||'').toLowerCase()===target) return true;
+      if(b.split && (b.split.grupo||'')===grupo && (b.split.faceta||'').toLowerCase()===target) return true;
+      return false;
+    });
   };
 
   // Per-faceta stats: indices are computed against `visibleSessions`
