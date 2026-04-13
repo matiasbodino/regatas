@@ -770,6 +770,7 @@ const GRUPOS = {
   'Pie / Salidas':{color:'#4A3010',light:'#FDF4E3',text:'#8B5E1A'},
   'Sit. Real':    {color:'#0B5345',light:'#D1F2EB',text:'#0B5345'},
   'Juego Cond.':  {color:'#1B4F72',light:'#D6EAF8',text:'#1B4F72'},
+  'Habitos':      {color:'#D4AC0D',light:'#FEF9E7',text:'#7D6608'},
 };
 
 const FACETAS = {
@@ -783,9 +784,10 @@ const FACETAS = {
   'Pie / Salidas':['Salidas','Juego c/pie','Salidas + Juego c/pie','Recepción de patada rival','Kick chase'],
   'Sit. Real':    ['Situación real de juego'],
   'Juego Cond.':  ['Juego condicionado'],
+  'Habitos':      ['Tackle','Pto de Contacto','Atrapar y Pasar'],
 };
 
-const TARGETS = {'Pto. Contacto':8,'Destrezas':10,'Ataque':37,'Defensa':23,'Line / Backs':8,'Scrum / Backs':6,'Pie / Salidas':8,'Sit. Real':0,'Juego Cond.':0};
+const TARGETS = {'Pto. Contacto':8,'Destrezas':10,'Ataque':37,'Defensa':23,'Line / Backs':8,'Scrum / Backs':6,'Pie / Salidas':8,'Sit. Real':0,'Juego Cond.':0,'Habitos':0};
 const DOTS = {G:'#27AE60',Y:'#F5C518',R:'#E74C3C'};
 
 // Custom groups/facetas from localStorage
@@ -1116,7 +1118,7 @@ const calcDist = s => {
   return t;
 };
 
-const grpOrder = ['Pto. Contacto','Destrezas','Ataque','Defensa','Line / Backs','Scrum / Backs','Pie / Salidas','Sit. Real','Juego Cond.'];
+const grpOrder = ['Pto. Contacto','Destrezas','Ataque','Defensa','Line / Backs','Scrum / Backs','Pie / Salidas','Sit. Real','Juego Cond.','Habitos'];
 
 // ── NAVIGATION ────────────────────────────────────────────────
 function goPage(id) {
