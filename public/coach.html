@@ -3062,7 +3062,20 @@ function renderPublishedBanner() {
   }
 }
 
-function guardarSemana() {
+function semTieneDatos(s) {
+  if (!s) return false;
+  if ((s.lun && s.lun.length > 0) || (s.mar && s.mar.length > 0) || (s.jue && s.jue.length > 0)) return true;
+  var r = s.resultado;
+  if (r) {
+    if (r.ptsNos !== null || r.ptsRival !== null || r.triesA !== null || r.triesC !== null) return true;
+    if (r.line !== null || r.scrum !== null || r.tackles !== null) return true;
+    if (r.lineG !== null || r.lineP !== null || r.scrumG !== null || r.scrumP !== null) return true;
+    if (r.penales !== null || r.pdcTotal !== null || r.pdcPositivos !== null) return true;
+  }
+  return false;
+}
+
+async function guardarSemana() {
   var btn = document.getElementById('btn-guardar');
   saveToLocal();
   // Bloquear todas las semanas que tienen al menos un bloque cargado
@@ -3072,14 +3085,54 @@ function guardarSemana() {
     if (tiene) { markGuardado(s.sem); count++; }
   });
   renderAll();
-  btn.textContent = '\u2713 ' + count + ' semanas guardadas';
-  btn.style.background = '#1A6B3E';
-  btn.style.borderColor = '#1A6B3E';
+  btn.textContent = 'Subiendo...';
+  btn.disabled = true;
+  // Subir TODAS las semanas con datos a Supabase
+  try {
+    var existing = {};
+    var readResult = await supabaseClient
+      .from('semana_activa')
+      .select('datos')
+      .eq('id', 1)
+      .single();
+    if (readResult.data && readResult.data.datos) {
+      var d = readResult.data.datos;
+      if (d.semanas) existing = d;
+      else if (d.sem) { existing = { semanas: {}, ultimaSem: d.sem }; existing.semanas[d.sem] = d; }
+    }
+    if (!existing.semanas) existing.semanas = {};
+    var subidas = 0;
+    SEMS.forEach(function(s) {
+      if (semTieneDatos(s)) {
+        existing.semanas[s.sem] = {
+          sem:s.sem,fecha:s.fecha,rival:s.rival,local:s.local,ciclo:s.ciclo,
+          lun:s.lun,mar:s.mar,jue:s.jue,backs:s.backs,resultado:s.resultado
+        };
+        subidas++;
+      }
+    });
+    existing.cumbresEstado = CUMBRES.map(function(c) {
+      var stats = calcCumbreKPIs(c.num);
+      return {num:c.num,nombre:c.nombre,sub:c.sub,frase:c.frase,bandera:c.bandera,pct:stats?stats.pct:0,habilitada:stats?stats.habilitada:false,partidos:stats?stats.partidos:0};
+    });
+    var resp = await supabaseClient
+      .from('semana_activa')
+      .upsert({ id: 1, datos: existing, updated_at: new Date().toISOString() });
+    if (resp.error) throw resp.error;
+    btn.textContent = '\u2713 ' + subidas + ' guardadas en nube';
+    btn.style.background = '#1A6B3E';
+    btn.style.borderColor = '#1A6B3E';
+  } catch(e) {
+    btn.textContent = '\u26A0 Error nube (local OK)';
+    btn.style.background = '#E67E22';
+    btn.style.borderColor = '#E67E22';
+  }
+  btn.disabled = false;
   setTimeout(function() {
     btn.textContent = '\uD83D\uDCBE Guardar';
     btn.style.background = '#27AE60';
     btn.style.borderColor = '#27AE60';
-  }, 2500);
+  }, 3000);
 }
 
 function unlockSem(semNum) {
@@ -3991,11 +4044,27 @@ async function sincronizarDesdeSupabase(silent) {
       var saved = semanas[semNum];
       var idx = SEMS.findIndex(function(s) { return s.sem == semNum; });
       if (idx >= 0) {
-        if (saved.lun) SEMS[idx].lun = saved.lun;
-        if (saved.mar) SEMS[idx].mar = saved.mar;
-        if (saved.jue) SEMS[idx].jue = saved.jue;
+        var local = SEMS[idx];
+        // Solo sobrescribir si el remoto tiene contenido. Si el local tiene datos
+        // y el remoto está vacío, no pisar (evita perder cambios locales no publicados).
+        if (saved.lun && saved.lun.length > 0) SEMS[idx].lun = saved.lun;
+        else if (!local.lun || local.lun.length === 0) SEMS[idx].lun = saved.lun || [];
+        if (saved.mar && saved.mar.length > 0) SEMS[idx].mar = saved.mar;
+        else if (!local.mar || local.mar.length === 0) SEMS[idx].mar = saved.mar || [];
+        if (saved.jue && saved.jue.length > 0) SEMS[idx].jue = saved.jue;
+        else if (!local.jue || local.jue.length === 0) SEMS[idx].jue = saved.jue || [];
         if (saved.backs) SEMS[idx].backs = saved.backs;
-        if (saved.resultado) SEMS[idx].resultado = saved.resultado;
+        if (saved.resultado) {
+          var r = saved.resultado;
+          var remotoTieneDatos = r.ptsNos!==null||r.ptsRival!==null||r.triesA!==null||r.triesC!==null
+            ||r.line!==null||r.scrum!==null||r.tackles!==null||r.lineG!==null||r.lineP!==null
+            ||r.scrumG!==null||r.scrumP!==null||r.penales!==null||r.pdcTotal!==null||r.pdcPositivos!==null;
+          var lr = local.resultado;
+          var localTieneDatos = lr && (lr.ptsNos!==null||lr.ptsRival!==null||lr.triesA!==null||lr.triesC!==null
+            ||lr.line!==null||lr.scrum!==null||lr.tackles!==null||lr.lineG!==null||lr.lineP!==null
+            ||lr.scrumG!==null||lr.scrumP!==null||lr.penales!==null||lr.pdcTotal!==null||lr.pdcPositivos!==null);
+          if (remotoTieneDatos || !localTieneDatos) SEMS[idx].resultado = saved.resultado;
+        }
         count++;
       }
     });
