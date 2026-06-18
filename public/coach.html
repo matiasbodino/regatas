@@ -3007,17 +3007,7 @@ function chResultadoTabla(semNum, field, val) {
   if (idx < 0) return;
   var s = SEMS[idx];
   var r = ensureResultado(s);
-  if (field === 'fecha') {
-    s.fecha = String(val).trim();
-  } else if (field === 'rival') {
-    s.rival = String(val).trim();
-  } else if (field === 'local') {
-    s.local = val === 'V' ? 'V' : 'L';
-  } else if (field === 'ciclo') {
-    s.ciclo = val;
-  } else if (field === 'ptsNos' || field === 'ptsRival') {
-    r[field] = val === '' ? null : Math.max(0, parseInt(val, 10) || 0);
-  } else if (field === 'line' || field === 'scrum' || field === 'tackles') {
+  if (field === 'line' || field === 'scrum' || field === 'tackles') {
     var ko = ensureKpiOverride(r);
     if (val === '') {
       delete ko[field];
@@ -3406,41 +3396,20 @@ function buildPartidosTable(semsData, showCicloCol, editable) {
       + buildKpiInputCell(sn, 'tackles', r.tackles, tacklesClass)
       + buildKpiInputCell(sn, 'pdcPct', pdcVal, pdcClass);
 
-    if (!editable) {
-      return '<tr>'
-        + '<td style="font-weight:600">Sem ' + sn + '</td>'
-        + '<td>' + escAttr(s.fecha) + '</td>'
-        + '<td style="font-weight:600">' + escAttr(s.rival) + '</td>'
-        + '<td>' + (s.local === 'L' ? 'L' : 'V') + '</td>'
-        + '<td class="' + resClass + '">' + (r.ptsNos !== null ? r.ptsNos : '\u2014') + ' - ' + (r.ptsRival !== null ? r.ptsRival : '\u2014') + '</td>'
-        + (showCicloCol ? '<td style="font-size:10px;color:#888">' + escAttr(s.ciclo) + '</td>' : '')
-        + kpiCells + '</tr>';
-    }
+    var partidoCells = '<td style="font-weight:600">Sem ' + sn + '</td>'
+      + '<td>' + escAttr(s.fecha) + '</td>'
+      + '<td style="font-weight:600">' + escAttr(s.rival) + '</td>'
+      + '<td>' + (s.local === 'L' ? 'L' : 'V') + '</td>'
+      + '<td class="' + resClass + '">' + (r.ptsNos !== null ? r.ptsNos : '\u2014') + ' - ' + (r.ptsRival !== null ? r.ptsRival : '\u2014') + '</td>'
+      + (showCicloCol ? '<td style="font-size:10px;color:#888">' + escAttr(s.ciclo) + '</td>' : '');
 
-    var cicloOpts = CUMBRES.map(function(c) {
-      return '<option value="' + escAttr(c.nombre) + '"' + (s.ciclo === c.nombre ? ' selected' : '') + '>' + escAttr(c.nombre) + '</option>';
-    }).join('');
-    var lvOpts = '<option value="L"' + (s.local !== 'V' ? ' selected' : '') + '>L</option>'
-      + '<option value="V"' + (s.local === 'V' ? ' selected' : '') + '>V</option>';
-
-    return '<tr>'
-      + '<td style="font-weight:600">Sem ' + sn + '</td>'
-      + '<td class="res-cell-edit"><input class="res-cell-input res-cell-input--left" type="text" value="' + escAttr(s.fecha) + '" onchange="chResultadoTabla(' + sn + ',\'fecha\',this.value)"></td>'
-      + '<td class="res-cell-edit"><input class="res-cell-input res-cell-input--left" type="text" value="' + escAttr(s.rival) + '" onchange="chResultadoTabla(' + sn + ',\'rival\',this.value)"></td>'
-      + '<td class="res-cell-edit"><select class="res-cell-input" onchange="chResultadoTabla(' + sn + ',\'local\',this.value)">' + lvOpts + '</select></td>'
-      + '<td class="res-cell-edit ' + resClass + '"><div class="res-score-wrap">'
-      + '<input class="res-cell-input res-cell-input--score" type="number" min="0" placeholder="0" value="' + (r.ptsNos !== null ? r.ptsNos : '') + '" onchange="chResultadoTabla(' + sn + ',\'ptsNos\',this.value)">'
-      + '<span style="font-weight:700">-</span>'
-      + '<input class="res-cell-input res-cell-input--score" type="number" min="0" placeholder="0" value="' + (r.ptsRival !== null ? r.ptsRival : '') + '" onchange="chResultadoTabla(' + sn + ',\'ptsRival\',this.value)">'
-      + '</div></td>'
-      + (showCicloCol ? '<td class="res-cell-edit"><select class="res-cell-input res-cell-input--left" onchange="chResultadoTabla(' + sn + ',\'ciclo\',this.value)">' + cicloOpts + '</select></td>' : '')
-      + kpiCellsEdit + '</tr>';
+    return '<tr>' + partidoCells + (editable ? kpiCellsEdit : kpiCells) + '</tr>';
   }).join('');
   var cicloTh = showCicloCol ? '<th>Ciclo</th>' : '';
   return '<div style="overflow-x:auto"><table class="res-table">'
     + '<thead><tr><th>Sem</th><th>Fecha</th><th>Rival</th><th>L/V</th><th>Resultado</th>' + cicloTh + '<th>Line</th><th>Scrum</th><th>Tackles</th><th>PDC</th></tr></thead>'
     + '<tbody>' + rows + '</tbody></table></div>'
-    + (editable ? '<div style="font-size:10px;color:#888;margin-top:6px">KPIs se calculan solos desde el Planificador \u00B7 edit\u00E1 cualquier % para override manual \u00B7 borr\u00E1 el valor para volver al auto</div>' : '');
+    + (editable ? '<div style="font-size:10px;color:#888;margin-top:6px">Solo Line, Scrum, Tackles y PDC son editables \u00B7 se calculan solos desde el Planificador \u00B7 borr\u00E1 el % para volver al auto</div>' : '');
 }
 
 function renderResultados() {
