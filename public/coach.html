@@ -3031,6 +3031,7 @@ function chResultadoTabla(semNum, field, val) {
       r[field] = Math.max(0, Math.min(100, parseInt(val, 10) || 0));
     }
   } else if (field === 'penales') {
+    if (!semUsaPenales(s)) return;
     var koP = ensureKpiOverride(r);
     if (val === '') {
       delete koP.penales;
@@ -3481,11 +3482,12 @@ function renderResultados() {
 
     // Calcular KPIs cumplidos para progreso de bandera
     var kpisCumplidos = 0, kpisTotal = 0;
+    var usaPenCiclo = cicloUsaPenales(cumbre.num);
     semsCicloConDatos.forEach(function(s) {
       var r = s.resultado;
       if (r.line !== null) { kpisTotal++; if (r.line >= tgt.line) kpisCumplidos++; }
       if (r.scrum !== null) { kpisTotal++; if (r.scrum >= tgt.scrum) kpisCumplidos++; }
-      if (r.penales !== null) { kpisTotal++; if (r.penales <= (tgt.penales || 10)) kpisCumplidos++; }
+      if (usaPenCiclo && r.penales !== null) { kpisTotal++; if (r.penales <= (tgt.penales || 10)) kpisCumplidos++; }
       if (r.tackles !== null) { kpisTotal++; if (r.tackles <= tgt.tackles) kpisCumplidos++; }
       if (r.pdcTotal !== null && r.pdcPositivos !== null && r.pdcTotal > 0) { kpisTotal++; if (Math.round(r.pdcPositivos/r.pdcTotal*100) >= (tgt.pdc||50)) kpisCumplidos++; }
     });
@@ -3504,10 +3506,11 @@ function renderResultados() {
       + '</div>';
 
     // KPI cards del ciclo
+    var kpiGridColsCiclo = usaPenCiclo ? 5 : 4;
     html += '<div class="card" style="margin-bottom:12px">'
       + '<div style="font-size:12px;font-weight:600;color:#0D1B4E;margin-bottom:8px">KPIs del ciclo</div>'
-      + '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">'
-      + buildKpiCards(semsCicloConDatos, tgt)
+      + '<div style="display:grid;grid-template-columns:repeat('+kpiGridColsCiclo+',1fr);gap:8px">'
+      + buildKpiCards(semsCicloConDatos, tgt, usaPenCiclo ? {} : { ocultarPenales: true })
       + '</div></div>';
 
     // Progreso de bandera
@@ -3558,7 +3561,8 @@ function renderResultados() {
       var semsDelCiclo = allConDatos.filter(function(s) { return s.ciclo === c.nombre; });
       if (semsDelCiclo.length === 0) return;
       var tgt = c.targets || {peo:90,line:90,scrum:40,tackles:15,pdc:50,penales:10};
-      var p = calcPromediosPonderados(semsDelCiclo);
+      var penOpts = cicloUsaPenales(c.num) ? {} : { penalesSoloElbrus: true };
+      var p = calcPromediosPonderados(semsDelCiclo, penOpts);
       ciclosConDatos.push({nombre:c.nombre,color:c.color,n:p.partidos,tgt:tgt,p:p});
     });
     if (ciclosConDatos.length > 0) {
@@ -3703,7 +3707,7 @@ function calcCumbreKPIs(cumbreNum) {
     var kpiCount = 0;
     if (r.line !== null) { kpis.line = kpiClass(r.line, tgt.line, true); if(kpis.line==='kpi-ok') pts++; kpiCount++; }
     if (r.scrum !== null) { kpis.scrum = kpiClass(r.scrum, tgt.scrum, true); if(kpis.scrum==='kpi-ok') pts++; kpiCount++; }
-    if (r.penales !== null) { kpis.penales = kpiClass(r.penales, tgt.penales||10, false); if(kpis.penales==='kpi-ok') pts++; kpiCount++; }
+    if (cicloUsaPenales(c.num) && r.penales !== null) { kpis.penales = kpiClass(r.penales, tgt.penales||10, false); if(kpis.penales==='kpi-ok') pts++; kpiCount++; }
     if (r.tackles !== null) { kpis.tackles = kpiClass(r.tackles, tgt.tackles, false); if(kpis.tackles==='kpi-ok') pts++; kpiCount++; }
     if (r.pdcTotal !== null && r.pdcPositivos !== null && r.pdcTotal > 0) { var pdcPct = Math.round(r.pdcPositivos/r.pdcTotal*100); kpis.pdc = kpiClass(pdcPct, tgt.pdc||50, true); if(kpis.pdc==='kpi-ok') pts++; kpiCount++; }
     pool += kpiCount;
@@ -3741,17 +3745,20 @@ function buildBanderaWidget(c) {
     +'</div>';
   // Tabla de detalle colapsable
   if (stats.detalle.length > 0) {
+    var usaPenBandera = cicloUsaPenales(c.num);
     html += '<div>'
       +'<button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'block\':\'none\';this.textContent=this.nextElementSibling.style.display===\'none\'?\'Ver detalle \u25BC\':\'Ocultar \u25B2\'" style="font-size:10px;color:#2B4EA0;background:none;border:none;cursor:pointer;font-weight:600;padding:0;margin-bottom:4px">Ver detalle \u25BC</button>'
       +'<div style="display:none">'
-      +'<table class="bandera-detalle-table"><thead><tr><th>Rival</th><th>Res</th><th>Line</th><th>Scrum</th><th>Pen</th><th>Tack</th><th>PDC</th></tr></thead><tbody>';
+      +'<table class="bandera-detalle-table"><thead><tr><th>Rival</th><th>Res</th><th>Line</th><th>Scrum</th>'
+      +(usaPenBandera ? '<th>Pen</th>' : '')
+      +'<th>Tack</th><th>PDC</th></tr></thead><tbody>';
     stats.detalle.forEach(function(d) {
       html += '<tr>'
         +'<td style="font-weight:600">'+d.rival+'</td>'
         +'<td>'+d.res+'</td>'
         +'<td><span class="kpi-dot" style="background:'+(d.kpis.line===null?'#ccc':d.kpis.line==='kpi-ok'?'#27AE60':d.kpis.line==='kpi-warn'?'#D4A017':'#E74C3C')+'"></span></td>'
         +'<td><span class="kpi-dot" style="background:'+(d.kpis.scrum===null?'#ccc':d.kpis.scrum==='kpi-ok'?'#27AE60':d.kpis.scrum==='kpi-warn'?'#D4A017':'#E74C3C')+'"></span></td>'
-        +'<td><span class="kpi-dot" style="background:'+(d.kpis.penales===null?'#ccc':d.kpis.penales==='kpi-ok'?'#27AE60':d.kpis.penales==='kpi-warn'?'#D4A017':'#E74C3C')+'"></span></td>'
+        +(usaPenBandera ? '<td><span class="kpi-dot" style="background:'+(d.kpis.penales===null?'#ccc':d.kpis.penales==='kpi-ok'?'#27AE60':d.kpis.penales==='kpi-warn'?'#D4A017':'#E74C3C')+'"></span></td>' : '')
         +'<td><span class="kpi-dot" style="background:'+(d.kpis.tackles===null?'#ccc':d.kpis.tackles==='kpi-ok'?'#27AE60':d.kpis.tackles==='kpi-warn'?'#D4A017':'#E74C3C')+'"></span></td>'
         +'<td><span class="kpi-dot" style="background:'+(d.kpis.pdc===null?'#ccc':d.kpis.pdc==='kpi-ok'?'#27AE60':d.kpis.pdc==='kpi-warn'?'#D4A017':'#E74C3C')+'"></span></td>'
         +'</tr>';
@@ -3972,16 +3979,26 @@ function mergeCumbresMeta(remoteList) {
   try { localList = JSON.parse(localStorage.getItem(STORAGE_KEY_CUMBRES) || '[]'); } catch(e) {}
   return remoteList.map(function(remote) {
     var local = localList.find(function(l) { return l.num === remote.num; });
-    if (!local) return remote;
-    var defaultTargets = {line:90,scrum:40,tackles:15,pdc:50,penales:10};
+    if (!local) {
+      if (remote.targets) {
+        var rt = Object.assign({}, remote.targets);
+        if (!cicloUsaPenales(remote.num)) delete rt.penales;
+        return Object.assign({}, remote, { targets: rt, kpis: cumbreKpisFromTargets(rt, remote.num) });
+      }
+      return remote;
+    }
+    var defaultTargets = cicloUsaPenales(remote.num)
+      ? {line:90,scrum:40,tackles:15,pdc:50,penales:10}
+      : {line:90,scrum:40,tackles:15,pdc:50};
     var mergedTargets = Object.assign({}, defaultTargets, local.targets || {}, remote.targets || {});
+    if (!cicloUsaPenales(remote.num)) delete mergedTargets.penales;
     return {
       num: remote.num,
       nombre: remote.nombre || local.nombre,
       sub: remote.sub != null && remote.sub !== '' ? remote.sub : local.sub,
       foco: remote.foco != null && remote.foco !== '' ? remote.foco : local.foco,
       frase: remote.frase != null && remote.frase !== '' ? remote.frase : local.frase,
-      kpis: cumbreKpisFromTargets(mergedTargets),
+      kpis: cumbreKpisFromTargets(mergedTargets, remote.num),
       targets: mergedTargets,
       bandera: remote.bandera !== undefined ? remote.bandera : local.bandera,
       umbral: remote.umbral !== undefined ? remote.umbral : local.umbral,
@@ -4004,8 +4021,12 @@ function loadCumbres() {
       if (saved.foco)  c.foco  = saved.foco;
       if (saved.frase) c.frase = saved.frase;
       if (saved.targets) {
-        c.targets = Object.assign({line:90,scrum:40,tackles:15,pdc:50,penales:10}, c.targets, saved.targets);
-        c.kpis = cumbreKpisFromTargets(c.targets);
+        var defaults = cicloUsaPenales(c.num)
+          ? {line:90,scrum:40,tackles:15,pdc:50,penales:10}
+          : {line:90,scrum:40,tackles:15,pdc:50};
+        c.targets = Object.assign({}, defaults, c.targets, saved.targets);
+        if (!cicloUsaPenales(c.num)) delete c.targets.penales;
+        c.kpis = cumbreKpisFromTargets(c.targets, c.num);
       } else if (saved.kpis) {
         c.kpis = saved.kpis;
       }
@@ -4028,10 +4049,11 @@ function updateCumbre(num, field, val) {
 function updateCumbreTarget(num, key, val) {
   const c = CUMBRES.find(c => c.num === num);
   if (!c) return;
-  if (!c.targets) c.targets = {line:90,scrum:40,tackles:15,pdc:50,penales:10};
+  if (key === 'penales' && !cicloUsaPenales(c.num)) return;
+  if (!c.targets) c.targets = cicloUsaPenales(c.num) ? {line:90,scrum:40,tackles:15,pdc:50,penales:10} : {line:90,scrum:40,tackles:15,pdc:50};
   if (key === 'penales') c.targets[key] = val === '' ? c.targets[key] : Math.max(0, parseInt(val, 10) || 0);
   else c.targets[key] = val === '' ? c.targets[key] : Math.max(0, Math.min(100, parseInt(val, 10) || 0));
-  c.kpis = cumbreKpisFromTargets(c.targets);
+  c.kpis = cumbreKpisFromTargets(c.targets, c.num);
   saveCumbres();
   const ind = document.getElementById('save-indicator');
   if (ind) { ind.textContent = 'guardado ' + new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}); ind.style.color='rgba(245,197,24,0.8)'; }
