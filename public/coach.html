@@ -744,9 +744,11 @@ var PIN_KEY = 'cumbre_pin_ok';
 function checkPin() {
   var input = document.getElementById('pin-input');
   var error = document.getElementById('pin-error');
-  if (input.value === PIN_CODE) {
-    sessionStorage.setItem(PIN_KEY, '1');
+  var val = (input.value || '').trim();
+  if (val === PIN_CODE) {
+    try { sessionStorage.setItem(PIN_KEY, '1'); } catch(e) {}
     document.getElementById('pin-overlay').style.display = 'none';
+    error.style.display = 'none';
   } else {
     error.style.display = 'block';
     input.value = '';
@@ -3154,6 +3156,7 @@ async function guardarSemana() {
       }
     });
     existing.cumbresEstado = getCumbresMetaForSync(true);
+    var resp = await supabaseClient
       .from('semana_activa')
       .upsert({ id: 1, datos: existing, updated_at: new Date().toISOString() });
     if (resp.error) throw resp.error;
