@@ -1255,23 +1255,7 @@ function renderCumbres() {
             </div>
 
             <div style="margin-bottom:10px">
-              <div style="font-size:9px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px">KPIs DEL CICLO</div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
-                ${c.kpis.map((kpi,ki)=>`
-                  <input
-                    value="${kpi}"
-                    placeholder="KPI ${ki+1}..."
-                    onclick="event.stopPropagation()"
-                    onchange="updateCumbreKpi(${c.num},${ki},this.value)"
-                    style="font-size:10px;font-weight:600;color:#0D1B4E;background:#EBF0FF;border:0.5px solid #C5CCE0;border-radius:5px;padding:3px 7px;outline:none;font-family:inherit;cursor:text"
-                    onfocus="this.style.background='#fff';this.style.borderColor='#2B4EA0'"
-                    onblur="this.style.background='#EBF0FF';this.style.borderColor='#C5CCE0'">
-                `).join('')}
-              </div>
-            </div>
-
-            <div style="margin-bottom:10px">
-              <div style="font-size:9px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px">TARGETS NUMÉRICOS</div>
+              <div style="font-size:9px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px">KPIs target</div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
                 ${[
                   {key:'line',label:'% Line',val:c.targets.line},
@@ -3964,18 +3948,12 @@ function updateCumbre(num, field, val) {
   if (ind) { ind.textContent = 'guardado ' + new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}); ind.style.color='rgba(245,197,24,0.8)'; }
 }
 
-function updateCumbreKpi(num, idx, val) {
-  const c = CUMBRES.find(c => c.num === num);
-  if (!c) return;
-  c.kpis[idx] = val;
-  saveCumbres();
-}
-
 function updateCumbreTarget(num, key, val) {
   const c = CUMBRES.find(c => c.num === num);
   if (!c) return;
   if (!c.targets) c.targets = {line:90,scrum:40,tackles:15,pdc:50};
   c.targets[key] = val === '' ? c.targets[key] : Math.max(0, Math.min(100, parseInt(val, 10) || 0));
+  c.kpis = [c.targets.line+'% Line', c.targets.scrum+'% Scrum', '<'+c.targets.tackles+'% Tackles errados', c.targets.pdc+'% PDC'];
   saveCumbres();
   const ind = document.getElementById('save-indicator');
   if (ind) { ind.textContent = 'guardado ' + new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}); ind.style.color='rgba(245,197,24,0.8)'; }
