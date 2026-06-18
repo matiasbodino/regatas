@@ -1170,6 +1170,22 @@ const CUMBRES = [
    frase:'"Llegamos juntos."', kpis:['90% Line','40% Scrum','<15% Tackles errados','50% PDC','<10 Penales'], targets:{line:90,scrum:40,tackles:15,pdc:50,penales:10}, bandera:null, umbral:75},
 ];
 
+var PENALES_DESDE_CUMBRE = 3; // Elbrus en adelante
+
+function getCumbreNum(cicloName) {
+  var c = CUMBRES.find(function(c) { return c.nombre === cicloName; });
+  return c ? c.num : 0;
+}
+
+function cicloUsaPenales(cicloNameOrNum) {
+  if (typeof cicloNameOrNum === 'number') return cicloNameOrNum >= PENALES_DESDE_CUMBRE;
+  return getCumbreNum(cicloNameOrNum) >= PENALES_DESDE_CUMBRE;
+}
+
+function semUsaPenales(s) {
+  return s && cicloUsaPenales(s.ciclo);
+}
+
 function getTargetsByCiclo(cicloName) {
   var c = CUMBRES.find(function(c) { return c.nombre === cicloName; });
   if (c && c.targets) return c.targets;
@@ -3259,8 +3275,9 @@ function kpiClass(val, tgt, higher) {
   }
 }
 
-function calcPromediosPonderados(semsData) {
-  var scrumGT=0,scrumPT=0,lineGT=0,linePT=0,penalesT=0;
+function calcPromediosPonderados(semsData, opts) {
+  opts = opts || {};
+  var scrumGT=0,scrumPT=0,lineGT=0,linePT=0,penalesT=0,penalesN=0;
   var tacklesSum=0,tacklesN=0,partidos=0;
   var pdcTotalT=0,pdcPositivosT=0;
   semsData.forEach(function(s) {
@@ -3268,7 +3285,10 @@ function calcPromediosPonderados(semsData) {
     if (!r) return;
     if (r.scrumG!==null&&r.scrumP!==null) { scrumGT+=(r.scrumG||0); scrumPT+=(r.scrumP||0); } // dominados / totales
     if (r.lineG!==null&&r.lineP!==null) { lineGT+=(r.lineG||0); linePT+=(r.lineP||0); } // obtenidos / totales
-    if (r.penales!==null) penalesT+=(r.penales||0);
+    if (r.penales!==null && (!opts.penalesSoloElbrus || semUsaPenales(s))) {
+      penalesT+=(r.penales||0);
+      penalesN++;
+    }
     if (r.tackles!==null) { tacklesSum+=r.tackles; tacklesN++; }
     if (r.pdcTotal!==null&&r.pdcPositivos!==null) { pdcTotalT+=(r.pdcTotal||0); pdcPositivosT+=(r.pdcPositivos||0); }
     if (r.ptsNos!==null||r.ptsRival!==null) partidos++;
@@ -3279,7 +3299,8 @@ function calcPromediosPonderados(semsData) {
     linePct: linePT>0 ? round1(lineGT/linePT*100) : null,
     lineG:lineGT, lineP:linePT, lineTotal:linePT,
     penalesTotal:penalesT,
-    penalesPorPartido: partidos>0 ? round1(penalesT/partidos) : null,
+    penalesPartidos:penalesN,
+    penalesPorPartido: penalesN>0 ? round1(penalesT/penalesN) : null,
     tacklesProm: tacklesN>0 ? round1(tacklesSum/tacklesN) : null,
     pdcPct: pdcTotalT>0 ? round1(pdcPositivosT/pdcTotalT*100) : null,
     pdcPositivosT:pdcPositivosT, pdcTotalT:pdcTotalT,
@@ -3287,18 +3308,23 @@ function calcPromediosPonderados(semsData) {
   };
 }
 
-function buildKpiCards(semsData, targets) {
-  var pond = calcPromediosPonderados(semsData);
+function buildKpiCards(semsData, targets, opts) {
+  opts = opts || {};
+  var pondOpts = opts.penalesSoloElbrus ? { penalesSoloElbrus: true } : {};
+  var pond = calcPromediosPonderados(semsData, pondOpts);
   var tgtFallback = targets || {};
   if (!tgtFallback.line) {
-    var tgtVals = semsData.filter(function(s){return s.resultado&&s.resultado.ptsNos!==null;})
-      .map(function(s){return getTargetsByCiclo(s.ciclo);});
+    var semsConDatos = semsData.filter(function(s){return s.resultado&&s.resultado.ptsNos!==null;});
+    var tgtVals = semsConDatos.map(function(s){return getTargetsByCiclo(s.ciclo);});
+    var tgtPenales = opts.penalesSoloElbrus
+      ? semsConDatos.filter(semUsaPenales).map(function(s){return getTargetsByCiclo(s.ciclo);})
+      : tgtVals;
     if (tgtVals.length>0) {
       tgtFallback = {
         line:Math.round(tgtVals.reduce(function(a,t){return a+t.line;},0)/tgtVals.length),
         scrum:Math.round(tgtVals.reduce(function(a,t){return a+t.scrum;},0)/tgtVals.length),
         tackles:Math.round(tgtVals.reduce(function(a,t){return a+t.tackles;},0)/tgtVals.length),
-        penales:Math.round(tgtVals.reduce(function(a,t){return a+(t.penales||10);},0)/tgtVals.length),
+        penales:tgtPenales.length>0 ? Math.round(tgtPenales.reduce(function(a,t){return a+(t.penales||10);},0)/tgtPenales.length) : 10,
         pdc:Math.round(tgtVals.reduce(function(a,t){return a+(t.pdc||50);},0)/tgtVals.length)
       };
     } else {
@@ -3309,10 +3335,13 @@ function buildKpiCards(semsData, targets) {
   var items = [
     {label:'Obt. Line', avg:pond.linePct, tgt:tgtFallback.line, higher:true, isPct:true, detail:pond.lineG+' obt. de '+pond.lineTotal+' totales'},
     {label:'Dom. Scrum', avg:pond.scrumPct, tgt:tgtFallback.scrum, higher:true, isPct:true, detail:pond.scrumG+' dom. de '+pond.scrumTotal+' totales'},
-    {label:'Penales', avg:pond.penalesPorPartido, tgt:tgtFallback.penales||10, higher:false, isPct:false, detail:pond.penalesTotal+' total en '+pond.partidos+' partidos'},
+    {label:'Penales', avg:pond.penalesPorPartido, tgt:tgtFallback.penales||10, higher:false, isPct:false, detail:pond.penalesTotal+' total en '+(pond.penalesPartidos||pond.partidos)+' partidos'},
     {label:'Tackles err.', avg:pond.tacklesProm, tgt:tgtFallback.tackles, higher:false, isPct:true, detail:pond.partidos+' partidos'},
     {label:'Ptos Contacto', avg:pond.pdcPct, tgt:tgtFallback.pdc||50, higher:true, isPct:true, detail:pond.pdcPositivosT+' pos. de '+pond.pdcTotalT+' totales'}
   ];
+  if (opts.penalesSoloElbrus && pond.penalesPartidos === 0) {
+    items = items.filter(function(it) { return it.label !== 'Penales'; });
+  }
 
   return items.map(function(it) {
     var cls = kpiClass(it.avg, it.tgt, it.higher);
@@ -3509,11 +3538,13 @@ function renderResultados() {
     // ── VISTA ACUMULADA ──
     html += '<div id="res-capture" style="background:#F8F9FD;border-radius:12px;padding:16px">';
 
-    // Promedios acumulados
+    // Promedios acumulados (penales solo desde Elbrus)
+    var pondAcum = calcPromediosPonderados(allConDatos, { penalesSoloElbrus: true });
+    var kpiGridCols = pondAcum.penalesPartidos > 0 ? 5 : 4;
     html += '<div class="card" style="margin-bottom:12px">'
       + '<div style="font-size:14px;font-weight:600;color:#0D1B4E;margin-bottom:12px">Promedios acumulados</div>'
-      + '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">'
-      + buildKpiCards(allConDatos, null)
+      + '<div style="display:grid;grid-template-columns:repeat('+kpiGridCols+',1fr);gap:8px">'
+      + buildKpiCards(allConDatos, null, { penalesSoloElbrus: true })
       + '</div></div>';
 
     // Resumen W/E/L
@@ -3535,15 +3566,19 @@ function renderResultados() {
         var p = ci.p;
         var lineOk=kpiClass(p.linePct, ci.tgt.line, true);
         var scrumOk=kpiClass(p.scrumPct, ci.tgt.scrum, true);
+        var usaPen = cicloUsaPenales(ci.nombre);
         var penOk=kpiClass(p.penalesPorPartido, ci.tgt.penales||10, false);
         var tackOk=kpiClass(p.tacklesProm, ci.tgt.tackles, false);
         var pdcOk=kpiClass(p.pdcPct, ci.tgt.pdc||50, true);
+        var penCell = usaPen
+          ? '<td class="'+penOk+'">'+(p.penalesPorPartido!==null?fmt1(p.penalesPorPartido):'\u2014')+'<div style="font-size:9px;color:#aaa">'+p.penalesTotal+' total</div></td>'
+          : '<td style="color:#aaa">n/a</td>';
         return '<tr>'
           + '<td style="font-weight:700;color:'+ci.color+'">\u25B2 '+ci.nombre+'</td>'
           + '<td>'+ci.n+'</td>'
           + '<td class="'+lineOk+'">'+(p.linePct!==null?fmt1(p.linePct)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">'+p.lineG+'/'+p.lineTotal+'</div></td>'
           + '<td class="'+scrumOk+'">'+(p.scrumPct!==null?fmt1(p.scrumPct)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">'+p.scrumG+'/'+p.scrumTotal+'</div></td>'
-          + '<td class="'+penOk+'">'+(p.penalesPorPartido!==null?fmt1(p.penalesPorPartido):'\u2014')+'<div style="font-size:9px;color:#aaa">'+p.penalesTotal+' total</div></td>'
+          + penCell
           + '<td class="'+tackOk+'">'+(p.tacklesProm!==null?fmt1(p.tacklesProm)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">tgt &lt;'+ci.tgt.tackles+'%</div></td>'
           + '<td class="'+pdcOk+'">'+(p.pdcPct!==null?fmt1(p.pdcPct)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">'+p.pdcPositivosT+'/'+p.pdcTotalT+'</div></td>'
           + '</tr>';
