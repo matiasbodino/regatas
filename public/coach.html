@@ -441,6 +441,11 @@ select,input{font-family:inherit}
 .res-cell-input--left{text-align:left}
 .res-cell-input--score{width:34px;flex-shrink:0}
 .res-table td.res-cell-edit{padding:4px 5px;vertical-align:middle}
+.res-table td.res-cell-kpi .res-cell-input--kpi{width:44px;background:transparent;border-color:rgba(0,0,0,0.1);font-weight:700;padding:2px 3px}
+.res-table td.res-cell-kpi.kpi-ok .res-cell-input--kpi{color:#27AE60}
+.res-table td.res-cell-kpi.kpi-warn .res-cell-input--kpi{color:#D4A017}
+.res-table td.res-cell-kpi.kpi-fail .res-cell-input--kpi{color:#E74C3C}
+.res-table td.res-cell-kpi .res-cell-input--kpi:focus{background:#FAFBFF;border-color:#2B4EA0}
 .res-score-wrap{display:flex;align-items:center;justify-content:center;gap:2px}
 .res-section{background:#fff;border:0.5px solid #E2E7F5;border-radius:12px;padding:16px 20px;margin-top:12px}
 .res-section-title{font-size:12px;font-weight:700;color:#0D1B4E;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em}
@@ -2943,6 +2948,7 @@ function ensureResultado(s) {
   if (s.resultado.penales === undefined) s.resultado.penales = null;
   if (s.resultado.pdcTotal === undefined) s.resultado.pdcTotal = null;
   if (s.resultado.pdcPositivos === undefined) s.resultado.pdcPositivos = null;
+  if (!s.resultado.kpiOverride) s.resultado.kpiOverride = {};
   if (!s.resultado.equipo) s.resultado.equipo = {A:{titulares:[],suplentes:[]},B:{titulares:[],suplentes:[]}};
   if (!s.resultado.equipo.A) s.resultado.equipo.A = {titulares:[],suplentes:[]};
   if (!s.resultado.equipo.B) s.resultado.equipo.B = {titulares:[],suplentes:[]};
@@ -2953,9 +2959,32 @@ function ensureResultado(s) {
   return s.resultado;
 }
 
+function ensureKpiOverride(r) {
+  if (!r.kpiOverride) r.kpiOverride = {};
+  return r.kpiOverride;
+}
+
+function getPdcPct(r) {
+  if (!r || r.pdcTotal === null || r.pdcPositivos === null || r.pdcTotal <= 0) return null;
+  return Math.round(r.pdcPositivos / r.pdcTotal * 100);
+}
+
+function recalcKpisFromRaw(r) {
+  var o = ensureKpiOverride(r);
+  if (!o.line) {
+    if (r.lineG !== null && r.lineP !== null && r.lineP > 0) r.line = Math.round(r.lineG / r.lineP * 100);
+    else if (r.lineG === null && r.lineP === null) r.line = null;
+  }
+  if (!o.scrum) {
+    if (r.scrumG !== null && r.scrumP !== null && r.scrumP > 0) r.scrum = Math.round(r.scrumG / r.scrumP * 100);
+    else if (r.scrumG === null && r.scrumP === null) r.scrum = null;
+  }
+}
+
 function chResultado(field, val) {
   var s = SEMS[curSem];
   ensureResultado(s);
+  var o = ensureKpiOverride(s.resultado);
   var pctFields = ['peo','tackles'];
   if (val === '') {
     s.resultado[field] = null;
@@ -2964,17 +2993,10 @@ function chResultado(field, val) {
   } else {
     s.resultado[field] = Math.max(0, parseInt(val) || 0);
   }
-  // Auto-calcular % : obtenidos/totales (lineG/lineP) y dominados/totales (scrumG/scrumP)
-  var r = s.resultado;
-  if (r.lineG !== null && r.lineP !== null) {
-    r.line = r.lineP > 0 ? Math.round(r.lineG / r.lineP * 100) : 0;
-  } else {
-    r.line = null;
-  }
-  if (r.scrumG !== null && r.scrumP !== null) {
-    r.scrum = r.scrumP > 0 ? Math.round(r.scrumG / r.scrumP * 100) : 0;
-  } else {
-    r.scrum = null;
+  if (field === 'tackles') o.tackles = false;
+  if (field === 'pdcTotal' || field === 'pdcPositivos') o.pdc = false;
+  if (field === 'lineG' || field === 'lineP' || field === 'scrumG' || field === 'scrumP') {
+    recalcKpisFromRaw(s.resultado);
   }
   renderResultadoSection();
   scheduleSave();
@@ -2995,6 +3017,28 @@ function chResultadoTabla(semNum, field, val) {
     s.ciclo = val;
   } else if (field === 'ptsNos' || field === 'ptsRival') {
     r[field] = val === '' ? null : Math.max(0, parseInt(val, 10) || 0);
+  } else if (field === 'line' || field === 'scrum' || field === 'tackles') {
+    var ko = ensureKpiOverride(r);
+    if (val === '') {
+      delete ko[field];
+      if (field === 'line' || field === 'scrum') recalcKpisFromRaw(r);
+      else r.tackles = null;
+    } else {
+      ko[field] = true;
+      r[field] = Math.max(0, Math.min(100, parseInt(val, 10) || 0));
+    }
+  } else if (field === 'pdcPct') {
+    var ko2 = ensureKpiOverride(r);
+    if (val === '') {
+      delete ko2.pdc;
+      r.pdcTotal = null;
+      r.pdcPositivos = null;
+    } else {
+      ko2.pdc = true;
+      var pct = Math.max(0, Math.min(100, parseInt(val, 10) || 0));
+      r.pdcTotal = 100;
+      r.pdcPositivos = pct;
+    }
   }
   scheduleSave();
   renderResultados();
@@ -3328,6 +3372,15 @@ function buildWEL(semsData) {
     + '</div>';
 }
 
+function buildKpiInputCell(sn, field, val, cls) {
+  return '<td class="res-cell-edit res-cell-kpi ' + cls + '">'
+    + '<input class="res-cell-input res-cell-input--kpi" type="number" min="0" max="100" title="Auto desde Planificador · edit\u00E1 para override manual" '
+    + 'placeholder="\u2014" value="' + (val !== null ? val : '') + '" '
+    + 'onchange="chResultadoTabla(' + sn + ',\'' + field + '\',this.value)" '
+    + 'onblur="chResultadoTabla(' + sn + ',\'' + field + '\',this.value)">'
+    + '</td>';
+}
+
 function buildPartidosTable(semsData, showCicloCol, editable) {
   if (editable === undefined) editable = true;
   var rows = semsData.map(function(s) {
@@ -3341,13 +3394,17 @@ function buildPartidosTable(semsData, showCicloCol, editable) {
     var lineClass = kpiClass(r.line, tgt.line, true);
     var scrumClass = kpiClass(r.scrum, tgt.scrum, true);
     var tacklesClass = kpiClass(r.tackles, tgt.tackles, false);
-    var pdcVal = (r.pdcTotal !== null && r.pdcPositivos !== null && r.pdcTotal > 0) ? Math.round(r.pdcPositivos / r.pdcTotal * 100) : null;
+    var pdcVal = getPdcPct(r);
     var pdcClass = kpiClass(pdcVal, tgt.pdc || 50, true);
     var sn = s.sem;
     var kpiCells = '<td class="' + lineClass + '">' + (r.line !== null ? r.line + '%' : '\u2014') + '</td>'
       + '<td class="' + scrumClass + '">' + (r.scrum !== null ? r.scrum + '%' : '\u2014') + '</td>'
       + '<td class="' + tacklesClass + '">' + (r.tackles !== null ? r.tackles + '%' : '\u2014') + '</td>'
       + '<td class="' + pdcClass + '">' + (pdcVal !== null ? pdcVal + '%' : '\u2014') + '</td>';
+    var kpiCellsEdit = buildKpiInputCell(sn, 'line', r.line, lineClass)
+      + buildKpiInputCell(sn, 'scrum', r.scrum, scrumClass)
+      + buildKpiInputCell(sn, 'tackles', r.tackles, tacklesClass)
+      + buildKpiInputCell(sn, 'pdcPct', pdcVal, pdcClass);
 
     if (!editable) {
       return '<tr>'
@@ -3377,13 +3434,13 @@ function buildPartidosTable(semsData, showCicloCol, editable) {
       + '<input class="res-cell-input res-cell-input--score" type="number" min="0" placeholder="0" value="' + (r.ptsRival !== null ? r.ptsRival : '') + '" onchange="chResultadoTabla(' + sn + ',\'ptsRival\',this.value)">'
       + '</div></td>'
       + (showCicloCol ? '<td class="res-cell-edit"><select class="res-cell-input res-cell-input--left" onchange="chResultadoTabla(' + sn + ',\'ciclo\',this.value)">' + cicloOpts + '</select></td>' : '')
-      + kpiCells + '</tr>';
+      + kpiCellsEdit + '</tr>';
   }).join('');
   var cicloTh = showCicloCol ? '<th>Ciclo</th>' : '';
   return '<div style="overflow-x:auto"><table class="res-table">'
     + '<thead><tr><th>Sem</th><th>Fecha</th><th>Rival</th><th>L/V</th><th>Resultado</th>' + cicloTh + '<th>Line</th><th>Scrum</th><th>Tackles</th><th>PDC</th></tr></thead>'
     + '<tbody>' + rows + '</tbody></table></div>'
-    + (editable ? '<div style="font-size:10px;color:#888;margin-top:6px">Edit\u00E1 fecha, rival, L/V y resultado \u00B7 KPIs se cargan desde el Planificador</div>' : '');
+    + (editable ? '<div style="font-size:10px;color:#888;margin-top:6px">KPIs se calculan solos desde el Planificador \u00B7 edit\u00E1 cualquier % para override manual \u00B7 borr\u00E1 el valor para volver al auto</div>' : '');
 }
 
 function renderResultados() {
