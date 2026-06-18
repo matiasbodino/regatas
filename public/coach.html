@@ -2995,17 +2995,6 @@ function chResultadoTabla(semNum, field, val) {
     s.ciclo = val;
   } else if (field === 'ptsNos' || field === 'ptsRival') {
     r[field] = val === '' ? null : Math.max(0, parseInt(val, 10) || 0);
-  } else if (field === 'line' || field === 'scrum' || field === 'tackles') {
-    r[field] = val === '' ? null : Math.max(0, Math.min(100, parseInt(val, 10) || 0));
-  } else if (field === 'pdcPct') {
-    if (val === '') {
-      r.pdcTotal = null;
-      r.pdcPositivos = null;
-    } else {
-      var pct = Math.max(0, Math.min(100, parseInt(val, 10) || 0));
-      r.pdcTotal = 100;
-      r.pdcPositivos = pct;
-    }
   }
   scheduleSave();
   renderResultados();
@@ -3214,17 +3203,17 @@ function setResVista(modo) {
 
 function round1(v) { return Math.round(v * 10) / 10; }
 function fmt1(v) { return v % 1 === 0 ? v.toString() : v.toFixed(1); }
-// higher=true: >= tgt green, >= 90% yellow, < 80% red
-// higher=false (tackles): <= tgt green, <= 110% yellow, > 120% red
+// higher=true: >= tgt verde, 1–10% abajo amarillo, >10% abajo rojo
+// higher=false (tackles): <= tgt verde, 1–10% arriba amarillo, >10% arriba rojo
 function kpiClass(val, tgt, higher) {
-  if (val === null) return '';
+  if (val === null || tgt === null) return '';
   if (higher) {
     if (val >= tgt) return 'kpi-ok';
-    if (val >= tgt * 0.8) return 'kpi-warn';
+    if (val >= tgt * 0.9) return 'kpi-warn';
     return 'kpi-fail';
   } else {
     if (val <= tgt) return 'kpi-ok';
-    if (val <= tgt * 1.2) return 'kpi-warn';
+    if (val <= tgt * 1.1) return 'kpi-warn';
     return 'kpi-fail';
   }
 }
@@ -3344,15 +3333,21 @@ function buildPartidosTable(semsData, showCicloCol, editable) {
   var rows = semsData.map(function(s) {
     var r = ensureResultado(s);
     var tgt = getTargetsByCiclo(s.ciclo);
-    var ganamos = r.ptsNos !== null && r.ptsRival !== null && r.ptsNos > r.ptsRival;
-    var empate = r.ptsNos !== null && r.ptsRival !== null && r.ptsNos === r.ptsRival;
-    var resClass = ganamos ? 'res-win' : (empate ? '' : 'res-loss');
+    var resClass = '';
+    if (r.ptsNos !== null && r.ptsRival !== null) {
+      if (r.ptsNos > r.ptsRival) resClass = 'res-win';
+      else if (r.ptsNos < r.ptsRival) resClass = 'res-loss';
+    }
     var lineClass = kpiClass(r.line, tgt.line, true);
     var scrumClass = kpiClass(r.scrum, tgt.scrum, true);
     var tacklesClass = kpiClass(r.tackles, tgt.tackles, false);
     var pdcVal = (r.pdcTotal !== null && r.pdcPositivos !== null && r.pdcTotal > 0) ? Math.round(r.pdcPositivos / r.pdcTotal * 100) : null;
     var pdcClass = kpiClass(pdcVal, tgt.pdc || 50, true);
     var sn = s.sem;
+    var kpiCells = '<td class="' + lineClass + '">' + (r.line !== null ? r.line + '%' : '\u2014') + '</td>'
+      + '<td class="' + scrumClass + '">' + (r.scrum !== null ? r.scrum + '%' : '\u2014') + '</td>'
+      + '<td class="' + tacklesClass + '">' + (r.tackles !== null ? r.tackles + '%' : '\u2014') + '</td>'
+      + '<td class="' + pdcClass + '">' + (pdcVal !== null ? pdcVal + '%' : '\u2014') + '</td>';
 
     if (!editable) {
       return '<tr>'
@@ -3362,11 +3357,7 @@ function buildPartidosTable(semsData, showCicloCol, editable) {
         + '<td>' + (s.local === 'L' ? 'L' : 'V') + '</td>'
         + '<td class="' + resClass + '">' + (r.ptsNos !== null ? r.ptsNos : '\u2014') + ' - ' + (r.ptsRival !== null ? r.ptsRival : '\u2014') + '</td>'
         + (showCicloCol ? '<td style="font-size:10px;color:#888">' + escAttr(s.ciclo) + '</td>' : '')
-        + '<td class="' + lineClass + '">' + (r.line !== null ? r.line + '%' : '\u2014') + '</td>'
-        + '<td class="' + scrumClass + '">' + (r.scrum !== null ? r.scrum + '%' : '\u2014') + '</td>'
-        + '<td class="' + tacklesClass + '">' + (r.tackles !== null ? r.tackles + '%' : '\u2014') + '</td>'
-        + '<td class="' + pdcClass + '">' + (pdcVal !== null ? pdcVal + '%' : '\u2014') + '</td>'
-        + '</tr>';
+        + kpiCells + '</tr>';
     }
 
     var cicloOpts = CUMBRES.map(function(c) {
@@ -3386,17 +3377,13 @@ function buildPartidosTable(semsData, showCicloCol, editable) {
       + '<input class="res-cell-input res-cell-input--score" type="number" min="0" placeholder="0" value="' + (r.ptsRival !== null ? r.ptsRival : '') + '" onchange="chResultadoTabla(' + sn + ',\'ptsRival\',this.value)">'
       + '</div></td>'
       + (showCicloCol ? '<td class="res-cell-edit"><select class="res-cell-input res-cell-input--left" onchange="chResultadoTabla(' + sn + ',\'ciclo\',this.value)">' + cicloOpts + '</select></td>' : '')
-      + '<td class="res-cell-edit ' + lineClass + '"><input class="res-cell-input" type="number" min="0" max="100" placeholder="%" value="' + (r.line !== null ? r.line : '') + '" onchange="chResultadoTabla(' + sn + ',\'line\',this.value)"></td>'
-      + '<td class="res-cell-edit ' + scrumClass + '"><input class="res-cell-input" type="number" min="0" max="100" placeholder="%" value="' + (r.scrum !== null ? r.scrum : '') + '" onchange="chResultadoTabla(' + sn + ',\'scrum\',this.value)"></td>'
-      + '<td class="res-cell-edit ' + tacklesClass + '"><input class="res-cell-input" type="number" min="0" max="100" placeholder="%" value="' + (r.tackles !== null ? r.tackles : '') + '" onchange="chResultadoTabla(' + sn + ',\'tackles\',this.value)"></td>'
-      + '<td class="res-cell-edit ' + pdcClass + '"><input class="res-cell-input" type="number" min="0" max="100" placeholder="%" value="' + (pdcVal !== null ? pdcVal : '') + '" onchange="chResultadoTabla(' + sn + ',\'pdcPct\',this.value)"></td>'
-      + '</tr>';
+      + kpiCells + '</tr>';
   }).join('');
   var cicloTh = showCicloCol ? '<th>Ciclo</th>' : '';
   return '<div style="overflow-x:auto"><table class="res-table">'
     + '<thead><tr><th>Sem</th><th>Fecha</th><th>Rival</th><th>L/V</th><th>Resultado</th>' + cicloTh + '<th>Line</th><th>Scrum</th><th>Tackles</th><th>PDC</th></tr></thead>'
     + '<tbody>' + rows + '</tbody></table></div>'
-    + (editable ? '<div style="font-size:10px;color:#888;margin-top:6px">Edit\u00E1 cualquier celda \u00B7 los cambios se guardan autom\u00E1ticamente</div>' : '');
+    + (editable ? '<div style="font-size:10px;color:#888;margin-top:6px">Edit\u00E1 fecha, rival, L/V y resultado \u00B7 KPIs se cargan desde el Planificador</div>' : '');
 }
 
 function renderResultados() {
@@ -3527,7 +3514,7 @@ function renderResultados() {
     // Partidos jugados
     html += '<div class="card">'
       + '<div style="font-size:14px;font-weight:600;color:#0D1B4E;margin-bottom:12px">Partidos jugados</div>'
-      + buildPartidosTable(SEMS, true) + '</div>';
+      + buildPartidosTable(allConDatos, true) + '</div>';
 
     html += '</div>'; // cierra res-capture
   }
