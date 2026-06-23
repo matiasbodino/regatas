@@ -3010,8 +3010,8 @@ function getLineObtenidosPct(r) {
 }
 
 function getLineCalidadPct(r) {
-  if (!r || r.lineCalidad === null || r.lineG === null || r.lineG <= 0) return null;
-  return Math.round(r.lineCalidad / r.lineG * 100);
+  if (!r || r.lineCalidad === null || r.lineP === null || r.lineP <= 0) return null;
+  return Math.round(r.lineCalidad / r.lineP * 100);
 }
 
 function getLineKpiPct(r) {
@@ -3128,7 +3128,7 @@ function renderResultadoSection() {
     + '<div class="res-field">'
     + '<div class="res-field-label res-field-label--primary">Line de calidad \u2605</div>'
     + '<input class="res-input" type="number" min="0" value="' + (r.lineCalidad !== null ? r.lineCalidad : '') + '" onchange="chResultado(\'lineCalidad\',this.value)" onclick="event.stopPropagation()">'
-    + (r.lineCalidad !== null && r.lineG !== null && r.lineG > 0 ? '<div class="res-field-target">' + Math.round(r.lineCalidad / r.lineG * 100) + '% calidad \u00B7 KPI principal \u00B7 tgt ' + tgt.line + '%</div>' : '')
+    + (r.lineCalidad !== null && r.lineP !== null && r.lineP > 0 ? '<div class="res-field-target">' + Math.round(r.lineCalidad / r.lineP * 100) + '% calidad \u00B7 KPI principal \u00B7 tgt ' + tgt.line + '%</div>' : '')
     + '</div>'
     + '<div class="res-subblock-title">Defensa</div>'
     + '<div class="res-field">'
@@ -3319,7 +3319,7 @@ function kpiClass(val, tgt, higher) {
 
 function calcPromediosPonderados(semsData, opts) {
   opts = opts || {};
-  var scrumGT=0,scrumPT=0,lineGT=0,linePT=0,lineCalidadT=0,lineCalidadGT=0,penalesT=0,penalesN=0;
+  var scrumGT=0,scrumPT=0,lineGT=0,linePT=0,lineCalidadT=0,lineCalidadPT=0,penalesT=0,penalesN=0;
   var tacklesSum=0,tacklesN=0,tacklesErrSum=0,tacklesErrN=0,partidos=0;
   var pdcTotalT=0,pdcPositivosT=0;
   semsData.forEach(function(s) {
@@ -3327,7 +3327,7 @@ function calcPromediosPonderados(semsData, opts) {
     if (!r) return;
     if (r.scrumG!==null&&r.scrumP!==null) { scrumGT+=(r.scrumG||0); scrumPT+=(r.scrumP||0); } // dominados / totales
     if (r.lineG!==null&&r.lineP!==null) { lineGT+=(r.lineG||0); linePT+=(r.lineP||0); } // obtenidos / totales
-    if (r.lineCalidad!==null&&r.lineG!==null&&r.lineG>0) { lineCalidadT+=(r.lineCalidad||0); lineCalidadGT+=(r.lineG||0); }
+    if (r.lineCalidad!==null&&r.lineP!==null&&r.lineP>0) { lineCalidadT+=(r.lineCalidad||0); lineCalidadPT+=(r.lineP||0); }
     if (r.penales!==null && (!opts.penalesSoloElbrus || semUsaPenales(s))) {
       penalesT+=(r.penales||0);
       penalesN++;
@@ -3342,8 +3342,8 @@ function calcPromediosPonderados(semsData, opts) {
     scrumG:scrumGT, scrumP:scrumPT, scrumTotal:scrumPT,
     linePct: linePT>0 ? round1(lineGT/linePT*100) : null,
     lineG:lineGT, lineP:linePT, lineTotal:linePT,
-    lineCalidadPct: lineCalidadGT>0 ? round1(lineCalidadT/lineCalidadGT*100) : null,
-    lineCalidadT:lineCalidadT, lineCalidadG:lineCalidadGT,
+    lineCalidadPct: lineCalidadPT>0 ? round1(lineCalidadT/lineCalidadPT*100) : null,
+    lineCalidadT:lineCalidadT, lineCalidadP:lineCalidadPT,
     penalesTotal:penalesT,
     penalesPartidos:penalesN,
     penalesPorPartido: penalesN>0 ? round1(penalesT/penalesN) : null,
@@ -3381,7 +3381,7 @@ function buildKpiCards(semsData, targets, opts) {
   }
 
   var items = [
-    {label:'Line calidad \u2605', avg:pond.lineCalidadPct, tgt:tgtFallback.line, higher:true, isPct:true, detail:pond.lineCalidadT+' cal. de '+pond.lineCalidadG+' obt.'},
+    {label:'Line calidad \u2605', avg:pond.lineCalidadPct, tgt:tgtFallback.line, higher:true, isPct:true, detail:pond.lineCalidadT+' cal. de '+pond.lineCalidadP+' tot.'},
     {label:'Line obt.', avg:pond.linePct, tgt:tgtFallback.line, higher:true, isPct:true, detail:pond.lineG+' obt. de '+pond.lineTotal+' totales'},
     {label:'Dom. Scrum', avg:pond.scrumPct, tgt:tgtFallback.scrum, higher:true, isPct:true, detail:pond.scrumG+' dom. de '+pond.scrumTotal+' totales'},
     {label:'Penales', avg:pond.penalesPorPartido, tgt:tgtFallback.penales||10, higher:false, isPct:false, detail:pond.penalesTotal+' total en '+(pond.penalesPartidos||pond.partidos)+' partidos'},
@@ -3483,8 +3483,8 @@ function buildPartidosTable(semsData, showCicloCol, editable) {
     var pdcVal = getPdcPct(r);
     var pdcClass = kpiClass(pdcVal, tgt.pdc || 50, true);
     var sn = s.sem;
-    var lineCalidadSub = (r.lineCalidad !== null && r.lineG !== null)
-      ? '<div style="font-size:9px;color:#aaa">' + r.lineCalidad + ' cal. de ' + r.lineG + ' obt.</div>'
+    var lineCalidadSub = (r.lineCalidad !== null && r.lineP !== null)
+      ? '<div style="font-size:9px;color:#aaa">' + r.lineCalidad + ' cal. de ' + r.lineP + ' tot.</div>'
       : (r.lineCalidad !== null ? '<div style="font-size:9px;color:#aaa">' + r.lineCalidad + ' cal.</div>' : '');
     var kpiCells = '<td class="' + lineCalidadClass + '">' + (lineCalidadVal !== null ? lineCalidadVal + '%' : '\u2014') + lineCalidadSub + '</td>'
       + '<td class="' + lineObtenidosClass + '">' + (lineObtenidosVal !== null ? lineObtenidosVal + '%' : '\u2014') + (r.lineG !== null && r.lineP !== null ? '<div style="font-size:9px;color:#aaa">' + r.lineG + '/' + r.lineP + '</div>' : '') + '</td>'
@@ -3642,7 +3642,7 @@ function renderResultados() {
         return '<tr>'
           + '<td style="font-weight:700;color:'+ci.color+'">\u25B2 '+ci.nombre+'</td>'
           + '<td>'+ci.n+'</td>'
-          + '<td class="'+lineCalOk+'">'+(p.lineCalidadPct!==null?fmt1(p.lineCalidadPct)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">'+p.lineCalidadT+' cal. de '+p.lineCalidadG+' obt.</div></td>'
+          + '<td class="'+lineCalOk+'">'+(p.lineCalidadPct!==null?fmt1(p.lineCalidadPct)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">'+p.lineCalidadT+' cal. de '+p.lineCalidadP+' tot.</div></td>'
           + '<td class="'+lineObtOk+'">'+(p.linePct!==null?fmt1(p.linePct)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">'+p.lineG+'/'+p.lineTotal+'</div></td>'
           + '<td class="'+scrumOk+'">'+(p.scrumPct!==null?fmt1(p.scrumPct)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">'+p.scrumG+'/'+p.scrumTotal+'</div></td>'
           + penCell
