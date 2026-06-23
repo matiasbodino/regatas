@@ -452,7 +452,11 @@ select,input{font-family:inherit}
 .res-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .res-field{display:flex;flex-direction:column;gap:3px}
 .res-field-label{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.05em}
+.res-field-label--primary{color:#0D1B4E;font-weight:700}
+.res-field-label--secondary{color:#6B7A99;font-weight:600}
+.res-field-label--support{color:#aaa;font-weight:500}
 .res-field-target{font-size:9px;color:#aaa}
+.res-subblock-title{font-size:10px;font-weight:700;color:#6B7A99;text-transform:uppercase;letter-spacing:0.06em;margin:10px 0 6px;grid-column:1/-1}
 /* ── CONFETI ── */
 @keyframes confeti-caer{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
 .confeti-piece{position:fixed;width:10px;height:10px;border-radius:2px;animation:confeti-caer 2.5s ease-in forwards;pointer-events:none;z-index:9999}
@@ -1152,22 +1156,22 @@ function goPage(id) {
 const CUMBRES = [
   {num:1, nombre:'Kosciuszko', sub:'La Promesa',    alt:'2.228m', color:'#0D1B4E', sems:[1,2,3],
    foco:'Instalar hábitos. Punto de contacto. El estándar mínimo en cada repetición.',
-   frase:'"Empezamos."', kpis:['90% Line','40% Scrum','15% Tackles dominantes','50% PDC','<10 Penales'], targets:{line:90,scrum:40,tackles:15,pdc:50,penales:10}, bandera:null, umbral:75},
+   frase:'"Empezamos."', kpis:['90% Line calidad','40% Scrum','15% Tackles dominantes','<10% Tackles errados','50% PDC','<10 Penales'], targets:{line:90,scrum:40,tackles:15,tacklesErrados:10,pdc:50,penales:10}, bandera:null, umbral:75},
   {num:2, nombre:'Kilimanjaro', sub:'La Identidad', alt:'5.895m', color:'#1A3470', sems:[4,5,6],
    foco:'Identidad bajo presión. Defensa instalada. ¿Quiénes somos cuando la exigencia sube?',
-   frase:'"Sabemos quiénes somos."', kpis:['90% Line','40% Scrum','15% Tackles dominantes','50% PDC','<10 Penales'], targets:{line:90,scrum:40,tackles:15,pdc:50,penales:10}, bandera:null, umbral:75},
+   frase:'"Sabemos quiénes somos."', kpis:['90% Line calidad','40% Scrum','15% Tackles dominantes','<10% Tackles errados','50% PDC','<10 Penales'], targets:{line:90,scrum:40,tackles:15,tacklesErrados:10,pdc:50,penales:10}, bandera:null, umbral:75},
   {num:3, nombre:'Elbrus',      sub:'El Pack',       alt:'5.642m', color:'#2B4EA0', sems:[7,8,9,10,11],
    foco:'Liderazgo interno visible. 5 partidos seguidos. Nadie escala solo.',
-   frase:'"Nadie escala solo."', kpis:['90% Line','40% Scrum','15% Tackles dominantes','50% PDC','<10 Penales'], targets:{line:90,scrum:40,tackles:15,pdc:50,penales:10}, bandera:null, umbral:75},
+   frase:'"Nadie escala solo."', kpis:['90% Line calidad','40% Scrum','15% Tackles dominantes','<10% Tackles errados','50% PDC','<10 Penales'], targets:{line:90,scrum:40,tackles:15,tacklesErrados:10,pdc:50,penales:10}, bandera:null, umbral:75},
   {num:4, nombre:'Aconcagua',   sub:'La Nuestra',    alt:'6.961m', color:'#0D1B4E', sems:[12,13,14,15,16],
    foco:'Clímax. La montaña de casa. No le tenemos miedo — la conocemos.',
-   frase:'"Esta siempre fue nuestra."', kpis:['90% Line','40% Scrum','15% Tackles dominantes','50% PDC','<10 Penales'], targets:{line:90,scrum:40,tackles:15,pdc:50,penales:10}, bandera:null, umbral:75},
+   frase:'"Esta siempre fue nuestra."', kpis:['90% Line calidad','40% Scrum','15% Tackles dominantes','<10% Tackles errados','50% PDC','<10 Penales'], targets:{line:90,scrum:40,tackles:15,tacklesErrados:10,pdc:50,penales:10}, bandera:null, umbral:75},
   {num:5, nombre:'Vinson',      sub:'El Carácter',   alt:'4.892m', color:'#1A3470', sems:[17,18,19,20,21],
    foco:'Segunda vuelta. Nadie te ve escalarla. La escalás porque sos ese tipo de equipo.',
-   frase:'"Lo hicimos aunque nadie nos miraba."', kpis:['90% Line','40% Scrum','15% Tackles dominantes','50% PDC','<10 Penales'], targets:{line:90,scrum:40,tackles:15,pdc:50,penales:10}, bandera:null, umbral:75},
+   frase:'"Lo hicimos aunque nadie nos miraba."', kpis:['90% Line calidad','40% Scrum','15% Tackles dominantes','<10% Tackles errados','50% PDC','<10 Penales'], targets:{line:90,scrum:40,tackles:15,tacklesErrados:10,pdc:50,penales:10}, bandera:null, umbral:75},
   {num:6, nombre:'Everest',     sub:'La Razón',      alt:'8.849m', color:'#2B4EA0', sems:[22,23,24,25],
    foco:'No hay más montañas. Todo lo construido desde Kosciuszko se juega acá.',
-   frase:'"Llegamos juntos."', kpis:['90% Line','40% Scrum','15% Tackles dominantes','50% PDC','<10 Penales'], targets:{line:90,scrum:40,tackles:15,pdc:50,penales:10}, bandera:null, umbral:75},
+   frase:'"Llegamos juntos."', kpis:['90% Line calidad','40% Scrum','15% Tackles dominantes','<10% Tackles errados','50% PDC','<10 Penales'], targets:{line:90,scrum:40,tackles:15,tacklesErrados:10,pdc:50,penales:10}, bandera:null, umbral:75},
 ];
 
 var PENALES_DESDE_CUMBRE = 3; // Elbrus en adelante
@@ -1189,15 +1193,16 @@ function semUsaPenales(s) {
 function getTargetsByCiclo(cicloName) {
   var c = CUMBRES.find(function(c) { return c.nombre === cicloName; });
   if (c && c.targets) return c.targets;
-  return {line:90,scrum:40,tackles:15,pdc:50,penales:10};
+  return {line:90,scrum:40,tackles:15,tacklesErrados:10,pdc:50,penales:10};
 }
 
 function cumbreKpisFromTargets(t) {
   t = t || {};
   return [
-    (t.line || 90) + '% Line',
+    (t.line || 90) + '% Line calidad',
     (t.scrum || 40) + '% Scrum',
     (t.tackles || 15) + '% Tackles dominantes',
+    '<' + (t.tacklesErrados || 10) + '% Tackles errados',
     (t.pdc || 50) + '% PDC',
     '<' + (t.penales || 10) + ' Penales'
   ];
@@ -1285,10 +1290,11 @@ function renderCumbres() {
               <div style="font-size:9px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px">KPIs target</div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
                 ${[
-                  {key:'line',label:'% Line',val:c.targets.line,isPct:true},
+                  {key:'line',label:'% Line cal.',val:c.targets.line,isPct:true},
                   {key:'scrum',label:'% Scrum',val:c.targets.scrum,isPct:true},
                   {key:'penales',label:'Penales',val:c.targets.penales,isPct:false},
                   {key:'tackles',label:'% Tackles dom.',val:c.targets.tackles,isPct:true},
+                  {key:'tacklesErrados',label:'% Tackles err.',val:c.targets.tacklesErrados,isPct:true},
                   {key:'pdc',label:'% PDC',val:c.targets.pdc,isPct:true}
                 ].map(function(t){return '<div style="display:flex;align-items:center;gap:4px">'
                   +'<span style="font-size:9px;color:#888;min-width:55px">'+t.label+'</span>'
@@ -2951,13 +2957,14 @@ async function renderBiblioteca(){
 // ── RESULTADO DEL PARTIDO ─────────────────────────────────────
 
 function ensureResultado(s) {
-  if (!s.resultado) s.resultado = {ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null,scrumG:null,scrumP:null,lineG:null,lineP:null,lineCalidad:null,penales:null,pdcTotal:null,pdcPositivos:null};
+  if (!s.resultado) s.resultado = {ptsNos:null,ptsRival:null,triesA:null,triesC:null,peo:null,line:null,scrum:null,tackles:null,tacklesErrados:null,scrumG:null,scrumP:null,lineG:null,lineP:null,lineCalidad:null,penales:null,pdcTotal:null,pdcPositivos:null};
   // Migrar resultado viejo: agregar campos nuevos si faltan
   if (s.resultado.scrumG === undefined) s.resultado.scrumG = null;
   if (s.resultado.scrumP === undefined) s.resultado.scrumP = null;
   if (s.resultado.lineG === undefined) s.resultado.lineG = null;
   if (s.resultado.lineP === undefined) s.resultado.lineP = null;
   if (s.resultado.lineCalidad === undefined) s.resultado.lineCalidad = null;
+  if (s.resultado.tacklesErrados === undefined) s.resultado.tacklesErrados = null;
   if (s.resultado.penales === undefined) s.resultado.penales = null;
   if (s.resultado.pdcTotal === undefined) s.resultado.pdcTotal = null;
   if (s.resultado.pdcPositivos === undefined) s.resultado.pdcPositivos = null;
@@ -2994,11 +3001,30 @@ function recalcKpisFromRaw(r) {
   }
 }
 
+function getLineObtenidosPct(r) {
+  if (!r) return null;
+  if (r.line !== null && ensureKpiOverride(r).line) return r.line;
+  if (r.lineG !== null && r.lineP !== null && r.lineP > 0) return Math.round(r.lineG / r.lineP * 100);
+  if (r.line !== null) return r.line;
+  return null;
+}
+
+function getLineCalidadPct(r) {
+  if (!r || r.lineCalidad === null || r.lineP === null || r.lineP <= 0) return null;
+  return Math.round(r.lineCalidad / r.lineP * 100);
+}
+
+function getLineKpiPct(r) {
+  var cal = getLineCalidadPct(r);
+  if (cal !== null) return cal;
+  return getLineObtenidosPct(r);
+}
+
 function chResultado(field, val) {
   var s = SEMS[curSem];
   ensureResultado(s);
   var o = ensureKpiOverride(s.resultado);
-  var pctFields = ['peo','tackles'];
+  var pctFields = ['peo','tackles','tacklesErrados'];
   if (val === '') {
     s.resultado[field] = null;
   } else if (pctFields.indexOf(field) >= 0) {
@@ -3007,6 +3033,7 @@ function chResultado(field, val) {
     s.resultado[field] = Math.max(0, parseInt(val) || 0);
   }
   if (field === 'tackles') o.tackles = false;
+  if (field === 'tacklesErrados') o.tacklesErrados = false;
   if (field === 'penales') o.penales = false;
   if (field === 'pdcTotal' || field === 'pdcPositivos') o.pdc = false;
   if (field === 'lineG' || field === 'lineP' || field === 'lineCalidad' || field === 'scrumG' || field === 'scrumP') {
@@ -3021,7 +3048,7 @@ function chResultadoTabla(semNum, field, val) {
   if (idx < 0) return;
   var s = SEMS[idx];
   var r = ensureResultado(s);
-  if (field === 'line' || field === 'scrum' || field === 'tackles') {
+  if (field === 'line' || field === 'scrum' || field === 'tackles' || field === 'tacklesErrados') {
     var ko = ensureKpiOverride(r);
     if (val === '') {
       delete ko[field];
@@ -3088,20 +3115,33 @@ function renderResultadoSection() {
     + '</div>'
     + '<div class="res-section-title" style="margin-top:8px">KPIs observados · ▲ ' + s.ciclo + '</div>'
     + '<div class="res-grid">'
+    + '<div class="res-subblock-title">Line</div>'
     + '<div class="res-field">'
-    + '<div class="res-field-label">Lines obtenidos</div>'
-    + '<input class="res-input" type="number" min="0" value="' + (r.lineG !== null ? r.lineG : '') + '" onchange="chResultado(\'lineG\',this.value)" onclick="event.stopPropagation()">'
-    + '</div>'
-    + '<div class="res-field">'
-    + '<div class="res-field-label">Lines totales</div>'
+    + '<div class="res-field-label res-field-label--support">Line totales <span style="font-weight:400">(base %)</span></div>'
     + '<input class="res-input" type="number" min="0" value="' + (r.lineP !== null ? r.lineP : '') + '" onchange="chResultado(\'lineP\',this.value)" onclick="event.stopPropagation()">'
-    + (r.lineG !== null && r.lineP !== null ? '<div class="res-field-target">' + Math.round(r.lineG / Math.max(r.lineP, 1) * 100) + '% \u00B7 tgt ' + tgt.line + '%</div>' : '')
     + '</div>'
     + '<div class="res-field">'
-    + '<div class="res-field-label">Line de calidad</div>'
-    + '<input class="res-input" type="number" min="0" value="' + (r.lineCalidad !== null ? r.lineCalidad : '') + '" onchange="chResultado(\'lineCalidad\',this.value)" onclick="event.stopPropagation()">'
-    + (r.lineCalidad !== null && r.lineP !== null ? '<div class="res-field-target">' + Math.round(r.lineCalidad / Math.max(r.lineP, 1) * 100) + '% de calidad</div>' : '')
+    + '<div class="res-field-label res-field-label--secondary">Line obtenidos</div>'
+    + '<input class="res-input" type="number" min="0" value="' + (r.lineG !== null ? r.lineG : '') + '" onchange="chResultado(\'lineG\',this.value)" onclick="event.stopPropagation()">'
+    + (r.lineG !== null && r.lineP !== null ? '<div class="res-field-target">' + Math.round(r.lineG / Math.max(r.lineP, 1) * 100) + '% obtenidos \u00B7 tgt ' + tgt.line + '%</div>' : '')
     + '</div>'
+    + '<div class="res-field">'
+    + '<div class="res-field-label res-field-label--primary">Line de calidad \u2605</div>'
+    + '<input class="res-input" type="number" min="0" value="' + (r.lineCalidad !== null ? r.lineCalidad : '') + '" onchange="chResultado(\'lineCalidad\',this.value)" onclick="event.stopPropagation()">'
+    + (r.lineCalidad !== null && r.lineP !== null ? '<div class="res-field-target">' + Math.round(r.lineCalidad / Math.max(r.lineP, 1) * 100) + '% calidad \u00B7 KPI principal \u00B7 tgt ' + tgt.line + '%</div>' : '')
+    + '</div>'
+    + '<div class="res-subblock-title">Defensa</div>'
+    + '<div class="res-field">'
+    + '<div class="res-field-label res-field-label--primary">% Tackles dominantes \u2605</div>'
+    + '<input class="res-input" type="number" min="0" max="100" value="' + (r.tackles !== null ? r.tackles : '') + '" onchange="chResultado(\'tackles\',this.value)" onclick="event.stopPropagation()">'
+    + '<div class="res-field-target">target: \u2265 ' + tgt.tackles + '%</div>'
+    + '</div>'
+    + '<div class="res-field">'
+    + '<div class="res-field-label res-field-label--secondary">% Tackles errados</div>'
+    + '<input class="res-input" type="number" min="0" max="100" value="' + (r.tacklesErrados !== null ? r.tacklesErrados : '') + '" onchange="chResultado(\'tacklesErrados\',this.value)" onclick="event.stopPropagation()">'
+    + '<div class="res-field-target">target: &lt; ' + (tgt.tacklesErrados || 10) + '%</div>'
+    + '</div>'
+    + '<div class="res-subblock-title">Scrum · Penales · PDC</div>'
     + '<div class="res-field">'
     + '<div class="res-field-label">Scrum dominados</div>'
     + '<input class="res-input" type="number" min="0" value="' + (r.scrumG !== null ? r.scrumG : '') + '" onchange="chResultado(\'scrumG\',this.value)" onclick="event.stopPropagation()">'
@@ -3115,11 +3155,6 @@ function renderResultadoSection() {
     + '<div class="res-field-label">Penales en contra</div>'
     + '<input class="res-input" type="number" min="0" value="' + (r.penales !== null ? r.penales : '') + '" onchange="chResultado(\'penales\',this.value)" onclick="event.stopPropagation()">'
     + '<div class="res-field-target">target: &lt;' + (tgt.penales || 10) + ' por partido</div>'
-    + '</div>'
-    + '<div class="res-field">'
-    + '<div class="res-field-label">% Tackles dominantes</div>'
-    + '<input class="res-input" type="number" min="0" max="100" value="' + (r.tackles !== null ? r.tackles : '') + '" onchange="chResultado(\'tackles\',this.value)" onclick="event.stopPropagation()">'
-    + '<div class="res-field-target">target: ' + tgt.tackles + '%</div>'
     + '</div>'
     + '<div class="res-field">'
     + '<div class="res-field-label">Ptos contacto totales</div>'
@@ -3165,7 +3200,7 @@ function semTieneDatos(s) {
   var r = s.resultado;
   if (r) {
     if (r.ptsNos !== null || r.ptsRival !== null || r.triesA !== null || r.triesC !== null) return true;
-    if (r.line !== null || r.scrum !== null || r.tackles !== null) return true;
+    if (r.line !== null || r.scrum !== null || r.tackles !== null || r.tacklesErrados !== null) return true;
     if (r.lineG !== null || r.lineP !== null || r.lineCalidad !== null || r.scrumG !== null || r.scrumP !== null) return true;
     if (r.penales !== null || r.pdcTotal !== null || r.pdcPositivos !== null) return true;
   }
@@ -3285,7 +3320,7 @@ function kpiClass(val, tgt, higher) {
 function calcPromediosPonderados(semsData, opts) {
   opts = opts || {};
   var scrumGT=0,scrumPT=0,lineGT=0,linePT=0,lineCalidadT=0,lineCalidadPT=0,penalesT=0,penalesN=0;
-  var tacklesSum=0,tacklesN=0,partidos=0;
+  var tacklesSum=0,tacklesN=0,tacklesErrSum=0,tacklesErrN=0,partidos=0;
   var pdcTotalT=0,pdcPositivosT=0;
   semsData.forEach(function(s) {
     var r = s.resultado;
@@ -3298,6 +3333,7 @@ function calcPromediosPonderados(semsData, opts) {
       penalesN++;
     }
     if (r.tackles!==null) { tacklesSum+=r.tackles; tacklesN++; }
+    if (r.tacklesErrados!==null) { tacklesErrSum+=r.tacklesErrados; tacklesErrN++; }
     if (r.pdcTotal!==null&&r.pdcPositivos!==null) { pdcTotalT+=(r.pdcTotal||0); pdcPositivosT+=(r.pdcPositivos||0); }
     if (r.ptsNos!==null||r.ptsRival!==null) partidos++;
   });
@@ -3312,6 +3348,7 @@ function calcPromediosPonderados(semsData, opts) {
     penalesPartidos:penalesN,
     penalesPorPartido: penalesN>0 ? round1(penalesT/penalesN) : null,
     tacklesProm: tacklesN>0 ? round1(tacklesSum/tacklesN) : null,
+    tacklesErrProm: tacklesErrN>0 ? round1(tacklesErrSum/tacklesErrN) : null,
     pdcPct: pdcTotalT>0 ? round1(pdcPositivosT/pdcTotalT*100) : null,
     pdcPositivosT:pdcPositivosT, pdcTotalT:pdcTotalT,
     partidos:partidos
@@ -3334,19 +3371,22 @@ function buildKpiCards(semsData, targets, opts) {
         line:Math.round(tgtVals.reduce(function(a,t){return a+t.line;},0)/tgtVals.length),
         scrum:Math.round(tgtVals.reduce(function(a,t){return a+t.scrum;},0)/tgtVals.length),
         tackles:Math.round(tgtVals.reduce(function(a,t){return a+t.tackles;},0)/tgtVals.length),
+        tacklesErrados:Math.round(tgtVals.reduce(function(a,t){return a+(t.tacklesErrados||10);},0)/tgtVals.length),
         penales:tgtPenales.length>0 ? Math.round(tgtPenales.reduce(function(a,t){return a+(t.penales||10);},0)/tgtPenales.length) : 10,
         pdc:Math.round(tgtVals.reduce(function(a,t){return a+(t.pdc||50);},0)/tgtVals.length)
       };
     } else {
-      tgtFallback = {line:90,scrum:40,tackles:15,pdc:50,penales:10};
+      tgtFallback = {line:90,scrum:40,tackles:15,tacklesErrados:10,pdc:50,penales:10};
     }
   }
 
   var items = [
-    {label:'Obt. Line', avg:pond.linePct, tgt:tgtFallback.line, higher:true, isPct:true, detail:pond.lineG+' obt. de '+pond.lineTotal+' totales'},
+    {label:'Line calidad \u2605', avg:pond.lineCalidadPct, tgt:tgtFallback.line, higher:true, isPct:true, detail:pond.lineCalidadT+' cal. de '+pond.lineTotal+' totales'},
+    {label:'Line obt.', avg:pond.linePct, tgt:tgtFallback.line, higher:true, isPct:true, detail:pond.lineG+' obt. de '+pond.lineTotal+' totales'},
     {label:'Dom. Scrum', avg:pond.scrumPct, tgt:tgtFallback.scrum, higher:true, isPct:true, detail:pond.scrumG+' dom. de '+pond.scrumTotal+' totales'},
     {label:'Penales', avg:pond.penalesPorPartido, tgt:tgtFallback.penales||10, higher:false, isPct:false, detail:pond.penalesTotal+' total en '+(pond.penalesPartidos||pond.partidos)+' partidos'},
-    {label:'Tackles dom.', avg:pond.tacklesProm, tgt:tgtFallback.tackles, higher:true, isPct:true, detail:pond.partidos+' partidos'},
+    {label:'Tackles dom. \u2605', avg:pond.tacklesProm, tgt:tgtFallback.tackles, higher:true, isPct:true, detail:pond.partidos+' partidos'},
+    {label:'Tackles err.', avg:pond.tacklesErrProm, tgt:tgtFallback.tacklesErrados||10, higher:false, isPct:true, detail:pond.partidos+' partidos'},
     {label:'Ptos Contacto', avg:pond.pdcPct, tgt:tgtFallback.pdc||50, higher:true, isPct:true, detail:pond.pdcPositivosT+' pos. de '+pond.pdcTotalT+' totales'}
   ];
   if (opts.penalesSoloElbrus && pond.penalesPartidos === 0) {
@@ -3432,25 +3472,31 @@ function buildPartidosTable(semsData, showCicloCol, editable) {
       if (r.ptsNos > r.ptsRival) resClass = 'res-win';
       else if (r.ptsNos < r.ptsRival) resClass = 'res-loss';
     }
-    var lineClass = kpiClass(r.line, tgt.line, true);
-    var lineCalidadVal = (r.lineCalidad !== null && r.lineP !== null && r.lineP > 0) ? Math.round(r.lineCalidad / r.lineP * 100) : null;
+    var lineCalidadVal = getLineCalidadPct(r);
+    var lineObtenidosVal = getLineObtenidosPct(r);
+    var lineCalidadClass = kpiClass(lineCalidadVal, tgt.line, true);
+    var lineObtenidosClass = kpiClass(lineObtenidosVal, tgt.line, true);
     var scrumClass = kpiClass(r.scrum, tgt.scrum, true);
     var tacklesClass = kpiClass(r.tackles, tgt.tackles, true);
+    var tacklesErrClass = kpiClass(r.tacklesErrados, tgt.tacklesErrados || 10, false);
     var penalesClass = kpiClass(r.penales, tgt.penales || 10, false);
     var pdcVal = getPdcPct(r);
     var pdcClass = kpiClass(pdcVal, tgt.pdc || 50, true);
     var sn = s.sem;
-    var kpiCells = '<td class="' + lineClass + '">' + (r.line !== null ? r.line + '%' : '\u2014') + '</td>'
-      + '<td>' + (lineCalidadVal !== null ? lineCalidadVal + '%' : '\u2014') + (r.lineCalidad !== null ? '<div style="font-size:9px;color:#aaa">' + r.lineCalidad + ' cal.</div>' : '') + '</td>'
+    var lineTotalesSub = r.lineP !== null ? '<div style="font-size:9px;color:#aaa">' + r.lineP + ' tot.</div>' : '';
+    var kpiCells = '<td class="' + lineCalidadClass + '">' + (lineCalidadVal !== null ? lineCalidadVal + '%' : '\u2014') + (r.lineCalidad !== null ? '<div style="font-size:9px;color:#aaa">' + r.lineCalidad + ' cal.</div>' : '') + lineTotalesSub + '</td>'
+      + '<td class="' + lineObtenidosClass + '">' + (lineObtenidosVal !== null ? lineObtenidosVal + '%' : '\u2014') + (r.lineG !== null && r.lineP !== null ? '<div style="font-size:9px;color:#aaa">' + r.lineG + '/' + r.lineP + '</div>' : '') + '</td>'
       + '<td class="' + scrumClass + '">' + (r.scrum !== null ? r.scrum + '%' : '\u2014') + '</td>'
       + '<td class="' + penalesClass + '">' + (r.penales !== null ? r.penales : '\u2014') + '</td>'
       + '<td class="' + tacklesClass + '">' + (r.tackles !== null ? r.tackles + '%' : '\u2014') + '</td>'
+      + '<td class="' + tacklesErrClass + '">' + (r.tacklesErrados !== null ? r.tacklesErrados + '%' : '\u2014') + '</td>'
       + '<td class="' + pdcClass + '">' + (pdcVal !== null ? pdcVal + '%' : '\u2014') + '</td>';
-    var kpiCellsEdit = buildKpiInputCell(sn, 'line', r.line, lineClass, true)
-      + '<td>' + (lineCalidadVal !== null ? lineCalidadVal + '%' : '\u2014') + (r.lineCalidad !== null ? '<div style="font-size:9px;color:#aaa">' + r.lineCalidad + ' cal.</div>' : '') + '</td>'
+    var kpiCellsEdit = '<td class="' + lineCalidadClass + '">' + (lineCalidadVal !== null ? lineCalidadVal + '%' : '\u2014') + (r.lineCalidad !== null ? '<div style="font-size:9px;color:#aaa">' + r.lineCalidad + ' cal.</div>' : '') + lineTotalesSub + '</td>'
+      + buildKpiInputCell(sn, 'line', lineObtenidosVal, lineObtenidosClass, true)
       + buildKpiInputCell(sn, 'scrum', r.scrum, scrumClass, true)
       + buildKpiInputCell(sn, 'penales', r.penales, penalesClass, false)
       + buildKpiInputCell(sn, 'tackles', r.tackles, tacklesClass, true)
+      + buildKpiInputCell(sn, 'tacklesErrados', r.tacklesErrados, tacklesErrClass, true)
       + buildKpiInputCell(sn, 'pdcPct', pdcVal, pdcClass, true);
 
     var partidoCells = '<td style="font-weight:600">Sem ' + sn + '</td>'
@@ -3464,9 +3510,9 @@ function buildPartidosTable(semsData, showCicloCol, editable) {
   }).join('');
   var cicloTh = showCicloCol ? '<th>Ciclo</th>' : '';
   return '<div style="overflow-x:auto"><table class="res-table">'
-    + '<thead><tr><th>Sem</th><th>Fecha</th><th>Rival</th><th>L/V</th><th>Resultado</th>' + cicloTh + '<th>Line</th><th>Line Cal.</th><th>Scrum</th><th>Penales</th><th>Tackles dom.</th><th>PDC</th></tr></thead>'
+    + '<thead><tr><th>Sem</th><th>Fecha</th><th>Rival</th><th>L/V</th><th>Resultado</th>' + cicloTh + '<th>Line Cal. \u2605</th><th>Line Obt.</th><th>Scrum</th><th>Penales</th><th>Tackles dom. \u2605</th><th>Tackles err.</th><th>PDC</th></tr></thead>'
     + '<tbody>' + rows + '</tbody></table></div>'
-    + (editable ? '<div style="font-size:10px;color:#888;margin-top:6px">Line Cal. se carga en el Planificador \u00B7 Line, Scrum, Penales, Tackles y PDC son editables ac\u00E1 \u00B7 borr\u00E1 el valor para volver al auto</div>' : '');
+    + (editable ? '<div style="font-size:10px;color:#888;margin-top:6px">Line Cal. y totales se cargan en el Planificador \u00B7 Line Obt., Scrum, Penales, Tackles y PDC son editables ac\u00E1 \u00B7 borr\u00E1 el valor para volver al auto</div>' : '');
 }
 
 function renderResultados() {
@@ -3489,18 +3535,20 @@ function renderResultados() {
 
     var semsCiclo = SEMS.filter(function(s) { return s.ciclo === cicloNombre; });
     var semsCicloConDatos = allConDatos.filter(function(s) { return s.ciclo === cicloNombre; });
-    var tgt = cumbre.targets || {line:90,scrum:40,tackles:15,pdc:50,penales:10};
+    var tgt = cumbre.targets || {line:90,scrum:40,tackles:15,tacklesErrados:10,pdc:50,penales:10};
     var totalSemsCiclo = cumbre.sems.length;
 
     // Calcular KPIs cumplidos para progreso de bandera
     var kpisCumplidos = 0, kpisTotal = 0;
     var usaPenCiclo = cicloUsaPenales(cumbre.num);
     semsCicloConDatos.forEach(function(s) {
-      var r = s.resultado;
-      if (r.line !== null) { kpisTotal++; if (r.line >= tgt.line) kpisCumplidos++; }
+      var r = ensureResultado(s);
+      var lineKpi = getLineKpiPct(r);
+      if (lineKpi !== null) { kpisTotal++; if (lineKpi >= tgt.line) kpisCumplidos++; }
       if (r.scrum !== null) { kpisTotal++; if (r.scrum >= tgt.scrum) kpisCumplidos++; }
       if (usaPenCiclo && r.penales !== null) { kpisTotal++; if (r.penales <= (tgt.penales || 10)) kpisCumplidos++; }
       if (r.tackles !== null) { kpisTotal++; if (r.tackles >= tgt.tackles) kpisCumplidos++; }
+      if (r.tacklesErrados !== null) { kpisTotal++; if (r.tacklesErrados <= (tgt.tacklesErrados || 10)) kpisCumplidos++; }
       if (r.pdcTotal !== null && r.pdcPositivos !== null && r.pdcTotal > 0) { kpisTotal++; if (Math.round(r.pdcPositivos/r.pdcTotal*100) >= (tgt.pdc||50)) kpisCumplidos++; }
     });
     var pctKpis = kpisTotal > 0 ? Math.round(kpisCumplidos / kpisTotal * 100) : 0;
@@ -3518,10 +3566,9 @@ function renderResultados() {
       + '</div>';
 
     // KPI cards del ciclo
-    var kpiGridColsCiclo = usaPenCiclo ? 5 : 4;
     html += '<div class="card" style="margin-bottom:12px">'
       + '<div style="font-size:12px;font-weight:600;color:#0D1B4E;margin-bottom:8px">KPIs del ciclo</div>'
-      + '<div style="display:grid;grid-template-columns:repeat('+kpiGridColsCiclo+',1fr);gap:8px">'
+      + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px">'
       + buildKpiCards(semsCicloConDatos, tgt, usaPenCiclo ? {} : { ocultarPenales: true })
       + '</div></div>';
 
@@ -3555,10 +3602,9 @@ function renderResultados() {
 
     // Promedios acumulados (penales solo desde Elbrus)
     var pondAcum = calcPromediosPonderados(allConDatos, { penalesSoloElbrus: true });
-    var kpiGridCols = pondAcum.penalesPartidos > 0 ? 5 : 4;
     html += '<div class="card" style="margin-bottom:12px">'
       + '<div style="font-size:14px;font-weight:600;color:#0D1B4E;margin-bottom:12px">Promedios acumulados</div>'
-      + '<div style="display:grid;grid-template-columns:repeat('+kpiGridCols+',1fr);gap:8px">'
+      + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px">'
       + buildKpiCards(allConDatos, null, { penalesSoloElbrus: true })
       + '</div></div>';
 
@@ -3572,7 +3618,7 @@ function renderResultados() {
     CUMBRES.forEach(function(c) {
       var semsDelCiclo = allConDatos.filter(function(s) { return s.ciclo === c.nombre; });
       if (semsDelCiclo.length === 0) return;
-      var tgt = c.targets || {peo:90,line:90,scrum:40,tackles:15,pdc:50,penales:10};
+      var tgt = c.targets || {peo:90,line:90,scrum:40,tackles:15,tacklesErrados:10,pdc:50,penales:10};
       var penOpts = cicloUsaPenales(c.num) ? {} : { penalesSoloElbrus: true };
       var p = calcPromediosPonderados(semsDelCiclo, penOpts);
       ciclosConDatos.push({nombre:c.nombre,color:c.color,n:p.partidos,tgt:tgt,p:p});
@@ -3580,11 +3626,13 @@ function renderResultados() {
     if (ciclosConDatos.length > 0) {
       var cicloRows = ciclosConDatos.map(function(ci) {
         var p = ci.p;
-        var lineOk=kpiClass(p.linePct, ci.tgt.line, true);
+        var lineCalOk=kpiClass(p.lineCalidadPct, ci.tgt.line, true);
+        var lineObtOk=kpiClass(p.linePct, ci.tgt.line, true);
         var scrumOk=kpiClass(p.scrumPct, ci.tgt.scrum, true);
         var usaPen = cicloUsaPenales(ci.nombre);
         var penOk=kpiClass(p.penalesPorPartido, ci.tgt.penales||10, false);
         var tackOk=kpiClass(p.tacklesProm, ci.tgt.tackles, true);
+        var tackErrOk=kpiClass(p.tacklesErrProm, ci.tgt.tacklesErrados||10, false);
         var pdcOk=kpiClass(p.pdcPct, ci.tgt.pdc||50, true);
         var penCell = usaPen
           ? '<td class="'+penOk+'">'+(p.penalesPorPartido!==null?fmt1(p.penalesPorPartido):'\u2014')+'<div style="font-size:9px;color:#aaa">'+p.penalesTotal+' total</div></td>'
@@ -3592,18 +3640,19 @@ function renderResultados() {
         return '<tr>'
           + '<td style="font-weight:700;color:'+ci.color+'">\u25B2 '+ci.nombre+'</td>'
           + '<td>'+ci.n+'</td>'
-          + '<td class="'+lineOk+'">'+(p.linePct!==null?fmt1(p.linePct)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">'+p.lineG+'/'+p.lineTotal+'</div></td>'
-          + '<td>'+(p.lineCalidadPct!==null?fmt1(p.lineCalidadPct)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">'+p.lineCalidadT+' cal.</div></td>'
+          + '<td class="'+lineCalOk+'">'+(p.lineCalidadPct!==null?fmt1(p.lineCalidadPct)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">'+p.lineCalidadT+' cal. / '+p.lineTotal+' tot.</div></td>'
+          + '<td class="'+lineObtOk+'">'+(p.linePct!==null?fmt1(p.linePct)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">'+p.lineG+'/'+p.lineTotal+'</div></td>'
           + '<td class="'+scrumOk+'">'+(p.scrumPct!==null?fmt1(p.scrumPct)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">'+p.scrumG+'/'+p.scrumTotal+'</div></td>'
           + penCell
-          + '<td class="'+tackOk+'">'+(p.tacklesProm!==null?fmt1(p.tacklesProm)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">tgt '+ci.tgt.tackles+'%</div></td>'
+          + '<td class="'+tackOk+'">'+(p.tacklesProm!==null?fmt1(p.tacklesProm)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">tgt \u2265'+ci.tgt.tackles+'%</div></td>'
+          + '<td class="'+tackErrOk+'">'+(p.tacklesErrProm!==null?fmt1(p.tacklesErrProm)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">tgt &lt;'+ (ci.tgt.tacklesErrados||10) +'%</div></td>'
           + '<td class="'+pdcOk+'">'+(p.pdcPct!==null?fmt1(p.pdcPct)+'%':'\u2014')+'<div style="font-size:9px;color:#aaa">'+p.pdcPositivosT+'/'+p.pdcTotalT+'</div></td>'
           + '</tr>';
       }).join('');
       html += '<div class="card" style="margin-bottom:12px">'
         + '<div style="font-size:14px;font-weight:600;color:#0D1B4E;margin-bottom:12px">KPIs por ciclo</div>'
         + '<div style="overflow-x:auto"><table class="res-table">'
-        + '<thead><tr><th>Ciclo</th><th>Partidos</th><th>Line</th><th>Line Cal.</th><th>Scrum</th><th>Penales</th><th>Tackles dom.</th><th>PDC</th></tr></thead>'
+        + '<thead><tr><th>Ciclo</th><th>Partidos</th><th>Line Cal. \u2605</th><th>Line Obt.</th><th>Scrum</th><th>Penales</th><th>Tackles dom. \u2605</th><th>Tackles err.</th><th>PDC</th></tr></thead>'
         + '<tbody>' + cicloRows + '</tbody></table></div></div>';
     }
 
@@ -3698,13 +3747,13 @@ var SVG_BANDERA_HOY = '<svg width="20" height="24" viewBox="0 0 30 36" xmlns="ht
 function calcCumbreKPIs(cumbreNum) {
   var c = CUMBRES.find(function(x){ return x.num === cumbreNum; });
   if (!c) return null;
-  var tgt = c.targets || {line:90,scrum:40,tackles:15,pdc:50,penales:10};
+  var tgt = c.targets || {line:90,scrum:40,tackles:15,tacklesErrados:10,pdc:50,penales:10};
   var totalSemsDelCiclo = SEMS.filter(function(s){ return s.ciclo === c.nombre; }).length;
   // Contar partidos con al menos resultado cargado (ptsNos o algún KPI)
   var semsConResultado = SEMS.filter(function(s) {
     if (s.ciclo !== c.nombre || !s.resultado) return false;
     var r = s.resultado;
-    return r.ptsNos !== null || r.line !== null || r.scrum !== null || r.penales !== null || r.tackles !== null || (r.pdcTotal !== null && r.pdcPositivos !== null);
+    return r.ptsNos !== null || r.line !== null || r.scrum !== null || r.penales !== null || r.tackles !== null || r.tacklesErrados !== null || (r.pdcTotal !== null && r.pdcPositivos !== null);
   });
   if (!semsConResultado.length) {
     return {partidos:0,puntos:0,pool:0,pct:0,habilitada:false,detalle:[],totalSems:totalSemsDelCiclo,rivales:[]};
@@ -3715,13 +3764,15 @@ function calcCumbreKPIs(cumbreNum) {
   var rivales = [];
   semsConResultado.forEach(function(s) {
     var r = s.resultado;
-    var kpis = {line:null,scrum:null,penales:null,tackles:null,pdc:null};
+    var kpis = {line:null,scrum:null,penales:null,tackles:null,tacklesErrados:null,pdc:null};
     var pts = 0;
     var kpiCount = 0;
-    if (r.line !== null) { kpis.line = kpiClass(r.line, tgt.line, true); if(kpis.line==='kpi-ok') pts++; kpiCount++; }
+    var lineKpi = getLineKpiPct(r);
+    if (lineKpi !== null) { kpis.line = kpiClass(lineKpi, tgt.line, true); if(kpis.line==='kpi-ok') pts++; kpiCount++; }
     if (r.scrum !== null) { kpis.scrum = kpiClass(r.scrum, tgt.scrum, true); if(kpis.scrum==='kpi-ok') pts++; kpiCount++; }
     if (cicloUsaPenales(c.num) && r.penales !== null) { kpis.penales = kpiClass(r.penales, tgt.penales||10, false); if(kpis.penales==='kpi-ok') pts++; kpiCount++; }
-    if (r.tackles !== null) { kpis.tackles = kpiClass(r.tackles, tgt.tackles, false); if(kpis.tackles==='kpi-ok') pts++; kpiCount++; }
+    if (r.tackles !== null) { kpis.tackles = kpiClass(r.tackles, tgt.tackles, true); if(kpis.tackles==='kpi-ok') pts++; kpiCount++; }
+    if (r.tacklesErrados !== null) { kpis.tacklesErrados = kpiClass(r.tacklesErrados, tgt.tacklesErrados||10, false); if(kpis.tacklesErrados==='kpi-ok') pts++; kpiCount++; }
     if (r.pdcTotal !== null && r.pdcPositivos !== null && r.pdcTotal > 0) { var pdcPct = Math.round(r.pdcPositivos/r.pdcTotal*100); kpis.pdc = kpiClass(pdcPct, tgt.pdc||50, true); if(kpis.pdc==='kpi-ok') pts++; kpiCount++; }
     pool += kpiCount;
     puntos += pts;
@@ -3762,9 +3813,9 @@ function buildBanderaWidget(c) {
     html += '<div>'
       +'<button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'block\':\'none\';this.textContent=this.nextElementSibling.style.display===\'none\'?\'Ver detalle \u25BC\':\'Ocultar \u25B2\'" style="font-size:10px;color:#2B4EA0;background:none;border:none;cursor:pointer;font-weight:600;padding:0;margin-bottom:4px">Ver detalle \u25BC</button>'
       +'<div style="display:none">'
-      +'<table class="bandera-detalle-table"><thead><tr><th>Rival</th><th>Res</th><th>Line</th><th>Scrum</th>'
+      +'<table class="bandera-detalle-table"><thead><tr><th>Rival</th><th>Res</th><th>Line Cal.</th><th>Scrum</th>'
       +(usaPenBandera ? '<th>Pen</th>' : '')
-      +'<th>Tack</th><th>PDC</th></tr></thead><tbody>';
+      +'<th>Tack dom.</th><th>Tack err.</th><th>PDC</th></tr></thead><tbody>';
     stats.detalle.forEach(function(d) {
       html += '<tr>'
         +'<td style="font-weight:600">'+d.rival+'</td>'
@@ -3773,6 +3824,7 @@ function buildBanderaWidget(c) {
         +'<td><span class="kpi-dot" style="background:'+(d.kpis.scrum===null?'#ccc':d.kpis.scrum==='kpi-ok'?'#27AE60':d.kpis.scrum==='kpi-warn'?'#D4A017':'#E74C3C')+'"></span></td>'
         +(usaPenBandera ? '<td><span class="kpi-dot" style="background:'+(d.kpis.penales===null?'#ccc':d.kpis.penales==='kpi-ok'?'#27AE60':d.kpis.penales==='kpi-warn'?'#D4A017':'#E74C3C')+'"></span></td>' : '')
         +'<td><span class="kpi-dot" style="background:'+(d.kpis.tackles===null?'#ccc':d.kpis.tackles==='kpi-ok'?'#27AE60':d.kpis.tackles==='kpi-warn'?'#D4A017':'#E74C3C')+'"></span></td>'
+        +'<td><span class="kpi-dot" style="background:'+(d.kpis.tacklesErrados===null?'#ccc':d.kpis.tacklesErrados==='kpi-ok'?'#27AE60':d.kpis.tacklesErrados==='kpi-warn'?'#D4A017':'#E74C3C')+'"></span></td>'
         +'<td><span class="kpi-dot" style="background:'+(d.kpis.pdc===null?'#ccc':d.kpis.pdc==='kpi-ok'?'#27AE60':d.kpis.pdc==='kpi-warn'?'#D4A017':'#E74C3C')+'"></span></td>'
         +'</tr>';
     });
@@ -4001,8 +4053,8 @@ function mergeCumbresMeta(remoteList) {
       return remote;
     }
     var defaultTargets = cicloUsaPenales(remote.num)
-      ? {line:90,scrum:40,tackles:15,pdc:50,penales:10}
-      : {line:90,scrum:40,tackles:15,pdc:50};
+      ? {line:90,scrum:40,tackles:15,tacklesErrados:10,pdc:50,penales:10}
+      : {line:90,scrum:40,tackles:15,tacklesErrados:10,pdc:50};
     var mergedTargets = Object.assign({}, defaultTargets, local.targets || {}, remote.targets || {});
     if (!cicloUsaPenales(remote.num)) delete mergedTargets.penales;
     return {
@@ -4035,8 +4087,8 @@ function loadCumbres() {
       if (saved.frase) c.frase = saved.frase;
       if (saved.targets) {
         var defaults = cicloUsaPenales(c.num)
-          ? {line:90,scrum:40,tackles:15,pdc:50,penales:10}
-          : {line:90,scrum:40,tackles:15,pdc:50};
+          ? {line:90,scrum:40,tackles:15,tacklesErrados:10,pdc:50,penales:10}
+          : {line:90,scrum:40,tackles:15,tacklesErrados:10,pdc:50};
         c.targets = Object.assign({}, defaults, c.targets, saved.targets);
         if (!cicloUsaPenales(c.num)) delete c.targets.penales;
         c.kpis = cumbreKpisFromTargets(c.targets, c.num);
@@ -4063,7 +4115,7 @@ function updateCumbreTarget(num, key, val) {
   const c = CUMBRES.find(c => c.num === num);
   if (!c) return;
   if (key === 'penales' && !cicloUsaPenales(c.num)) return;
-  if (!c.targets) c.targets = cicloUsaPenales(c.num) ? {line:90,scrum:40,tackles:15,pdc:50,penales:10} : {line:90,scrum:40,tackles:15,pdc:50};
+  if (!c.targets) c.targets = cicloUsaPenales(c.num) ? {line:90,scrum:40,tackles:15,tacklesErrados:10,pdc:50,penales:10} : {line:90,scrum:40,tackles:15,tacklesErrados:10,pdc:50};
   if (key === 'penales') c.targets[key] = val === '' ? c.targets[key] : Math.max(0, parseInt(val, 10) || 0);
   else c.targets[key] = val === '' ? c.targets[key] : Math.max(0, Math.min(100, parseInt(val, 10) || 0));
   c.kpis = cumbreKpisFromTargets(c.targets, c.num);
@@ -4263,11 +4315,11 @@ async function sincronizarDesdeSupabase(silent) {
         if (saved.resultado) {
           var r = saved.resultado;
           var remotoTieneDatos = r.ptsNos!==null||r.ptsRival!==null||r.triesA!==null||r.triesC!==null
-            ||r.line!==null||r.scrum!==null||r.tackles!==null||r.lineG!==null||r.lineP!==null||r.lineCalidad!==null
+            ||r.line!==null||r.scrum!==null||r.tackles!==null||r.tacklesErrados!==null||r.lineG!==null||r.lineP!==null||r.lineCalidad!==null
             ||r.scrumG!==null||r.scrumP!==null||r.penales!==null||r.pdcTotal!==null||r.pdcPositivos!==null;
           var lr = local.resultado;
           var localTieneDatos = lr && (lr.ptsNos!==null||lr.ptsRival!==null||lr.triesA!==null||lr.triesC!==null
-            ||lr.line!==null||lr.scrum!==null||lr.tackles!==null||lr.lineG!==null||lr.lineP!==null||lr.lineCalidad!==null
+            ||lr.line!==null||lr.scrum!==null||lr.tackles!==null||lr.tacklesErrados!==null||lr.lineG!==null||lr.lineP!==null||lr.lineCalidad!==null
             ||lr.scrumG!==null||lr.scrumP!==null||lr.penales!==null||lr.pdcTotal!==null||lr.pdcPositivos!==null);
           if (remotoTieneDatos || !localTieneDatos) SEMS[idx].resultado = saved.resultado;
         }
