@@ -206,7 +206,7 @@ function initStats(s) {
     semId: s.sem, rival: s.rival, fecha: s.fecha, local: s.local === 'L',
     ptsNos: 0, ptsRival: 0,
     scrum: {ganados:0, perdidos:0, robados:0, torcidas:0, penalFK:0},
-    line: {ganados:0, perdidos:0, robados:0, torcidas:0, penalFK:0},
+    line: {calidad:0, obtenido:0, perdidos:0, robados:0, torcidas:0, penalFK:0},
     salidas: {recBien:0, recMal:0, ganAlta:0, malPat:0},
     perdidas: {knockOn:0, retener:0, kickAfuera:0, kickNoRecup:0, tirarsEnRuck:0, paseForward:0, ingresoLateral:0, tackleCont:0, manoEnRuck:0, saleCampo:0, derrumbeMaill:0, maul:0, scrum:0, malPase:0, ruck:0, line:0, pescada:0, offside:0},
     penalesCometidos: {offside:0, inconducta:0, tacklePeligroso:0, kickAfuera:0, kickAdentro:0, tackleadorNoSale:0, cargaSinPelota:0, cortina:0, diezYardas:0},
@@ -221,7 +221,7 @@ function initStats(s) {
 var EVENT_LABELS = {
   'scrum.ganados':'Scrum ganado','scrum.perdidos':'Scrum perdido','scrum.robados':'Scrum robado',
   'scrum.torcidas':'Scrum torcida','scrum.penalFK':'Scrum penal/FK',
-  'line.ganados':'Line ganado','line.perdidos':'Line perdido','line.robados':'Line robado',
+  'line.calidad':'Line calidad','line.obtenido':'Line obtenido (sucio)','line.perdidos':'Line perdido','line.robados':'Line robado',
   'line.torcidas':'Line torcida','line.penalFK':'Line penal/FK',
   'salidas.recBien':'Recepci\u00F3n bien','salidas.recMal':'Recepci\u00F3n mal',
   'salidas.ganAlta':'Ganamos alta','salidas.malPat':'Mal patada',
@@ -272,7 +272,7 @@ function selectPartido(semNum) {
       var parsed = JSON.parse(saved);
       if (parsed && parsed.semId) {
         if (confirm('\u00BFContinuar el partido vs ' + s.rival + '?')) {
-          stats = parsed;
+          stats = migrateStats(parsed);
           startApp();
           return;
         }
@@ -437,9 +437,10 @@ async function guardarPartido() {
       var sg = stats.scrum.ganados;
       var st = sg + stats.scrum.perdidos;
       r.scrumG = sg; r.scrumP = st;
-      var lg = stats.line.ganados;
-      var lt = lg + stats.line.perdidos;
-      r.lineG = lg; r.lineP = lt;
+      var lm = lineMetrics();
+      r.lineG = lm.obtenidos;       // line obtenidos (ganamos la pelota)
+      r.lineP = lm.tirados;         // total de lines que tiramos
+      r.lineCalidad = lm.calidad;   // line de calidad / jugables
       localStorage.setItem('cumbre_sems', JSON.stringify(allSems));
     }
   } catch(e) {}
@@ -462,15 +463,47 @@ async function guardarPartido() {
   }, 3000);
 }
 
+// ── LINE METRICS ────────────────────────────────────────────
+// Tirados = todo line propio que tiramos (calidad + obtenido sucio + perdido + torcida + penal/FK).
+// ROBADO es line del rival que robamos, NO cuenta como tirado nuestro.
+// Obtenidos = los que ganamos la pelota (calidad + obtenido). Calidad = solo los jugables.
+function lineMetrics() {
+  var l = stats.line;
+  var obtenidos = l.calidad + l.obtenido;
+  var tirados = obtenidos + l.perdidos + l.torcidas + l.penalFK;
+  return {
+    tirados: tirados,
+    obtenidos: obtenidos,
+    calidad: l.calidad,
+    pctObt: tirados > 0 ? Math.round(obtenidos / tirados * 100) : 0,
+    pctCal: tirados > 0 ? Math.round(l.calidad / tirados * 100) : 0
+  };
+}
+
+// Compatibilidad con partidos guardados antes de separar calidad/obtenido.
+function migrateStats(st) {
+  if (st && st.line) {
+    var l = st.line;
+    if (l.calidad === undefined) l.calidad = (l.ganados !== undefined ? l.ganados : 0);
+    if (l.obtenido === undefined) l.obtenido = 0;
+    if (l.perdidos === undefined) l.perdidos = 0;
+    if (l.robados === undefined) l.robados = 0;
+    if (l.torcidas === undefined) l.torcidas = 0;
+    if (l.penalFK === undefined) l.penalFK = 0;
+    delete l.ganados;
+  }
+  return st;
+}
+
 // ── RENDER ──────────────────────────────────────────────────
 function renderApp() {
   var app = document.getElementById('app');
   var scrumPct = (stats.scrum.ganados + stats.scrum.perdidos) > 0
     ? Math.round(stats.scrum.ganados / (stats.scrum.ganados + stats.scrum.perdidos) * 100) : 0;
-  var linePct = (stats.line.ganados + stats.line.perdidos) > 0
-    ? Math.round(stats.line.ganados / (stats.line.ganados + stats.line.perdidos) * 100) : 0;
+  var lm = lineMetrics();
   var scrumCol = scrumPct >= 40 ? '#27AE60' : '#E74C3C';
-  var lineCol = linePct >= 90 ? '#27AE60' : '#E74C3C';
+  var lineObtCol = lm.pctObt >= 90 ? '#27AE60' : '#E74C3C';
+  var lineCalCol = lm.pctCal >= 90 ? '#27AE60' : '#E74C3C';
 
   var html = '';
 
@@ -509,7 +542,8 @@ function renderApp() {
   html += '</div>'
     + '<div style="display:flex;align-items:center;justify-content:center;gap:12px">'
     + '<div class="hdr-kpi"><span class="hdr-kpi-label">Scrum </span><span style="color:' + scrumCol + '">' + scrumPct + '%</span></div>'
-    + '<div class="hdr-kpi"><span class="hdr-kpi-label">Line </span><span style="color:' + lineCol + '">' + linePct + '%</span></div>'
+    + '<div class="hdr-kpi"><span class="hdr-kpi-label">Line obt </span><span style="color:' + lineObtCol + '">' + lm.pctObt + '%</span></div>'
+    + '<div class="hdr-kpi"><span class="hdr-kpi-label">Line cal </span><span style="color:' + lineCalCol + '">' + lm.pctCal + '%</span></div>'
     + '<button style="background:none;border:none;color:rgba(255,255,255,0.3);font-size:10px;cursor:pointer;margin-left:8px" onclick="resetPartido()">\u21BB Reset</button>'
     + '</div>'
     + '<button class="hdr-undo" onclick="undo()" title="Undo"' + (ultimoEvento ? '' : ' style="opacity:0.3"') + '>\u21A9</button>'
@@ -563,8 +597,7 @@ function renderObtencion() {
   var scrumTotal = s.ganados + s.perdidos;
   var scrumPct = scrumTotal > 0 ? Math.round(s.ganados / scrumTotal * 100) : 0;
   var l = stats.line;
-  var lineTotal = l.ganados + l.perdidos;
-  var linePct = lineTotal > 0 ? Math.round(l.ganados / lineTotal * 100) : 0;
+  var lm = lineMetrics();
   var sal = stats.salidas;
 
   var html = '';
@@ -580,15 +613,18 @@ function renderObtencion() {
     + makeBtn('scrum.penalFK', '\u26A0 PENAL/FK', 'tkr-btn-warn', s.penalFK)
     + '</div>';
 
-  // Line
-  html += '<div class="tkr-section-hdr" style="background:#2B4EA0">LINE-OUT<span>' + l.ganados + 'G \u00B7 ' + l.perdidos + 'P \u00B7 ' + linePct + '%</span></div>'
+  // Line \u2014 Tirados / Obtenidos / Calidad
+  html += '<div class="tkr-section-hdr" style="background:#2B4EA0">LINE-OUT<span>' + lm.tirados + ' tir \u00B7 ' + lm.pctObt + '% obt \u00B7 ' + lm.pctCal + '% cal</span></div>'
     + '<div class="grid2">'
-    + makeBtn('line.ganados', '\u2713 GANADO', 'tkr-btn-win', l.ganados)
-    + makeBtn('line.perdidos', '\u2717 PERDIDO', 'tkr-btn-loss', l.perdidos)
+    + makeBtn('line.calidad', '\u2713 CALIDAD', 'tkr-btn-win', l.calidad)
+    + makeBtn('line.obtenido', '\u2248 OBTENIDO SUCIO', 'tkr-btn-gold', l.obtenido)
     + '</div>'
-    + '<div class="grid3">'
-    + makeBtn('line.robados', '\uD83C\uDFC6 ROBADO', 'tkr-btn-info', l.robados)
-    + makeBtn('line.torcidas', '\u21A9 TORCIDA', 'tkr-btn-gold', l.torcidas)
+    + '<div class="grid2">'
+    + makeBtn('line.perdidos', '\u2717 PERDIDO', 'tkr-btn-loss', l.perdidos)
+    + makeBtn('line.robados', '\uD83C\uDFC6 ROBADO (al rival)', 'tkr-btn-info', l.robados)
+    + '</div>'
+    + '<div class="grid2">'
+    + makeBtn('line.torcidas', '\u21A9 TORCIDA', 'tkr-btn-warn', l.torcidas)
     + makeBtn('line.penalFK', '\u26A0 PENAL/FK', 'tkr-btn-warn', l.penalFK)
     + '</div>';
 
@@ -836,7 +872,7 @@ function makeBtn(path, label, cls, count) {
       if (s) {
         var saved = localStorage.getItem('tracker_partido_' + sem);
         if (saved) {
-          try { stats = JSON.parse(saved); } catch(e) { stats = initStats(s); }
+          try { stats = migrateStats(JSON.parse(saved)); } catch(e) { stats = initStats(s); }
         } else {
           stats = initStats(s);
         }
